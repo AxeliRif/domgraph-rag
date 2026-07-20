@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+data/screenshots/*
+data/cache/*
+data/qa_dataset/
+data/lora_reader_adapter/
+!data/screenshots/.gitkeep
+!data/cache/.gitkeep
+*.egg-info/
+.DS_Store
+.pytest_cache/
+.claude/settings.local.json

@@ -1,0 +1,36 @@
+# --- Coeur du pipeline (Phase 1) ---
+playwright>=1.45
+pillow>=10.0
+networkx>=3.2
+matplotlib>=3.8
+
+# --- Notebook (playground) ---
+jupyter>=1.0
+ipykernel>=6.29
+pyvis>=0.3           # visualisation interactive du graphe (sections 4, 4b, 10)
+
+# --- Backend VLM recommandé pour démarrer : Ollama (léger, pas de torch requis) ---
+ollama>=0.3
+
+# --- Phase 3 — site de démo (webapp/) : formulaire question -> pipeline complet
+# -> réponse + graphe interactif. Le frontend (webapp/frontend/) est du JS
+# statique sans build step (cytoscape.js chargé depuis un CDN). ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# --- Phase 2 — génération QA + hard-negative mining (src/hard_negative_mining.py) ---
+# Léger (pas de GPU requis) : TF-IDF + similarité cosinus pour le mining.
+scikit-learn>=1.4
+
+# --- Backend "transformers" : nécessaire pour le fine-tuning LoRA en Phase 2
+# (src/lora_finetune.py). Installation plus lourde (~1 Go) ; tourne sur GPU
+# CUDA, MPS (Apple Silicon) ou CPU selon ce que torch détecte. ---
+torch>=2.3
+transformers>=4.45
+accelerate>=0.33
+qwen-vl-utils>=0.0.8
+peft>=0.12          # LoRA, pour la Phase 2 (entraînement contrastif)
+
+# --- Optionnel : quantization 4-bit, utile sur GPU CUDA < 16 Go de VRAM.
+# Pas de wheel officiel pour Apple Silicon (MPS) -> laisser commenté sur Mac. ---
+# bitsandbytes>=0.43

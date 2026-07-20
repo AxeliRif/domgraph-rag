@@ -1,0 +1,144 @@
+\section{Method}
+\label{sec:method}
+
+Figure~\ref{fig:pipeline} gives an overview. A page is rendered once with a headless browser; its DOM geometry drives an adaptive tiling step (\S\ref{sec:tiling}); tiles are organized into a two-level graph, optionally spanning several hyperlinked pages (\S\ref{sec:graph}); a VLM reader is contrastively fine-tuned to score (question, tile) pairs (\S\ref{sec:contrastive}); and, at query time, an online controller walks the graph under a budget to decide which nodes the reader actually opens (\S\ref{sec:controller}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  block/.style={draw, rounded corners, align=center, minimum height=0.7cm, minimum width=2.5cm, font=\small},
+  arr/.style={-{Stealth[length=2mm]}, thick}
+]
+\node[block] (render) {Render page\\(Playwright, DOM removed)};
+\node[block, below=0.35cm of render] (tile) {DOM-guided tiling\\\& patching (\S\ref{sec:tiling})};
+\node[block, below=0.35cm of tile] (graph) {Multigranular graph\\(page/element, \S\ref{sec:graph})};
+\node[block, below=0.35cm of graph] (ctrl) {Evidence controller\\(budgeted, \S\ref{sec:controller})};
+\node[block, below=0.35cm of ctrl] (reader) {Contrastively fine-tuned\\VLM reader (\S\ref{sec:contrastive})};
+\draw[arr] (render) -- (tile);
+\draw[arr] (tile) -- (graph);
+\draw[arr] (graph) -- (ctrl);
+\draw[arr] (ctrl) -- (reader);
+\end{tikzpicture}
+\caption{Pipeline overview. Rendering and tiling happen once per page; the evidence controller runs once per query, deciding which graph nodes the reader opens.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{DOM-Guided Adaptive Tiling}
+\label{sec:tiling}
+
+\paragraph{Rendering.} We load the page in headless Chromium at a fixed viewport width (2048\,px) and remove interface chrome before capture -- navigation bars, footers, headers, site notices, and Wikipedia-specific furniture (\code{.navbox}, \code{.mw-editsection}, \ldots) -- via a fixed CSS selector list, then take a full-page screenshot. This mirrors PixelRAG's rationale for stripping non-content chrome before tiling, but the removal happens in the live DOM rather than post-hoc on pixels.
+
+\paragraph{Element extraction.} For a configurable set of tags (headings \code{h1}--\code{h4}, \code{p}, \code{table}, \code{figure}, \code{img}, \code{ul}/\code{ol}, \code{blockquote}, \code{pre}), we read each matching element's absolute bounding box (\code{getBoundingClientRect}, offset by scroll position) directly from the rendered DOM -- the exact geometry the layout engine already computed, with no separate layout-analysis model needed. Hyperlinks are additionally collected from \code{<p>} elements only (never from tables or reference lists), each resolved to an absolute URL; these seed the cross-page edges of \S\ref{sec:graph}.
+
+\paragraph{Adaptive tiling and patching.} Elements are processed in top-to-bottom order and turned into image crops of the full-page screenshot under three rules, so that tile boundaries follow content boundaries rather than a fixed pixel pitch:
+\begin{itemize}
+\item \textbf{Heading pairing.} A heading element is never emitted as a standalone tile -- alone, it carries no answerable content. It is held pending and merged with the very next element into a single tile spanning their union bounding box (e.g.\ a tile tagged \code{h2+p} for a section header immediately followed by its first paragraph).
+\item \textbf{Merging (undersized elements).} Non-heading elements shorter than a minimum height (80\,px) are buffered and their union bounding box accumulated until the buffered span reaches that minimum, at which point the buffer is flushed as one \code{merged} tile. This avoids emitting a flood of near-empty micro-tiles for, e.g., short list items.
+\item \textbf{Patching (oversized elements).} An element taller than a maximum tile height (2048\,px, matching the render width) is sliced into $\lceil h / h_{\max}\rceil$ vertical sub-tiles of equal height, so a very tall table or figure still yields tiles a VLM can read at native resolution rather than one enormous, aliased crop.
+\end{itemize}
+Each tile retains a pointer back to its source DOM element(s) (tag, concatenated text preview, and any collected hyperlinks), used both for the graph's text attributes (\S\ref{sec:graph}) and, later, as ground truth for judging whether a mined negative tile accidentally contains the answer (\S\ref{sec:contrastive}).
+
+This directly targets PixelRAG's failure mode: a table that would straddle two fixed-height grid cells is instead emitted as one tile (or patched into content-aligned sub-tiles if it is unusually tall), and a short caption is merged with its neighbor rather than left as an orphan sliver.
+
+\subsection{Multigranular Graph Construction}
+\label{sec:graph}
+
+Following MAGE-RAG, tiles are organized into a two-level directed graph with one \code{page} node and one \code{element} node per tile, rather than a flat list of retrieval units. We currently instantiate three of MAGE-RAG's five relation types:
+\begin{itemize}
+\item \textbf{\code{contains}} ($\mathrm{page} \to \mathrm{element}$): every element belongs to its page.
+\item \textbf{\code{reading\_order}} ($\mathrm{element}_i \to \mathrm{element}_{i+1}$): a spatial reading-order heuristic, \emph{not} raw DOM order. Elements are grouped into visual rows by vertical-overlap tolerance (20\,px), each row is sorted left-to-right, and rows are concatenated top-to-bottom. This matters because DOM order and visual order diverge for CSS-positioned layouts (e.g.\ a sidebar infobox that appears after the lead paragraph in the DOM but is rendered beside it).
+\item \textbf{\code{links\_to}} ($\mathrm{element} \to \mathrm{external\_page}$): hyperlinks collected from the first $k{=}3$ text tiles (in reading order) that carry any -- typically the lead section -- are kept as edges to placeholder external-page nodes; links beyond that budget are dropped to bound the branching factor of the corpus crawl below.
+\end{itemize}
+Every element node is initialized with a \code{state} attribute set to \state{inactive}; this is the state the online controller of \S\ref{sec:controller} evolves at query time. It is set once, at construction time, and is otherwise inert during graph building.
+
+\paragraph{Corpus graph.} A single page's graph can be extended into a small multi-document corpus: starting from a seed page, we crawl up to $m$ pages reachable via its \code{links\_to} edges (one hop, non-recursive, to keep the crawl from exploding combinatorially), build each linked page's own two-level graph independently, and merge them by namespacing every node with a slug derived from its page URL before composing the graphs -- rewiring each seed-page placeholder external-page node onto the now-crawled page's real \code{page} node. The result is a single graph spanning several pages, with \code{links\_to} edges as the only cross-page connective tissue; this is the substrate the evidence controller (\S\ref{sec:controller}) and, eventually, a multi-page-aware retriever would operate over.
+
+\paragraph{Structured rendering.} For any (sub-)graph, we serialize the page node and its directly contained elements to XML -- one \code{<element id="..." tag="..." state="...">text</element>} per node -- as the structured multimodal input handed to the reader, in the same spirit as MAGE-RAG's structured-rendering step. Figure~\ref{fig:xml} shows an excerpt after the controller of \S\ref{sec:controller} has run.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\footnotesize]
+\node[draw, rectangle, fill=gray!8, align=left, text width=0.46\textwidth, inner sep=6pt] (xml) {
+\ttfamily
+<page url="..." title="..."> \\
+\ \ <element id="tile\_0000" tag="merged"\\
+\ \ \ \ \ \ \ \ \ \ state="\textcolor{gray}{inactive}">...</element> \\
+\ \ <element id="tile\_0003" tag="p"\\
+\ \ \ \ \ \ \ \ \ \ state="\textcolor{teal!70!black}{opened}">Gunn was born\\
+\ \ \ \ on October 11, 1903...</element> \\
+\ \ <element id="tile\_0004" tag="h2+p"\\
+\ \ \ \ \ \ \ \ \ \ state="\textcolor{gray}{inactive}">...</element> \\
+\ \ ...\\
+</page>
+};
+\end{tikzpicture}
+\caption{Excerpt of the XML rendering of a page graph after the evidence controller has run on the query ``When and where was George Purnell Gunn born?''. Only the paragraph tile carrying the birth date/place has been opened; the rest remains inactive or pruned.}
+\label{fig:xml}
+\end{figure}
+
+\subsection{Contrastive Reader Fine-Tuning}
+\label{sec:contrastive}
+
+To turn a general-purpose VLM into a tile-level reader that can also score how well a tile answers a query, we fine-tune it contrastively on synthetically generated data, in three stages.
+
+\paragraph{Synthetic QA generation.} For every tile, we prompt the VLM with the tile image alone and ask it to produce one self-contained, factual question whose answer is visible \emph{only} in that tile (a date, a name, a number, a caption -- not a vague ``what is this image about?''), or to answer \code{SKIP} if the tile carries no exploitable content (e.g.\ purely decorative). This follows the recipe of synthetic query generation for retriever training (e.g.\ InPars, Promptagator~\citep{inpars2022,promptagator2022}), applied here to image tiles instead of text passages. Every tile crop is persisted to disk regardless of whether it yielded a question, so that tiles which failed to produce a usable QA pair remain available as candidate hard negatives in the next stage.
+
+\paragraph{Hard-negative mining.} For each generated question, we rank every other tile from the \emph{same page} by TF-IDF cosine similarity between the question and the tile's text preview, then keep the top $n{=}2$ that (a) are not the positive tile and (b) do not already contain the answer string verbatim (to avoid manufacturing false negatives -- e.g.\ a summary tile that happens to repeat a figure from the body). These lexically-close-but-non-answering tiles are cheaper to obtain than a learned hard-negative miner and, unlike randomly sampled negatives, are not already trivially distinguishable from the positive, which is what makes them useful contrastive signal.
+
+\paragraph{Contrastive LoRA fine-tuning.} \code{Qwen2-VL} is a generative, text-to-text model, not a similarity encoder. We turn it into one by prompting it with a short, fixed instruction (``summarize the above in one word'') after either the question text or a tile image, and taking the last-token hidden state of the final layer as that input's embedding -- a technique reported in recent work on repurposing generative VLMs as universal encoders\todo{confirm and cite the exact reference before the final version}. We LoRA-adapt ($r{=}16$, $\alpha{=}32$, dropout $0.05$) both the language decoder's attention projections and the vision tower's projections, rather than the decoder alone, since the task requires jointly refining what the model attends to \emph{in the image} and how it interprets \emph{the question}. Given a batch of $B$ questions, each with one positive tile and $K$ mined hard negatives, we compute normalized question and tile embeddings and minimize a temperature-scaled ($\tau{=}0.05$) InfoNCE loss with cross-entropy over the $B(1{+}K)$ tiles in the batch -- so each question's positive competes against its own mined negatives \emph{and}, in batch, against every other question's positive and negatives.
+
+\subsection{Online Evidence Controller}
+\label{sec:controller}
+
+Given a query, the controller of \S\ref{sec:graph} decides which element nodes the reader actually reads, rather than handing it the whole page (or a static top-$k$ tile list). It evolves each element node's \code{state} through the four-state machine of Figure~\ref{fig:states}, generalizing MAGE-RAG's Algorithm~1 to graphs built as in \S\ref{sec:graph}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=1.1cm and 1.6cm,
+  st/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.65cm, align=center, font=\small},
+  arr/.style={-{Stealth[length=2mm]}, thick}
+]
+\node[st] (inactive) {\state{inactive}};
+\node[st, right=of inactive] (active) {\state{active}};
+\node[st, above right=0.5cm and 1.5cm of active] (opened) {\state{opened}};
+\node[st, below right=0.5cm and 1.5cm of active] (pruned) {\state{pruned}};
+\draw[arr] (inactive) -- node[above, font=\scriptsize]{activate} (active);
+\draw[arr] (active) -- node[above, sloped, font=\scriptsize]{open (budget --1)} (opened);
+\draw[arr] (active) -- node[below, sloped, font=\scriptsize]{prune (free)} (pruned);
+\end{tikzpicture}
+\caption{The controller's state machine. Opening a node consumes one unit of the action budget and may activate unexplored \code{reading\_order} neighbors; pruning is free and also applied to any node still \state{active} once the budget is exhausted.}
+\label{fig:states}
+\end{figure}
+
+\paragraph{Relevance scoring.} Every element node is scored against the query by TF-IDF cosine similarity between the query and the node's text (the same lightweight, dependency-light mechanism as hard-negative mining, \S\ref{sec:contrastive}, with a pure-Python token-overlap fallback if \code{scikit-learn} is unavailable). This is a deliberate placeholder: the natural upgrade, once the reader of \S\ref{sec:contrastive} is fine-tuned, is to score nodes with its learned question--tile similarity instead of a lexical proxy (\S\ref{sec:limitations}).
+
+\paragraph{Policy.} Algorithm~\ref{alg:controller} summarizes the loop. It (1) seeds the frontier by activating the $k$ highest-scoring inactive nodes; (2) repeatedly takes the highest-scoring \emph{active} node -- pruning it for free if its score is below an opening threshold, otherwise opening it (consuming one unit of the budget $B$) and, only then, activating any of its still-inactive \code{reading\_order} neighbors whose own score clears an activation threshold; and (3) once the budget is exhausted or no active node remains, prunes whatever is still \state{active}, so that no node is left in a transient state. Because opening a node's neighbors are only considered \emph{after} that node has actually been opened, the frontier grows along reading order conditioned on what has already proven relevant, rather than being fixed once from a single global ranking pass -- this is what distinguishes the controller from static top-$k$ retrieval over the same relevance scores (an ablation we report in \S\ref{sec:experiments}).
+
+\begin{algorithm}[t]
+\caption{Budgeted best-first evidence control}
+\label{alg:controller}
+\begin{algorithmic}[1]
+\Require graph $G$, query $q$, budget $B$, seed count $k$, thresholds $\theta_{\text{open}}, \theta_{\text{act}}$
+\State score every element node by $\mathrm{sim}(q, \text{text}(n))$
+\State activate the $k$ highest-scoring inactive nodes \Comment{seed}
+\State $b \gets 0$
+\While{$b < B$ and some node is \state{active}}
+  \State $n \gets \arg\max$ score over \state{active} nodes
+  \If{$\mathrm{score}(n) < \theta_{\text{open}}$}
+    \State $n \gets$ \state{pruned} \Comment{free}
+  \Else
+    \State $n \gets$ \state{opened}; $b \gets b + 1$; record its text as evidence
+    \For{each inactive \code{reading\_order} neighbor $n'$ of $n$}
+      \If{$\mathrm{score}(n') \geq \theta_{\text{act}}$}
+        \State $n' \gets$ \state{active}
+      \EndIf
+    \EndFor
+  \EndIf
+\EndWhile
+\State prune every node still \state{active} \Comment{finalize}
+\State \Return concatenation of \state{opened} nodes' text, in reading order
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Output.} The concatenation of \state{opened} nodes' text, in reading order, is the final evidence passed to the downstream reader -- a small, prioritized subset of the page rather than the full document, with the controller's action log (one entry per state transition) available for inspection or visualization.

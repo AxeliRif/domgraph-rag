@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Exemple - Page de test DOM-Graph RAG</title>
+<style>
+  body { font-family: sans-serif; max-width: 875px; margin: 0; }
+  nav, footer { background: #eee; padding: 10px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border: 1px solid #999; padding: 4px 8px; }
+</style>
+</head>
+<body>
+
+  <nav>Menu de navigation (doit être retiré avant capture)</nav>
+
+  <h1>Retrieval-Augmented Generation (page d'exemple)</h1>
+
+  <p>La génération augmentée par récupération (RAG) est une technique combinant
+  un système de recherche d'information et un grand modèle de langage.</p>
+
+  <p>Elle permet de fournir au modèle un contexte externe pertinent au moment
+  de la requête, plutôt que de compter uniquement sur ses paramètres appris.</p>
+
+  <h2>Approches visuelles</h2>
+
+  <p>Certaines approches récentes, comme PixelRAG, proposent de conserver la
+  page web sous forme d'image plutôt que de la convertir en texte brut.</p>
+
+  <table>
+    <tr><th>Système</th><th>Granularité</th><th>Benchmark principal</th></tr>
+    <tr><td>Text RAG</td><td>Chunk de texte</td><td>NQ</td></tr>
+    <tr><td>PixelRAG</td><td>Tuile pixel (taille fixe)</td><td>SimpleQA</td></tr>
+    <tr><td>MAGE-RAG</td><td>Graphe multi-granulaire</td><td>LongDocURL</td></tr>
+  </table>
+
+  <h2>Limites connues</h2>
+
+  <p>Un découpage en tuiles de taille fixe peut couper un tableau ou un
+  paragraphe en deux, sans tenir compte de la structure réelle du contenu.</p>
+
+  <h3>Liste des problèmes identifiés</h3>
+
+  <ul>
+    <li>Parser loss : perte de structure 2D</li>
+    <li>Rank loss : mauvais classement du contenu pertinent</li>
+    <li>Reader loss : perte des alignements visuels</li>
+    <li>Découpage aveugle : pas de connexion sémantique entre tuiles</li>
+    <li>Compromis granularité vs bruit</li>
+    <li>Incapacité à gérer un nombre variable de pages pertinentes</li>
+    <li>Point 07 de la liste de test</li>
+    <li>Point 08 de la liste de test</li>
+    <li>Point 09 de la liste de test</li>
+    <li>Point 10 de la liste de test</li>
+    <li>Point 11 de la liste de test</li>
+    <li>Point 12 de la liste de test</li>
+    <li>Point 13 de la liste de test</li>
+    <li>Point 14 de la liste de test</li>
+    <li>Point 15 de la liste de test</li>
+    <li>Point 16 de la liste de test</li>
+    <li>Point 17 de la liste de test</li>
+    <li>Point 18 de la liste de test</li>
+    <li>Point 19 de la liste de test</li>
+    <li>Point 20 de la liste de test</li>
+    <li>Point 21 de la liste de test</li>
+    <li>Point 22 de la liste de test</li>
+    <li>Point 23 de la liste de test</li>
+    <li>Point 24 de la liste de test</li>
+    <li>Point 25 de la liste de test</li>
+    <li>Point 26 de la liste de test</li>
+    <li>Point 27 de la liste de test</li>
+    <li>Point 28 de la liste de test</li>
+    <li>Point 29 de la liste de test</li>
+    <li>Point 30 de la liste de test</li>
+    <li>Point 31 de la liste de test</li>
+    <li>Point 32 de la liste de test</li>
+    <li>Point 33 de la liste de test</li>
+    <li>Point 34 de la liste de test</li>
+    <li>Point 35 de la liste de test</li>
+    <li>Point 36 de la liste de test</li>
+    <li>Point 37 de la liste de test</li>
+    <li>Point 38 de la liste de test</li>
+    <li>Point 39 de la liste de test</li>
+    <li>Point 40 de la liste de test</li>
+    <li>Point 41 de la liste de test</li>
+    <li>Point 42 de la liste de test</li>
+    <li>Point 43 de la liste de test</li>
+    <li>Point 44 de la liste de test</li>
+    <li>Point 45 de la liste de test</li>
+    <li>Point 46 de la liste de test</li>
+    <li>Point 47 de la liste de test</li>
+    <li>Point 48 de la liste de test</li>
+    <li>Point 49 de la liste de test</li>
+    <li>Point 50 de la liste de test</li>
+    <li>Point 51 de la liste de test</li>
+    <li>Point 52 de la liste de test</li>
+    <li>Point 53 de la liste de test</li>
+    <li>Point 54 de la liste de test</li>
+    <li>Point 55 de la liste de test</li>
+    <li>Point 56 de la liste de test</li>
+    <li>Point 57 de la liste de test</li>
+    <li>Point 58 de la liste de test</li>
+    <li>Point 59 de la liste de test</li>
+    <li>Point 60 de la liste de test</li>
+    <li>Point 61 de la liste de test</li>
+    <li>Point 62 de la liste de test</li>
+    <li>Point 63 de la liste de test</li>
+    <li>Point 64 de la liste de test</li>
+    <li>Point 65 de la liste de test, volontairement longue pour que la liste entière dépasse la hauteur max d'une tuile et déclenche le patching</li>
+  </ul>
+
+  <h2>Illustration</h2>
+
+  <p>Voici un schéma illustratif (image factice pour le test) :</p>
+  <img src="does-not-exist.png" width="300" height="200" alt="Schéma factice">
+
+  <p>Fin de l'article d'exemple.</p>
+
+  <footer>Pied de page (doit être retiré avant capture)</footer>
+
+</body>
+</html>

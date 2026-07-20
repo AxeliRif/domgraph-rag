@@ -1,0 +1,58 @@
+\documentclass[10pt,twocolumn]{article}
+
+% --- Layout: lightweight, self-contained ML-conference-style two-column article.
+% No proprietary venue .cls is used, so this compiles anywhere with a standard
+% TeX install; swap in a specific venue style file later if needed.
+\usepackage[letterpaper,margin=0.75in,columnsep=0.25in]{geometry}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=2pt}
+
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand{\state}[1]{\textsc{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\twocolumn[
+  \begin{center}
+    {\LARGE \bfseries DOM-Graph RAG: DOM-Guided Adaptive Tiling and Budgeted\\
+    Online Evidence Control for Multimodal Web-Page RAG \par}
+    \vspace{0.8em}
+    {\large Alexis Firome \par}
+    {\small \texttt{alexis.firome@gmail.com} \par}
+    \vspace{1em}
+  \end{center}
+  \begin{abstract}
+  \input{sections/abstract}
+  \end{abstract}
+  \vspace{1.5em}
+]
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/implementation}
+\input{sections/experiments}
+\input{sections/limitations}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

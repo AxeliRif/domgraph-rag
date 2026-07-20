@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DOM-Graph RAG — démo</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>DOM-Graph RAG</h1>
+    <p class="subtitle">
+      Pose une question sur une page Wikipédia : le contrôleur d'évidence explore le graphe
+      (mise en page, ordre de lecture, hiérarchie de sections, liens sortants) pour construire
+      une réponse — et te montre les pages Wikipédia liées qui pourraient en dire plus.
+    </p>
+  </header>
+
+  <form id="ask-form" class="ask-form">
+    <div class="field">
+      <label for="url-input">URL Wikipédia</label>
+      <input id="url-input" name="url" type="url" placeholder="https://fr.wikipedia.org/wiki/..." required />
+    </div>
+    <div class="field">
+      <label for="question-input">Question</label>
+      <input id="question-input" name="question" type="text" placeholder="Qu'est-ce que...?" required />
+    </div>
+    <button id="submit-btn" type="submit">Interroger la page</button>
+  </form>
+
+  <div id="status-banner" class="status-banner" hidden></div>
+
+  <main id="results" class="results" hidden>
+    <section class="answer-card">
+      <h2>Réponse</h2>
+      <p id="answer-text"></p>
+      <p class="answer-meta">Page interrogée : <a id="page-url-link" href="#" target="_blank" rel="noopener"></a></p>
+    </section>
+
+    <div class="workspace">
+      <section class="graph-panel">
+        <div class="graph-panel-header">
+          <h2>Graphe de la page</h2>
+          <div id="relation-toggles" class="relation-toggles"></div>
+        </div>
+        <div id="cy" class="cy-container"></div>
+        <div id="graph-legend" class="graph-legend"></div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="node-detail">
+          <h2>Détail</h2>
+          <div id="node-detail-body" class="node-detail-body">
+            <p class="placeholder">Survole ou clique un noeud du graphe pour voir son contenu.</p>
+          </div>
+        </section>
+
+        <section class="external-links">
+          <h2>Pages Wikipédia liées</h2>
+          <p class="hint">Les liens portés par une tuile utilisée comme évidence apparaissent en premier.</p>
+          <ul id="external-links-list" class="external-links-list"></ul>
+        </section>
+      </aside>
+    </div>
+
+    <details class="controller-log">
+      <summary>Journal du contrôleur d'évidence</summary>
+      <table id="log-table" class="log-table">
+        <thead>
+          <tr><th>#</th><th>Action</th><th>Noeud</th><th>Score</th><th>État</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </details>
+  </main>
+
+  <div id="tooltip" class="graph-tooltip" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

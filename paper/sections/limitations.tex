@@ -1,0 +1,12 @@
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{Relation coverage.} Our graph currently instantiates three relation types (\code{contains}, \code{reading\_order}, \code{links\_to}) against MAGE-RAG's five; we are missing \emph{layout adjacency} and \emph{section hierarchy} edges (both derivable from DOM geometry and heading structure without new dependencies) and \emph{semantic-neighbor} edges (which require an embedding model -- naturally, the fine-tuned reader of \S\ref{sec:contrastive} once available).
+
+\paragraph{Nested-element overlap.} Elements that nest in the DOM (e.g.\ an \code{<img>} inside a \code{<figure>}, a \code{<p>} inside a cell of a \code{<table>}) are extracted independently and can therefore produce overlapping tiles; we do not yet deduplicate an element whose bounding box is already contained in a parent element's tile.
+
+\paragraph{Lexical relevance scoring in the controller.} The evidence controller (\S\ref{sec:controller}) scores nodes with TF-IDF cosine similarity rather than a learned embedder, so its notion of relevance is purely lexical and will miss paraphrases or cross-modal cues that only the (image-reading) contrastively fine-tuned reader would catch. Wiring the reader's own question--tile similarity into the scoring step is the natural next iteration, and would also let the controller reuse a single learned notion of relevance across mining (\S\ref{sec:contrastive}) and control (\S\ref{sec:controller}) instead of two different mechanisms.
+
+\paragraph{Single-page scope for mining and (mostly) for control.} Hard-negative mining operates within one page at a time, since tile identifiers are unique only at page scope; mining negatives \emph{across} the pages of a corpus graph (\S\ref{sec:graph}) is a natural extension that would require reusing the same slug-prefixing scheme used to merge per-page graphs. The evidence controller itself already operates over whatever graph it is given, including a multi-page corpus graph, but we have not yet evaluated it at that scale, nor extended its neighbor-propagation step to cross the \code{links\_to} relation into newly-activated pages.
+
+\paragraph{Shallow, non-recursive crawl.} The corpus graph follows hyperlinks one hop deep from a seed page, bounded to a handful of linked pages, to avoid the combinatorial blow-up of a recursive web crawl; this is sufficient to exercise cross-page graph structure but is far short of the scale a genuinely multi-document retrieval setting would require.

@@ -1,0 +1,27 @@
+\section{Evaluation Protocol and Status}
+\label{sec:experiments}
+
+\begin{quote}
+\small\textit{This section describes the intended evaluation and reports its current status honestly: the pipeline of \S\ref{sec:method} is implemented and exercised end-to-end (rendering through evidence control, on live pages), but we have not yet run the full benchmark suite below. We report this as work in progress rather than fill the section with numbers ahead of the actual runs.}
+\end{quote}
+
+\paragraph{Benchmarks.} We plan to evaluate on the same long-document, multimodal QA benchmarks used by MAGE-RAG -- LongDocURL~\citep{longdocurl2024} and MMLongBench-Doc~\citep{mmlongbenchdoc2024} -- plus SimpleQA~\citep{simpleqa2024} as a short-form factuality sanity check that layers of graph pruning do not regress simple, single-fact questions. Table~\ref{tab:baselines} reproduces MAGE-RAG's published numbers on the first two benchmarks as the reference to match or beat; DOM-Graph RAG's own results on these benchmarks are pending (see status paragraph below), so no comparison row is filled in yet.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Benchmark & Metric & MAGE-RAG \\
+\midrule
+LongDocURL & Accuracy & 52.75 \\
+MMLongBench-Doc & Accuracy / F1 & 53.26 / 51.19 \\
+\bottomrule
+\end{tabular}
+\caption{Published baseline numbers from MAGE-RAG~\citep{magerag2026}, the reference our evidence controller (\S\ref{sec:controller}) generalizes. DOM-Graph RAG's results on the same benchmarks are ongoing work.}
+\label{tab:baselines}
+\end{table}
+
+\paragraph{Planned ablations.} Three ablations isolate each contribution of \S\ref{sec:method}: (a) \emph{tiling}: DOM-guided tiling vs.\ a blind fixed-height pixel grid over the same rendered pages, with the reader model held fixed, to isolate the effect of content-aligned tile boundaries; (b) \emph{evidence control}: the budgeted controller of \S\ref{sec:controller} vs.\ a static top-$k$ retrieval baseline using the same relevance scores, at matched budget/$k$, to isolate the effect of best-first frontier expansion over a fixed ranking; (c) \emph{contrastive fine-tuning}: the base VLM vs.\ the LoRA-fine-tuned reader of \S\ref{sec:contrastive}, to isolate the effect of tile-level contrastive adaptation.
+
+\paragraph{Status.} Phases 1--3 of \S\ref{sec:method} (rendering, tiling, graph construction and export, contrastive fine-tuning pipeline, and evidence controller) are implemented, unit- and smoke-tested, and demonstrated end-to-end on live Wikipedia pages (\S\ref{sec:implementation}). Running the benchmarks above and the ablations requires compute and time beyond the scope of this draft; we will complete this section, with full results tables, in a subsequent revision.
