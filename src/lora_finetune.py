@@ -42,6 +42,7 @@ from .config import (
     LORA_TARGET_SUFFIXES_LLM,
     LORA_TARGET_SUFFIXES_VIT,
     N_HARD_NEGATIVES,
+    QA_DATASET_DIR,
 )
 
 # Prompt court partagé par les deux modalités : la même consigne est appliquée
@@ -168,6 +169,13 @@ class TrainConfig:
     n_negatives: int = N_HARD_NEGATIVES
     output_dir: str = str(LORA_OUTPUT_DIR)
     checkpoint_every: int = 1
+    # Racine des images de tuiles : pointer vers data/qa_dataset_compressed
+    # (cf. scripts/compress_dataset_images.py) plutôt que data/qa_dataset pour
+    # entraîner sur des tuiles compressées -- même tiles_manifest.jsonl et
+    # contrastive_examples.jsonl des deux côtés (chemins relatifs identiques,
+    # cf. image_compression.py), ce qui rend la comparaison pleine résolution
+    # vs compressée une simple bascule de ce chemin.
+    images_root: str = str(QA_DATASET_DIR)
 
 
 def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
@@ -181,7 +189,7 @@ def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
     from .contrastive_dataset import ContrastiveTileDataset, contrastive_collate_fn
 
     model, processor = load_reader_model()
-    dataset = ContrastiveTileDataset(n_negatives=train_config.n_negatives)
+    dataset = ContrastiveTileDataset(n_negatives=train_config.n_negatives, images_root=Path(train_config.images_root))
     if len(dataset) == 0:
         raise RuntimeError(
             "Dataset contrastif vide — lance d'abord qa_generation.generate_qa_dataset "
@@ -233,11 +241,19 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=TrainConfig.lr)
     parser.add_argument("--n-negatives", type=int, default=TrainConfig.n_negatives)
     parser.add_argument("--output-dir", type=str, default=TrainConfig.output_dir)
+    parser.add_argument(
+        "--images-root", type=str, default=TrainConfig.images_root,
+        help=(
+            "Racine des images de tuiles. Pointer vers data/qa_dataset_compressed "
+            "(cf. scripts/compress_dataset_images.py) pour entraîner sur des tuiles "
+            "compressées plutôt que pleine résolution."
+        ),
+    )
     args = parser.parse_args()
 
     train_lora(TrainConfig(
         epochs=args.epochs, batch_size=args.batch_size, lr=args.lr,
-        n_negatives=args.n_negatives, output_dir=args.output_dir,
+        n_negatives=args.n_negatives, output_dir=args.output_dir, images_root=args.images_root,
     ))
 
 

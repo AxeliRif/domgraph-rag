@@ -86,6 +86,20 @@ TILES_MANIFEST_PATH = QA_DATASET_DIR / "tiles_manifest.jsonl"
 QA_PAIRS_PATH = QA_DATASET_DIR / "qa_pairs.jsonl"
 CONTRASTIVE_EXAMPLES_PATH = QA_DATASET_DIR / "contrastive_examples.jsonl"
 
+# --- Ablation compression (cf. src/image_compression.py) -----------------
+# PixelRAG (arXiv:2606.28344) documente la résolution d'image comme un levier
+# d'efficacité ("up to 3x token cost reduction at lower resolutions while
+# maintaining accuracy") sans préciser le filtre de ré-échantillonnage ni les
+# résolutions testées (ni le papier ni le dépôt public ne le détaillent). On
+# retient Lanczos, le filtre de downscale haute qualité standard (défaut
+# recommandé par Pillow), et un dossier miroir de QA_DATASET_DIR aux images
+# compressées : tiles_manifest.jsonl et contrastive_examples.jsonl sont
+# réutilisés tels quels des deux côtés (les chemins relatifs qu'ils stockent
+# n'encodent pas la résolution), seul `images_root` change entre les deux
+# runs de comparaison.
+QA_DATASET_COMPRESSED_DIR = DATA_DIR / "qa_dataset_compressed"
+TILE_COMPRESSION_SCALE = 0.5  # facteur d'échelle linéaire ; 0.5 ≈ 4x moins de pixels
+
 # Prompt envoyé au VLM pour générer une paire question/réponse ancrée dans une
 # seule tuile (cf. qa_generation.py). On lui demande explicitement une
 # question dont la réponse n'est trouvable que dans l'image fournie, pour que
