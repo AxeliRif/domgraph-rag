@@ -167,6 +167,50 @@ def test_contrastive_dataset_round_trip(tmp_path):
     assert batch["positive_indices"] == [0]
 
 
+def test_generate_qa_dataset_runs_tiles_concurrently_but_preserves_output_order(tmp_path):
+    """La génération QA interroge maintenant les tuiles d'une page en
+    parallèle (thread pool) plutôt qu'une par une (cf. vlm_client._cache_key
+    et le commentaire de generate_qa_dataset) -- ce test vérifie à la fois
+    que les appels se chevauchent réellement dans le temps, et que
+    qa_pairs.jsonl / la liste retournée restent dans l'ordre des tuiles en
+    entrée malgré l'exécution concurrente (garanti par ThreadPoolExecutor.map)."""
+    import json
+    import threading
+    import time
+
+    from src.qa_generation import generate_qa_dataset
+
+    concurrency = {"current": 0, "max": 0}
+    lock = threading.Lock()
+
+    class _ConcurrentClient:
+        def ask(self, image, question, think=None):
+            with lock:
+                concurrency["current"] += 1
+                concurrency["max"] = max(concurrency["max"], concurrency["current"])
+            time.sleep(0.05)  # simule la latence réseau -> laisse d'autres threads se chevaucher
+            with lock:
+                concurrency["current"] -= 1
+            for tile in TILES:
+                if image is tile.image:
+                    return json.dumps({"question": f"Question for {tile.id}?", "answer": tile.id})
+            raise AssertionError("image inconnue")
+
+    qa_pairs = generate_qa_dataset(
+        TILES, page_url="https://example.org/town", page_slug="testpage",
+        client=_ConcurrentClient(), output_dir=tmp_path,
+    )
+
+    assert concurrency["max"] >= 2  # au moins deux appels ont bien tourné en parallèle
+    # TILES[2] a un text_preview vide -> son image est jugée "SKIP" nulle part ici
+    # (le stub répond toujours un JSON valide), donc les 4 tuiles produisent une QAPair.
+    assert [qa.tile_id for qa in qa_pairs] == [tile.id for tile in TILES]
+
+    with (tmp_path / "qa_pairs.jsonl").open(encoding="utf-8") as f:
+        persisted = [json.loads(line)["tile_id"] for line in f]
+    assert persisted == [tile.id for tile in TILES]
+
+
 if __name__ == "__main__":
     import pytest
 

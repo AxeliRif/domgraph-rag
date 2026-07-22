@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -162,10 +163,24 @@ def generate_qa_dataset(
     page_slug: str,
     client: VLMClient | None = None,
     output_dir: Path = QA_DATASET_DIR,
+    max_workers: int = 4,
 ) -> list[QAPair]:
     """Pipeline complet Phase 2a pour une page : sauvegarde les crops de toutes
-    les tuiles, interroge le VLM tuile par tuile, persiste le résultat dans
+    les tuiles, interroge le VLM sur chaque tuile, persiste le résultat dans
     `qa_pairs.jsonl` (append) et retourne la liste des QAPair générées.
+
+    Les tuiles sont interrogées en parallèle (thread pool, `max_workers`
+    requêtes en vol) plutôt qu'une par une : chaque appel ne porte que sur sa
+    propre tuile, donc aucune coordination n'est nécessaire entre elles, et
+    Ollama sert nativement plusieurs requêtes concurrentes. `max_workers=4`
+    correspond au nombre de requêtes parallèles par défaut d'Ollama
+    (OLLAMA_NUM_PARALLEL) -- au-delà, les requêtes en surplus attendraient de
+    toute façon derrière les 4 premières côté serveur.
+
+    `ThreadPoolExecutor.map` renvoie les résultats dans l'ordre des tuiles en
+    entrée (même si elles terminent dans un ordre différent), donc
+    `qa_pairs.jsonl` reste écrit dans l'ordre de lecture des tuiles, comme en
+    séquentiel.
     """
     client = client or VLMClient()
     images_dir = output_dir / "images"
@@ -175,15 +190,18 @@ def generate_qa_dataset(
     image_paths = save_tile_images(tiles, page_slug, images_dir)
     append_tiles_manifest(tiles, page_url, page_slug, image_paths, manifest_path, images_root=output_dir)
 
+    def _generate(tile: Tile) -> QAPair | None:
+        return generate_qa_pair_for_tile(tile, client, page_url, page_slug, image_paths, images_root=output_dir)
+
     qa_pairs: list[QAPair] = []
     qa_pairs_path.parent.mkdir(parents=True, exist_ok=True)
     with qa_pairs_path.open("a", encoding="utf-8") as f:
-        for tile in tiles:
-            qa = generate_qa_pair_for_tile(tile, client, page_url, page_slug, image_paths, images_root=output_dir)
-            if qa is None:
-                continue
-            qa_pairs.append(qa)
-            f.write(json.dumps(asdict(qa), ensure_ascii=False) + "\n")
+        with ThreadPoolExecutor(max_workers=max(1, min(max_workers, len(tiles)))) as executor:
+            for qa in executor.map(_generate, tiles):
+                if qa is None:
+                    continue
+                qa_pairs.append(qa)
+                f.write(json.dumps(asdict(qa), ensure_ascii=False) + "\n")
 
     return qa_pairs
 

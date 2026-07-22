@@ -33,6 +33,11 @@ Boucle best-first sous budget :
   3. Une fois le budget épuisé (ou plus aucun noeud actif), les noeuds encore
      "active" sont élagués : aucun noeud élément ne doit rester dans un état
      transitoire à la fin.
+  4. Si `use_vlm`, les tuiles "opened" sont relues par le VLM pour peupler
+     leur évidence -- en parallèle (cf. `_fill_vlm_evidence`), puisque quel
+     noeud est ouvert ne dépend jamais du contenu lu par le VLM (seulement des
+     scores figés en amont), ces lectures sont donc indépendantes les unes
+     des autres.
 
 La pertinence est mesurée par TF-IDF + cosinus (même approche que
 `hard_negative_mining.py` pour le mining de négatifs, avec le même repli sans
@@ -44,6 +49,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
 import networkx as nx
@@ -65,6 +71,7 @@ class EvidenceControllerConfig:
     open_threshold: float = 0.05       # score minimal pour ouvrir un noeud actif plutôt que l'élaguer
     activate_threshold: float = 0.05   # score minimal pour qu'un voisin inactif devienne actif
     use_vlm: bool = False              # si True, interroge le VLM sur chaque tuile ouverte (sinon réutilise text_preview)
+    max_concurrent_vlm_calls: int = 4  # requêtes VLM en vol en parallèle (cf. _fill_vlm_evidence) ; 4 = défaut Ollama (OLLAMA_NUM_PARALLEL)
 
 
 @dataclass
@@ -157,13 +164,14 @@ def run_evidence_controller(
         log.append(ControllerAction(step, node_id, "seed", scores.get(node_id, 0.0), before, "active"))
         step += 1
 
-    vlm_client = None
-    if config.use_vlm:
-        from .vlm_client import VLMClient
-
-        vlm_client = VLMClient()
-
-    # 2. Boucle best-first sous budget.
+    # 2. Boucle best-first sous budget. Quel noeud est ouvert ne dépend que de
+    # `scores`, figé une fois pour toutes ci-dessus -- jamais du contenu lu par
+    # le VLM, qui ne sert qu'à peupler `evidence` a posteriori. On peut donc
+    # dérouler toute la simulation d'états sans appeler le VLM, et ne lire les
+    # tuiles ouvertes qu'une fois cette liste connue (étape 4) : ces lectures
+    # sont indépendantes les unes des autres et peuvent donc être lancées en
+    # parallèle plutôt qu'une par une.
+    opened_node_ids: list[str] = []
     budget_used = 0
     while budget_used < config.budget:
         active_ids = [n for n in element_ids if graph.nodes[n]["state"] == "active"]
@@ -179,22 +187,12 @@ def run_evidence_controller(
             step += 1
             continue
 
-        evidence = graph.nodes[node_id].get("text_preview", "")
-        if vlm_client is not None and node_id in tiles_by_id:
-            try:
-                prompt = (
-                    f"Question : {query}\n"
-                    "Extrait uniquement les informations de cette image utiles pour y répondre."
-                )
-                evidence = vlm_client.ask(tiles_by_id[node_id].image, prompt)
-            except Exception:
-                pass  # VLM indisponible -> on garde le text_preview comme évidence
-
         graph.nodes[node_id]["state"] = "opened"
-        graph.nodes[node_id]["evidence"] = evidence
+        graph.nodes[node_id]["evidence"] = graph.nodes[node_id].get("text_preview", "")
         log.append(ControllerAction(step, node_id, "open", score, "active", "opened"))
         step += 1
         budget_used += 1
+        opened_node_ids.append(node_id)
 
         for neighbor_id in _reading_order_neighbors(graph, node_id):
             if graph.nodes[neighbor_id].get("type") != "element":
@@ -215,7 +213,50 @@ def run_evidence_controller(
             log.append(ControllerAction(step, node_id, "prune", scores.get(node_id, 0.0), "active", "pruned"))
             step += 1
 
+    # 4. Lecture VLM des tuiles ouvertes (remplace le text_preview posé en
+    # étape 2 par une évidence extraite par le VLM), en parallèle.
+    if config.use_vlm:
+        _fill_vlm_evidence(graph, tiles_by_id, opened_node_ids, query, config.max_concurrent_vlm_calls)
+
     return log
+
+
+def _fill_vlm_evidence(
+    graph: nx.MultiDiGraph,
+    tiles_by_id: dict[str, Tile],
+    node_ids: list[str],
+    query: str,
+    max_workers: int,
+) -> None:
+    """Interroge le VLM sur chaque tuile de `node_ids` (déjà "opened"), en
+    parallèle (thread pool) plutôt qu'une par une : ces lectures sont
+    indépendantes (une image, un prompt fixe chacune), et Ollama sert
+    nativement plusieurs requêtes concurrentes (OLLAMA_NUM_PARALLEL). Un seul
+    VLMClient est réutilisé entre threads -- chaque appel est une requête HTTP
+    indépendante, il n'y a pas d'état mutable partagé à protéger côté backend
+    Ollama."""
+    candidates = [n for n in node_ids if n in tiles_by_id]
+    if not candidates:
+        return
+
+    from .vlm_client import VLMClient
+
+    vlm_client = VLMClient()
+    prompt = (
+        f"Question : {query}\n"
+        "Extrait uniquement les informations de cette image utiles pour y répondre."
+    )
+
+    def _read_tile(node_id: str) -> tuple[str, str | None]:
+        try:
+            return node_id, vlm_client.ask(tiles_by_id[node_id].image, prompt)
+        except Exception:
+            return node_id, None  # VLM indisponible -> on garde le text_preview déjà en place
+
+    with ThreadPoolExecutor(max_workers=min(max_workers, len(candidates))) as executor:
+        for node_id, evidence in executor.map(_read_tile, candidates):
+            if evidence is not None:
+                graph.nodes[node_id]["evidence"] = evidence
 
 
 def collect_evidence(graph: nx.MultiDiGraph) -> str:
