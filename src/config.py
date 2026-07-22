@@ -1,10 +1,11 @@
 """
 Configuration centrale du pipeline DOM-Graph RAG.
 
-Les constantes de rendu (largeur 875px, hauteur max de tuile 1024px) reprennent
-volontairement le format de PixelRAG (arXiv:2606.28344) pour rester dans le même
-espace de coordonnées — utile si tu veux comparer tes tuiles "guidées par le DOM"
-à celles, en grille aveugle, de PixelRAG.
+Note sur les constantes de rendu : une version antérieure visait 875px de large
+(le format de PixelRAG, arXiv:2606.28344) pour rester dans le même espace de
+coordonnées. La valeur a depuis été portée à 2048px (viewport = hauteur max de
+tuile, cf. method.tex, §Rendering/Patching) pour lire les tuiles à résolution
+native ; le paper documente cette valeur de 2048px, pas 875px.
 """
 from pathlib import Path
 
@@ -12,6 +13,16 @@ from pathlib import Path
 RENDER_WIDTH = 2048        # largeur du viewport Playwright, en pixels
 MAX_TILE_HEIGHT = 2048    # hauteur max d'une tuile avant découpe forcée ("patching")
 MIN_TILE_HEIGHT = 80        # en dessous, l'élément est fusionné avec ses voisins verticaux
+
+# Hauteur de page (px) au-delà de laquelle une page est découpée en sections
+# (cf. sectioning.py) plutôt que tuilée d'un bloc : une page démesurément
+# longue (ex. un article Wikipedia à la discographie interminable, capture
+# ~46 000px pour "The Beatles") peut sinon produire des dizaines de tuiles
+# dont le traitement séquentiel (génération QA VLM) prend des heures d'un
+# bloc, sans possibilité de reprise partielle en cas d'échec en cours de
+# route. Fixé à 10x MAX_TILE_HEIGHT : une page "normale" (quelques tuiles)
+# n'est jamais découpée, seules les pages franchement démesurées le sont.
+MAX_PAGE_HEIGHT_BEFORE_SPLIT = 10 * MAX_TILE_HEIGHT
 
 # --- Sélecteurs retirés avant capture (bruit d'interface, cf. slide "Rendu et découpage") ---
 NOISE_SELECTORS = [
@@ -49,6 +60,16 @@ VLM_BACKEND = "ollama"
 OLLAMA_MODEL = "qwen3-vl"                    # ollama pull qwen3-vl
 HF_MODEL = "Qwen/Qwen2-VL-7B-Instruct"       # cf. slide Phase 1a ; Qwen2.5-VL/Qwen3-VL sont des alternatives plus récentes
 
+# qwen3-vl raisonne en "thinking" avant de répondre, de façon très variable en
+# longueur (constaté : de ~1500 à ~2500+ tokens pour une simple extraction
+# factuelle sur une tuile). Avec le num_ctx par défaut d'Ollama (4096), un
+# raisonnement un peu long épuise la fenêtre de contexte avant que le modèle
+# n'émette sa réponse finale -> `content` vide, `done_reason == "length"`,
+# silencieusement traité comme SKIP par qa_generation._parse_qa_response.
+# On élargit donc la fenêtre par défaut (cf. vlm_client.VLMClient) plutôt que
+# de la laisser tronquer une réponse par ailleurs correcte.
+OLLAMA_NUM_CTX = 8192
+
 # --- Chemins ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -81,6 +102,20 @@ Sinon, réponds STRICTEMENT en JSON, sans texte autour, au format :
 
 # Nombre de négatifs difficiles minés par paire question/tuile positive.
 N_HARD_NEGATIVES = 2
+
+# Prompt du "juge" VLM optionnel du hard-negative mining (cf.
+# hard_negative_mining._is_judged_false_negative) : le filtre par sous-chaîne
+# ne détecte que les faux négatifs lexicaux (la réponse apparaît telle quelle
+# dans le texte extrait) et laisse passer les faux négatifs visuels ou
+# reformulés (un logo, une couleur dans un graphique, un synonyme). On montre
+# donc l'image candidate au VLM lui-même et on lui demande s'il peut y
+# retrouver la même information.
+FALSE_NEGATIVE_JUDGE_PROMPT = """Tu vois un fragment ("tuile") d'une capture d'écran de page web.
+
+Question : {question}
+Réponse attendue (trouvée dans une AUTRE tuile de la même page) : {answer}
+
+Cette image permet-elle, à elle seule, de retrouver cette même information -- même reformulée (synonyme), ou exprimée visuellement (couleur, logo, forme) plutôt que textuellement ? Réponds STRICTEMENT par un seul mot : OUI ou NON."""
 
 # --- Phase 2 — fine-tuning LoRA du VLM lecteur (ViT + LLM dégelés) --------
 LORA_R = 16

@@ -40,6 +40,36 @@ class Tile:
     links: list[Link] = field(default_factory=list, compare=False)  # agrégés depuis les <p> sources
 
 
+def _is_contained(inner: DOMElement, outer: DOMElement, tolerance: float = 1.0) -> bool:
+    """Vrai si la bounding box de `inner` est contenue dans celle de `outer`
+    (à `tolerance` pixels près, pour absorber les arrondis de rendu)."""
+    return (
+        inner.x >= outer.x - tolerance
+        and inner.y >= outer.y - tolerance
+        and inner.x + inner.width <= outer.x + outer.width + tolerance
+        and inner.y + inner.height <= outer.y + outer.height + tolerance
+    )
+
+
+def prune_nested_elements(elements: list[DOMElement]) -> list[DOMElement]:
+    """Élague les éléments dont la bounding box est entièrement contenue dans
+    celle d'un élément moins profond déjà retenu (ex. un <img> dans un
+    <figure>, un <p> dans une <table>) : la tuile du parent couvre déjà
+    visuellement l'enfant, qui ne ferait que dupliquer des tuiles/tokens
+    visuels pour le même contenu.
+
+    Traite les éléments du moins profond au plus profond (`depth` croissant),
+    en ne comparant chaque candidat qu'aux éléments déjà retenus — un enfant
+    n'est donc jamais comparé à un autre enfant potentiellement lui-même élagué.
+    """
+    kept: list[DOMElement] = []
+    for el in sorted(elements, key=lambda e: e.depth):
+        if any(_is_contained(el, other) for other in kept):
+            continue
+        kept.append(el)
+    return kept
+
+
 def build_tiles(
     elements: list[DOMElement],
     screenshot_bytes: bytes,
@@ -48,11 +78,12 @@ def build_tiles(
 ) -> list[Tile]:
     """Construit les tuiles à partir des éléments DOM et de la capture pleine page.
 
-    Note : les éléments imbriqués (ex. un <img> dans un <figure>, un <p> dans une
-    <table>) peuvent se chevaucher. C'est volontairement laissé simple pour cette
-    première version — une amélioration naturelle serait de dédupliquer les
-    éléments dont la bounding box est contenue dans celle d'un parent déjà retenu.
+    Les éléments imbriqués dont la bounding box est contenue dans celle d'un
+    parent retenu (ex. un <img> dans un <figure>, un <p> dans une <table>) sont
+    élagués via `prune_nested_elements` avant tuilage, pour ne pas payer deux
+    fois le budget de tuiles/tokens visuels sur le même contenu.
     """
+    elements = prune_nested_elements(elements)
     page_image = Image.open(io.BytesIO(screenshot_bytes)).convert("RGB")
     page_width, page_height = page_image.size
 

@@ -17,6 +17,16 @@ un premier round de fine-tuning fait — "hard negative mining itératif"), ou u
 embedder dédié comme celui de PixelRAG (`Qwen/Qwen3-VL-Embedding-2B`, cf.
 README) une fois disponible.
 
+Le filtre anti-faux-négatif reste, lui, en deux temps : un rejet par
+sous-chaîne (gratuit, mais purement lexical — ne détecte pas un synonyme, une
+couleur de graphique ou un logo qui donnerait la même réponse) suivi,
+optionnellement, d'un second filtre où le VLM lui-même "regarde" l'image
+candidate et juge s'il peut y retrouver la réponse (cf.
+`_is_judged_false_negative`) — passer un `vlm_client` à `mine_hard_negatives`
+active ce second filtre, plus coûteux (un appel VLM par candidat non écarté
+par le filtre lexical) mais capable d'attraper les faux négatifs non
+textuels.
+
 Limite volontaire : le mining se fait tuile par tuile *au sein d'une même
 page* (les `Tile.id` du type "tile_0000" ne sont uniques qu'à l'échelle d'une
 page, pas d'un corpus multi-pages — cf. corpus_builder.py qui les préfixe par
@@ -39,9 +49,10 @@ except ImportError:  # pragma: no cover - exercised in environments with broken 
     TfidfVectorizer = None
     cosine_similarity = None
 
-from .config import CONTRASTIVE_EXAMPLES_PATH, N_HARD_NEGATIVES
+from .config import CONTRASTIVE_EXAMPLES_PATH, FALSE_NEGATIVE_JUDGE_PROMPT, N_HARD_NEGATIVES
 from .qa_generation import QAPair
 from .tiling import Tile
+from .vlm_client import VLMClient
 
 
 @dataclass
@@ -86,10 +97,26 @@ def _fallback_cosine_similarities(question: str, texts: list[str]) -> list[float
     return similarities
 
 
+def _is_judged_false_negative(vlm_client: VLMClient, tile: Tile, question: str, answer: str) -> bool:
+    """Montre l'image de `tile` au VLM et lui demande s'il peut y retrouver
+    `answer` -- attrape les faux négatifs que le filtre par sous-chaîne rate
+    (réponse reformulée, portée par un visuel plutôt que par du texte : logo,
+    couleur, forme). Toute erreur (VLM indisponible, etc.) vaut "pas un faux
+    négatif" : le candidat reste éligible plutôt que d'être écarté au premier
+    accroc du VLM."""
+    try:
+        prompt = FALSE_NEGATIVE_JUDGE_PROMPT.format(question=question, answer=answer)
+        response = vlm_client.ask(tile.image, prompt, think=False)
+    except Exception:
+        return False
+    return response.strip().upper().startswith("OUI")
+
+
 def mine_hard_negatives(
     qa_pairs: list[QAPair],
     tiles: list[Tile],
     n_negatives: int = N_HARD_NEGATIVES,
+    vlm_client: VLMClient | None = None,
 ) -> list[ContrastiveExample]:
     """Pour chaque QAPair, sélectionne jusqu'à `n_negatives` tuiles de `tiles`
     (attendues : toutes les tuiles de la même page que la QAPair) qui maximisent
@@ -97,7 +124,12 @@ def mine_hard_negatives(
       - la tuile positive elle-même ;
       - toute tuile dont le texte contient la réponse (pour éviter les "faux
         négatifs" : une autre tuile qui donnerait accidentellement la même
-        information, ex. un résumé qui répète un chiffre du corps du texte).
+        information, ex. un résumé qui répète un chiffre du corps du texte) ;
+      - si `vlm_client` est fourni, toute tuile que le VLM lui-même juge
+        capable de répondre à la question (cf. `_is_judged_false_negative`) --
+        un second filtre plus coûteux (un appel VLM par candidat) mais qui
+        attrape les faux négatifs non lexicaux que le filtre par sous-chaîne
+        seul laisse passer.
 
     Si scikit-learn est indisponible ou cassé dans l'environnement Python du
     notebook, une implémentation de secours basée sur un simple overlap de
@@ -137,7 +169,9 @@ def mine_hard_negatives(
             if tid == qa.tile_id:
                 continue
             if answer_lower and answer_lower in tile_texts[i].lower():
-                continue  # faux négatif potentiel : la réponse apparaît aussi ici
+                continue  # faux négatif lexical : la réponse apparaît aussi ici
+            if vlm_client is not None and _is_judged_false_negative(vlm_client, tiles_by_id[tid], qa.question, qa.answer):
+                continue  # faux négatif visuel/reformulé : le VLM peut aussi répondre depuis cette tuile
             negatives.append(tid)
             if len(negatives) >= n_negatives:
                 break

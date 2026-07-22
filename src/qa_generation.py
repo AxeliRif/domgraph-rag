@@ -140,7 +140,7 @@ def generate_qa_pair_for_tile(
 ) -> QAPair | None:
     """Interroge le VLM sur une tuile, retourne une QAPair ou None si la tuile a
     été jugée inexploitable (pas assez d'information propre à elle seule)."""
-    raw_response = client.ask(tile.image, prompt)
+    raw_response = client.ask(tile.image, prompt, think=False)
     parsed = _parse_qa_response(raw_response)
     if parsed is None:
         return None

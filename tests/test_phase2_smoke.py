@@ -58,7 +58,7 @@ def test_generate_qa_pair_for_tile_uses_client_response(tmp_path):
     image_paths = save_tile_images([tile], "testpage", images_dir=tmp_path / "images")
 
     class _StubClient:
-        def ask(self, image, question):
+        def ask(self, image, question, think=None):
             return '{"question": "What was the population in 2020?", "answer": "4200"}'
 
     qa = generate_qa_pair_for_tile(
@@ -75,7 +75,7 @@ def test_generate_qa_pair_for_tile_returns_none_on_skip(tmp_path):
     image_paths = save_tile_images([tile], "testpage", images_dir=tmp_path / "images")
 
     class _SkipClient:
-        def ask(self, image, question):
+        def ask(self, image, question, think=None):
             return "SKIP"
 
     assert generate_qa_pair_for_tile(tile, _SkipClient(), "https://example.org/town", "testpage", image_paths) is None
@@ -100,6 +100,34 @@ def test_mine_hard_negatives_excludes_positive_and_answer_leaking_tiles():
     assert "tile_0001" not in example.hard_negative_tile_ids
     assert "tile_0000" not in example.hard_negative_tile_ids
     assert set(example.hard_negative_tile_ids).issubset({"tile_0002", "tile_0003"})
+
+
+def test_mine_hard_negatives_with_vlm_judge_excludes_visually_answerable_tile():
+    from src.qa_generation import QAPair
+
+    qa_pairs = [
+        QAPair(
+            id="testpage__tile_0000__qa", page_url="https://example.org/town", page_slug="testpage",
+            tile_id="tile_0000", question="How many inhabitants does the town have?", answer="4200",
+            image_path="images/testpage__tile_0000.png",
+        )
+    ]
+
+    class _JudgeClient:
+        """Simule un VLM qui reconnaît la réponse dans tile_0003 malgré l'absence
+        du chiffre "4200" dans son texte extrait (ex. portée par un visuel) --
+        le filtre par sous-chaîne seul ne l'aurait pas exclue."""
+
+        def ask(self, image, question, think=None):
+            return "OUI" if image is TILES[3].image else "NON"
+
+    examples = mine_hard_negatives(qa_pairs, TILES, n_negatives=2, vlm_client=_JudgeClient())
+    assert len(examples) == 1
+    negatives = examples[0].hard_negative_tile_ids
+    assert "tile_0000" not in negatives  # positif
+    assert "tile_0001" not in negatives  # faux négatif lexical (contient "4200")
+    assert "tile_0003" not in negatives  # faux négatif jugé par le VLM
+    assert negatives == ["tile_0002"]
 
 
 def test_contrastive_dataset_round_trip(tmp_path):

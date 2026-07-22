@@ -17,7 +17,7 @@ import io
 
 from PIL import Image
 
-from .config import HF_MODEL, OLLAMA_MODEL, VLM_BACKEND
+from .config import HF_MODEL, OLLAMA_MODEL, OLLAMA_NUM_CTX, VLM_BACKEND
 
 
 class VLMClient:
@@ -28,10 +28,16 @@ class VLMClient:
         self._model = None
         self._processor = None
 
-    def ask(self, image: Image.Image, question: str) -> str:
-        """Envoie une tuile (image PIL) + une question au VLM, retourne sa réponse texte."""
+    def ask(self, image: Image.Image, question: str, think: bool | None = None) -> str:
+        """Envoie une tuile (image PIL) + une question au VLM, retourne sa réponse texte.
+
+        `think` (backend "ollama" uniquement) : passer False pour une tâche
+        d'extraction factuelle simple où le raisonnement interne du modèle
+        n'apporte rien (cf. qa_generation.py) — sans garantie qu'il soit
+        toujours respecté par le modèle (constaté empiriquement), d'où le
+        num_ctx élargi côté `_ask_ollama` en filet de sécurité."""
         if self.backend == "ollama":
-            return self._ask_ollama(image, question)
+            return self._ask_ollama(image, question, think=think)
         return self._ask_transformers(image, question)
 
     def ask_text(self, question: str) -> str:
@@ -45,13 +51,15 @@ class VLMClient:
         return self._ask_text_transformers(question)
 
     # -- backend Ollama -----------------------------------------------------
-    def _ask_ollama(self, image: Image.Image, question: str) -> str:
+    def _ask_ollama(self, image: Image.Image, question: str, think: bool | None = None) -> str:
         import ollama  # import différé : évite la dépendance si non utilisée
 
         buf = io.BytesIO()
         image.save(buf, format="PNG")
         response = ollama.chat(
             model=OLLAMA_MODEL,
+            think=think,
+            options={"num_ctx": OLLAMA_NUM_CTX},
             messages=[{"role": "user", "content": question, "images": [buf.getvalue()]}],
         )
         return response["message"]["content"]
@@ -59,7 +67,11 @@ class VLMClient:
     def _ask_text_ollama(self, question: str) -> str:
         import ollama  # import différé : évite la dépendance si non utilisée
 
-        response = ollama.chat(model=OLLAMA_MODEL, messages=[{"role": "user", "content": question}])
+        response = ollama.chat(
+            model=OLLAMA_MODEL,
+            options={"num_ctx": OLLAMA_NUM_CTX},
+            messages=[{"role": "user", "content": question}],
+        )
         return response["message"]["content"]
 
     # -- backend Transformers -------------------------------------------------

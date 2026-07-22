@@ -14,6 +14,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config import MAX_TILE_HEIGHT  # noqa: E402
 from src.dom_extraction import extract_dom_elements_async  # noqa: E402
 from src.graph_builder import build_graph, graph_to_xml  # noqa: E402
 from src.tiling import build_tiles  # noqa: E402
@@ -35,7 +36,7 @@ async def main() -> None:
     assert len(tiles) > 0
     heights = [t.height for t in tiles]
     print(f"      {len(tiles)} tuiles, hauteur min/max = {min(heights)}/{max(heights)} px")
-    assert max(heights) <= 1024 + 1, "Une tuile dépasse MAX_TILE_HEIGHT -> le patching a un bug"
+    assert max(heights) <= MAX_TILE_HEIGHT + 1, "Une tuile dépasse MAX_TILE_HEIGHT -> le patching a un bug"
     ul_tiles = [t for t in tiles if t.dom_tag == "ul"]
     print(f"      la longue <ul> a été découpée en {len(ul_tiles)} sous-tuile(s) (patching)")
     assert len(ul_tiles) >= 2, "La liste longue aurait dû être découpée en plusieurs tuiles (patching)"

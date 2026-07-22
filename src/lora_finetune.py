@@ -41,6 +41,7 @@ from .config import (
     LORA_R,
     LORA_TARGET_SUFFIXES_LLM,
     LORA_TARGET_SUFFIXES_VIT,
+    N_HARD_NEGATIVES,
 )
 
 # Prompt court partagé par les deux modalités : la même consigne est appliquée
@@ -158,7 +159,13 @@ class TrainConfig:
     epochs: int = 3
     batch_size: int = 4
     lr: float = 1e-4
-    n_negatives: int = 4
+    # Doit correspondre au nombre de négatifs réellement minés (cf.
+    # config.N_HARD_NEGATIVES, utilisé par hard_negative_mining.py) : un
+    # `n_negatives` supérieur au nombre miné par exemple fait filtrer TOUT le
+    # dataset par ContrastiveTileDataset (elle n'accepte pas de compléter),
+    # laissant train_lora lever un RuntimeError "Dataset contrastif vide" au
+    # tout premier lancement -- constaté en préparant un run sur GPU loué.
+    n_negatives: int = N_HARD_NEGATIVES
     output_dir: str = str(LORA_OUTPUT_DIR)
     checkpoint_every: int = 1
 
