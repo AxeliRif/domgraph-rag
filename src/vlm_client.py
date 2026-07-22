@@ -17,7 +17,7 @@ import io
 
 from PIL import Image
 
-from .config import HF_MODEL, OLLAMA_MODEL, OLLAMA_NUM_CTX, VLM_BACKEND
+from .config import HF_MODEL, OLLAMA_MODEL, OLLAMA_NUM_CTX, OLLAMA_TEMPERATURE, VLM_BACKEND
 
 
 class VLMClient:
@@ -59,7 +59,7 @@ class VLMClient:
         response = ollama.chat(
             model=OLLAMA_MODEL,
             think=think,
-            options={"num_ctx": OLLAMA_NUM_CTX},
+            options={"num_ctx": OLLAMA_NUM_CTX, "temperature": OLLAMA_TEMPERATURE},
             messages=[{"role": "user", "content": question, "images": [buf.getvalue()]}],
         )
         return response["message"]["content"]
@@ -69,7 +69,7 @@ class VLMClient:
 
         response = ollama.chat(
             model=OLLAMA_MODEL,
-            options={"num_ctx": OLLAMA_NUM_CTX},
+            options={"num_ctx": OLLAMA_NUM_CTX, "temperature": OLLAMA_TEMPERATURE},
             messages=[{"role": "user", "content": question}],
         )
         return response["message"]["content"]

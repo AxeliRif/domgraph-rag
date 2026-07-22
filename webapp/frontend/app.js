@@ -36,23 +36,23 @@ const PALETTE = {
 };
 
 const CATEGORY_LABELS = {
-  heading: "Titre (h1-h4)",
-  text: "Texte",
-  table: "Tableau",
-  list: "Liste",
-  media: "Média",
-  quote_code: "Citation / code",
-  other: "Autre",
+  heading: "Heading (h1-h4)",
+  text: "Text",
+  table: "Table",
+  list: "List",
+  media: "Media",
+  quote_code: "Quote / code",
+  other: "Other",
 };
 
-const STATE_LABELS = { inactive: "Inactif", active: "Actif", opened: "Ouvert (évidence)", pruned: "Élagué" };
+const STATE_LABELS = { inactive: "Inactive", active: "Active", opened: "Opened (evidence)", pruned: "Pruned" };
 
 const RELATIONS = [
-  { key: "reading_order", label: "Ordre de lecture", defaultOn: true, dashed: false },
-  { key: "section_hierarchy", label: "Hiérarchie de sections", defaultOn: true, dashed: false },
-  { key: "links_to", label: "Liens externes", defaultOn: true, dashed: false },
-  { key: "contains", label: "Contenance", defaultOn: false, dashed: false },
-  { key: "layout_adjacency", label: "Voisinage 2D", defaultOn: false, dashed: true },
+  { key: "reading_order", label: "Reading order", defaultOn: true, dashed: false },
+  { key: "section_hierarchy", label: "Section hierarchy", defaultOn: true, dashed: false },
+  { key: "links_to", label: "External links", defaultOn: true, dashed: false },
+  { key: "contains", label: "Containment", defaultOn: false, dashed: false },
+  { key: "layout_adjacency", label: "2D adjacency", defaultOn: false, dashed: true },
 ];
 
 function tagCategory(tag) {
@@ -283,7 +283,7 @@ function positionTooltip(originalEvent) {
 
 function tooltipContent(d) {
   if (d.type === "page") return `<strong>Page</strong><br/>${d.title || d.url}`;
-  if (d.type === "external_page") return `<strong>Page externe</strong><br/>${d.url}`;
+  if (d.type === "external_page") return `<strong>External page</strong><br/>${d.url}`;
   const preview = (d.text_preview || "").slice(0, 140);
   return `<strong>${d.tag}</strong> — ${STATE_LABELS[d.state] || d.state}<br/>${preview}`;
 }
@@ -294,7 +294,7 @@ function renderNodeDetail(d) {
     body.innerHTML = `
       <dl>
         <dt>Type</dt><dd>Page</dd>
-        <dt>Titre</dt><dd>${escapeHtml(d.title || "")}</dd>
+        <dt>Title</dt><dd>${escapeHtml(d.title || "")}</dd>
         <dt>URL</dt><dd>${escapeHtml(d.url || "")}</dd>
       </dl>`;
     return;
@@ -302,21 +302,21 @@ function renderNodeDetail(d) {
   if (d.type === "external_page") {
     body.innerHTML = `
       <dl>
-        <dt>Type</dt><dd>Page externe</dd>
+        <dt>Type</dt><dd>External page</dd>
         <dt>URL</dt><dd>${escapeHtml(d.url || "")}</dd>
       </dl>
-      <a class="open-link" href="${escapeAttr(d.url)}" target="_blank" rel="noopener">Ouvrir sur Wikipédia ↗</a>`;
+      <a class="open-link" href="${escapeAttr(d.url)}" target="_blank" rel="noopener">Open on Wikipedia ↗</a>`;
     return;
   }
   const category = tagCategory(d.tag);
   body.innerHTML = `
     <dl>
-      <dt>Balise</dt><dd>${escapeHtml(d.tag || "")}</dd>
-      <dt>Catégorie</dt><dd>${CATEGORY_LABELS[category] || category}</dd>
-      <dt>État</dt><dd>${STATE_LABELS[d.state] || d.state}</dd>
-      ${d.relevance_score !== undefined ? `<dt>Score de pertinence</dt><dd>${Number(d.relevance_score).toFixed(3)}</dd>` : ""}
-      <dt>Texte</dt><dd>${escapeHtml(d.text_preview || "")}</dd>
-      ${d.evidence ? `<dt>Évidence lue par le VLM</dt><dd>${escapeHtml(d.evidence)}</dd>` : ""}
+      <dt>Tag</dt><dd>${escapeHtml(d.tag || "")}</dd>
+      <dt>Category</dt><dd>${CATEGORY_LABELS[category] || category}</dd>
+      <dt>State</dt><dd>${STATE_LABELS[d.state] || d.state}</dd>
+      ${d.relevance_score !== undefined ? `<dt>Relevance score</dt><dd>${Number(d.relevance_score).toFixed(3)}</dd>` : ""}
+      <dt>Text</dt><dd>${escapeHtml(d.text_preview || "")}</dd>
+      ${d.evidence ? `<dt>Evidence read by the VLM</dt><dd>${escapeHtml(d.evidence)}</dd>` : ""}
     </dl>`;
 }
 
@@ -338,8 +338,8 @@ function renderLegend() {
     .join("");
 
   legend.innerHTML = `
-    <div class="legend-group"><span class="legend-group-title">Catégorie (couleur)</span>${categoryDots}</div>
-    <div class="legend-group"><span class="legend-group-title">État (bordure)</span>${stateRings}</div>
+    <div class="legend-group"><span class="legend-group-title">Category (color)</span>${categoryDots}</div>
+    <div class="legend-group"><span class="legend-group-title">State (border)</span>${stateRings}</div>
   `;
 }
 
@@ -366,7 +366,7 @@ function renderRelationToggles() {
 function renderExternalLinks(links) {
   const list = document.getElementById("external-links-list");
   if (!links.length) {
-    list.innerHTML = `<li class="placeholder">Aucun lien sortant trouvé sur cette page (au-delà des premières tuiles de texte).</li>`;
+    list.innerHTML = `<li class="placeholder">No outgoing link found on this page (beyond the first text tiles).</li>`;
     return;
   }
   list.innerHTML = links
@@ -375,13 +375,13 @@ function renderExternalLinks(links) {
       return `
       <li>
         <span class="badge ${link.used_as_evidence ? "used" : "unused"}">
-          ${link.used_as_evidence ? "Utilisé comme évidence" : "Trouvé sur la page"}
+          ${link.used_as_evidence ? "Used as evidence" : "Found on page"}
         </span>
         <span class="link-anchor">${escapeHtml(link.anchor_text || shortDomainLabel(link.url))}</span>
         <span class="link-url">${escapeHtml(link.url)}</span>
-        <a class="open-btn" href="${escapeAttr(link.url)}" target="_blank" rel="noopener">Ouvrir sur Wikipédia ↗</a>
+        <a class="open-btn" href="${escapeAttr(link.url)}" target="_blank" rel="noopener">Open on Wikipedia ↗</a>
         &nbsp;·&nbsp;
-        <a class="open-btn" href="#" data-focus-node="${escapeAttr(nodeId)}">Voir dans le graphe</a>
+        <a class="open-btn" href="#" data-focus-node="${escapeAttr(nodeId)}">View in graph</a>
       </li>`;
     })
     .join("");
@@ -434,8 +434,8 @@ document.getElementById("ask-form").addEventListener("submit", async (evt) => {
   submitBtn.disabled = true;
   document.getElementById("results").hidden = true;
   setStatus(
-    "Analyse en cours (extraction de la page, tuilage, contrôleur d'évidence, lecture VLM tuile par tuile)… " +
-      "cela peut prendre de quelques dizaines de secondes à quelques minutes selon la page.",
+    "Analyzing (page extraction, tiling, evidence controller, tile-by-tile VLM reading)… " +
+      "this can take from tens of seconds to a few minutes depending on the page.",
     "info"
   );
 
@@ -446,7 +446,7 @@ document.getElementById("ask-form").addEventListener("submit", async (evt) => {
       body: JSON.stringify({ url, question }),
     });
     const payload = await res.json();
-    if (!res.ok) throw new Error(payload.detail || `Erreur ${res.status}`);
+    if (!res.ok) throw new Error(payload.detail || `Error ${res.status}`);
 
     setStatus("", null);
     document.getElementById("results").hidden = false;
@@ -461,9 +461,9 @@ document.getElementById("ask-form").addEventListener("submit", async (evt) => {
     renderExternalLinks(payload.external_links);
     renderLog(payload.log);
     document.getElementById("node-detail-body").innerHTML =
-      '<p class="placeholder">Survole ou clique un noeud du graphe pour voir son contenu.</p>';
+      '<p class="placeholder">Hover or click a graph node to see its content.</p>';
   } catch (err) {
-    setStatus(`Échec de l'analyse : ${err.message}`, "error");
+    setStatus(`Analysis failed: ${err.message}`, "error");
   } finally {
     submitBtn.disabled = false;
   }

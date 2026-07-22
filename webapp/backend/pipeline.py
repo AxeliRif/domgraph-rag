@@ -96,7 +96,7 @@ async def answer_question(
 
     elements, screenshot = await extract_dom_elements_async(url, wait_until="load")
     if not elements:
-        raise ValueError("Aucun élément de contenu reconnu sur cette page — vérifier l'URL.")
+        raise ValueError("No content element recognized on this page — check the URL.")
 
     tiles = build_tiles(elements, screenshot)
     graph = build_graph(tiles, page_url=url, page_title=url)
@@ -108,7 +108,7 @@ async def answer_question(
         vlm = VLMClient()
         answer = vlm.ask_text(ANSWER_SYNTHESIS_PROMPT.format(evidence=evidence, question=question))
     else:
-        answer = "Aucune évidence suffisamment pertinente n'a été trouvée sur cette page pour répondre à la question."
+        answer = "No sufficiently relevant evidence was found on this page to answer the question."
 
     return AskResult(
         page_url=url,

@@ -1,46 +1,46 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>DOM-Graph RAG — démo</title>
+<title>DOM-Graph RAG — demo</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="app-header">
     <h1>DOM-Graph RAG</h1>
     <p class="subtitle">
-      Pose une question sur une page Wikipédia : le contrôleur d'évidence explore le graphe
-      (mise en page, ordre de lecture, hiérarchie de sections, liens sortants) pour construire
-      une réponse — et te montre les pages Wikipédia liées qui pourraient en dire plus.
+      Ask a question about a Wikipedia page: the evidence controller explores the graph
+      (layout, reading order, section hierarchy, outgoing links) to build an answer —
+      and shows you the linked Wikipedia pages that might say more.
     </p>
   </header>
 
   <form id="ask-form" class="ask-form">
     <div class="field">
-      <label for="url-input">URL Wikipédia</label>
-      <input id="url-input" name="url" type="url" placeholder="https://fr.wikipedia.org/wiki/..." required />
+      <label for="url-input">Wikipedia URL</label>
+      <input id="url-input" name="url" type="url" placeholder="https://en.wikipedia.org/wiki/..." required />
     </div>
     <div class="field">
       <label for="question-input">Question</label>
-      <input id="question-input" name="question" type="text" placeholder="Qu'est-ce que...?" required />
+      <input id="question-input" name="question" type="text" placeholder="What is...?" required />
     </div>
-    <button id="submit-btn" type="submit">Interroger la page</button>
+    <button id="submit-btn" type="submit">Ask the page</button>
   </form>
 
   <div id="status-banner" class="status-banner" hidden></div>
 
   <main id="results" class="results" hidden>
     <section class="answer-card">
-      <h2>Réponse</h2>
+      <h2>Answer</h2>
       <p id="answer-text"></p>
-      <p class="answer-meta">Page interrogée : <a id="page-url-link" href="#" target="_blank" rel="noopener"></a></p>
+      <p class="answer-meta">Page queried: <a id="page-url-link" href="#" target="_blank" rel="noopener"></a></p>
     </section>
 
     <div class="workspace">
       <section class="graph-panel">
         <div class="graph-panel-header">
-          <h2>Graphe de la page</h2>
+          <h2>Page graph</h2>
           <div id="relation-toggles" class="relation-toggles"></div>
         </div>
         <div id="cy" class="cy-container"></div>
@@ -49,25 +49,25 @@
 
       <aside class="side-panel">
         <section class="node-detail">
-          <h2>Détail</h2>
+          <h2>Detail</h2>
           <div id="node-detail-body" class="node-detail-body">
-            <p class="placeholder">Survole ou clique un noeud du graphe pour voir son contenu.</p>
+            <p class="placeholder">Hover or click a graph node to see its content.</p>
           </div>
         </section>
 
         <section class="external-links">
-          <h2>Pages Wikipédia liées</h2>
-          <p class="hint">Les liens portés par une tuile utilisée comme évidence apparaissent en premier.</p>
+          <h2>Linked Wikipedia pages</h2>
+          <p class="hint">Links carried by a tile used as evidence appear first.</p>
           <ul id="external-links-list" class="external-links-list"></ul>
         </section>
       </aside>
     </div>
 
     <details class="controller-log">
-      <summary>Journal du contrôleur d'évidence</summary>
+      <summary>Evidence controller log</summary>
       <table id="log-table" class="log-table">
         <thead>
-          <tr><th>#</th><th>Action</th><th>Noeud</th><th>Score</th><th>État</th></tr>
+          <tr><th>#</th><th>Action</th><th>Node</th><th>Score</th><th>State</th></tr>
         </thead>
         <tbody></tbody>
       </table>

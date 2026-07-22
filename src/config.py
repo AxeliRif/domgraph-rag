@@ -70,6 +70,16 @@ HF_MODEL = "Qwen/Qwen2-VL-7B-Instruct"       # cf. slide Phase 1a ; Qwen2.5-VL/Q
 # de la laisser tronquer une réponse par ailleurs correcte.
 OLLAMA_NUM_CTX = 8192
 
+# Aucune température n'était fixée par défaut -> Ollama échantillonnait avec
+# ses réglages par défaut (température > 0), rendant deux appels VLM
+# consécutifs (même image, même prompt) non reproductibles -- constaté sur le
+# site de démo : la même question posée deux fois pouvait donner une réponse
+# correcte une fois, et "l'évidence ne permet pas de répondre" l'autre,
+# purement selon l'aléa d'échantillonnage plutôt qu'une différence réelle de
+# tuiles ouvertes. Décodage glouton (température 0) pour un pipeline
+# reproductible : à entrée fixée (image/texte, prompt, contexte), même sortie.
+OLLAMA_TEMPERATURE = 0
+
 # --- Chemins ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -152,11 +162,11 @@ LORA_OUTPUT_DIR = DATA_DIR / "lora_reader_adapter"
 # (cf. webapp/backend/pipeline.py) : contrairement à QA_GENERATION_PROMPT (une
 # tuile -> une question), celui-ci part de l'évidence déjà rassemblée pour
 # produire la réponse finale à la question de l'utilisateur.
-ANSWER_SYNTHESIS_PROMPT = """Voici des extraits d'une page web, sélectionnés comme évidence pertinente pour répondre à une question.
+ANSWER_SYNTHESIS_PROMPT = """Here are excerpts from a web page, selected as relevant evidence to answer a question.
 
-Évidence :
+Evidence:
 {evidence}
 
-Question : {question}
+Question: {question}
 
-Réponds à la question UNIQUEMENT à partir de cette évidence, en français. Si l'évidence ne permet pas de répondre, dis-le explicitement plutôt que d'inventer."""
+Answer the question using ONLY this evidence, in English. If the evidence does not allow you to answer, say so explicitly rather than making something up."""

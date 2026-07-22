@@ -24,7 +24,7 @@ from webapp.backend.pipeline import answer_question  # noqa: E402
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
-app = FastAPI(title="DOM-Graph RAG — démo")
+app = FastAPI(title="DOM-Graph RAG — demo")
 
 
 class AskRequest(BaseModel):
@@ -35,7 +35,7 @@ class AskRequest(BaseModel):
 @app.post("/api/ask")
 async def ask(payload: AskRequest) -> dict:
     if not payload.url.strip() or not payload.question.strip():
-        raise HTTPException(status_code=400, detail="L'URL et la question sont obligatoires.")
+        raise HTTPException(status_code=400, detail="URL and question are both required.")
 
     try:
         result = await answer_question(payload.url, payload.question)
