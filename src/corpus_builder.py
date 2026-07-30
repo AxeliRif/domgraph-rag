@@ -54,14 +54,22 @@ def _namespace_graph(G: nx.MultiDiGraph, prefix: str) -> nx.MultiDiGraph:
 
 def build_page_graph_from_elements(
     elements: list[DOMElement], screenshot: bytes, url: str, slug: str,
+    use_semantic_similarity: bool = False,
 ) -> nx.MultiDiGraph:
     """Partie synchrone (sans réseau ni navigateur) du pipeline page -> graphe :
     à partir d'éléments DOM et d'une capture déjà extraits, tuile puis
     construit le graphe -- découpé en sections si la page est démesurément
     longue (cf. module docstring). Factorisée hors de `build_page_graph` pour
-    rester testable sans Playwright."""
+    rester testable sans Playwright.
+
+    `use_semantic_similarity` : transmis tel quel à `build_graph` (cf.
+    graph_builder.py) -- désactivé par défaut, pour ne rien changer au
+    comportement existant tant qu'on ne l'active pas explicitement."""
     if not is_oversized_page(elements):
-        G = build_graph(build_tiles(elements, screenshot), page_url=url, page_title=url)
+        G = build_graph(
+            build_tiles(elements, screenshot), page_url=url, page_title=url,
+            use_semantic_similarity=use_semantic_similarity,
+        )
         G.graph["entry_page"] = "page"
         return G
 
@@ -72,7 +80,10 @@ def build_page_graph_from_elements(
         section_tiles = build_tiles(section.elements, screenshot)
         section_url = url if section.index == 0 else f"{url}#section-{section.index}"
         section_title = section.title or url
-        section_graph = build_graph(section_tiles, page_url=section_url, page_title=section_title)
+        section_graph = build_graph(
+            section_tiles, page_url=section_url, page_title=section_title,
+            use_semantic_similarity=use_semantic_similarity,
+        )
 
         section_slug = f"{slug}__sec{section.index}"
         namespaced = _namespace_graph(section_graph, section_slug)
@@ -88,13 +99,19 @@ def build_page_graph_from_elements(
     return combined
 
 
-async def build_page_graph(url: str, render_width: int = RENDER_WIDTH) -> nx.MultiDiGraph:
+async def build_page_graph(
+    url: str, render_width: int = RENDER_WIDTH, use_semantic_similarity: bool = False,
+) -> nx.MultiDiGraph:
     """Pipeline complet (Phase 1a-1d) pour une seule page : DOM -> tuiles -> graphe."""
     elements, screenshot = await extract_dom_elements_async(url, render_width=render_width, wait_until="load")
-    return build_page_graph_from_elements(elements, screenshot, url=url, slug=slug_for_url(url))
+    return build_page_graph_from_elements(
+        elements, screenshot, url=url, slug=slug_for_url(url), use_semantic_similarity=use_semantic_similarity,
+    )
 
 
-async def build_corpus_graph(seed_url: str, max_linked_pages: int = 3) -> nx.MultiDiGraph:
+async def build_corpus_graph(
+    seed_url: str, max_linked_pages: int = 3, use_semantic_similarity: bool = False,
+) -> nx.MultiDiGraph:
     """Construit un graphe multi-pages : la page de départ + les
     `max_linked_pages` premières pages qu'elle mentionne (relation
     "links_to", cf. build_graph), reliées entre elles par cette même relation.
@@ -102,8 +119,12 @@ async def build_corpus_graph(seed_url: str, max_linked_pages: int = 3) -> nx.Mul
     Ne suit les liens que sur 1 saut (pas de crawl récursif) : le but est de
     relier explicitement un petit voisinage autour de la page de départ, pas
     de crawler tout Wikipedia.
+
+    `use_semantic_similarity` : transmis à chaque `build_page_graph` (une par
+    page du corpus) -- désactivé par défaut. Pensé pour comparer, à structure
+    de crawl égale, un corpus avec et sans la relation "semantic_neighbor".
     """
-    seed_graph = await build_page_graph(seed_url)
+    seed_graph = await build_page_graph(seed_url, use_semantic_similarity=use_semantic_similarity)
     seed_slug = slug_for_url(seed_url)
 
     # URLs mentionnées par la page de départ, dans l'ordre où build_graph les
@@ -124,7 +145,7 @@ async def build_corpus_graph(seed_url: str, max_linked_pages: int = 3) -> nx.Mul
             target_slug += "_2"
         used_slugs.add(target_slug)
 
-        target_graph = await build_page_graph(url)
+        target_graph = await build_page_graph(url, use_semantic_similarity=use_semantic_similarity)
         target_entry_node = f"{target_slug}::{target_graph.graph['entry_page']}"
         corpus = nx.compose(corpus, _namespace_graph(target_graph, target_slug))
 

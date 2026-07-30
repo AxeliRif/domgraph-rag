@@ -39,13 +39,13 @@ _CATEGORY_COLORS: dict[str, str] = {
     "other": "#e87ba4",       # magenta
 }
 _CATEGORY_LABELS: dict[str, str] = {
-    "heading": "Titre (h1-h4)",
-    "text": "Texte (p / fusionné)",
-    "table": "Tableau",
-    "list": "Liste",
-    "media": "Média (img / figure)",
-    "quote_code": "Citation / code",
-    "other": "Autre",
+    "heading": "Heading (h1-h4)",
+    "text": "Text (p / merged)",
+    "table": "Table",
+    "list": "List",
+    "media": "Media (img / figure)",
+    "quote_code": "Quote / code",
+    "other": "Other",
 }
 _ROOT_COLOR = "#0b0b0b"  # noeud "page" : encre primaire, pas une couleur de série
 _CONTAINS_COLOR = "#c3c2b7"  # arêtes "contains" : recessives (cf. baseline/axis)
@@ -93,7 +93,7 @@ def _draw_category_legend(ax: plt.Axes, categories: set[str]):
         return None
     return ax.legend(
         handles=handles, loc="upper left", bbox_to_anchor=(1.01, 1.0),
-        frameon=False, fontsize=9, title="Catégorie", title_fontsize=9,
+        frameon=False, fontsize=9, title="Category", title_fontsize=9,
         labelcolor="#52514e",
     )
 
@@ -129,7 +129,7 @@ def plot_page_overlay(tiles: list[Tile], screenshot_bytes: bytes, ax: plt.Axes |
             bbox={"boxstyle": "circle,pad=0.25", "facecolor": color, "edgecolor": "none"},
         )
 
-    ax.set_title("Tuiles et ordre de lecture, superposés à la page")
+    ax.set_title("Tiles and reading order, overlaid on the page")
     ax.axis("off")
     _draw_category_legend(ax, categories_seen)
     return ax
@@ -228,7 +228,7 @@ def plot_graph(graph: nx.MultiDiGraph, ax: plt.Axes | None = None) -> plt.Axes:
         ha="left", va="center", fontsize=8, color="#52514e", zorder=4,
     )
 
-    ax.set_title("Graphe page/éléments — x = position horizontale réelle, y = ordre de lecture")
+    ax.set_title("Page/element graph -- x = real horizontal position, y = reading order")
     ax.axis("off")
     ax.margins(x=0.35, y=0.03)
     category_legend = _draw_category_legend(ax, categories_seen)
@@ -340,7 +340,7 @@ def plot_page_overview(
     ax.legend(handles=handles, loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False, fontsize=9,
               title="Relation", title_fontsize=9, labelcolor="#52514e")
 
-    ax.set_title("Vue page-de-pages : sections (continues) et liens externes (links_to)")
+    ax.set_title("Page-of-pages view: sections (continues) and external links (links_to)")
     ax.axis("off")
     ax.margins(x=0.15, y=0.6)
     return ax

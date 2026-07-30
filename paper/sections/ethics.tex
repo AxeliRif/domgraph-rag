@@ -1,0 +1,4 @@
+\section*{Ethics Statement}
+\label{sec:ethics}
+
+The corpus builder fetches a seed Wikipedia page plus a small, bounded number of linked pages, with retry-and-backoff rather than aggressive re-fetching; we crawled only Wikipedia, built for programmatic access at this volume, though a production deployment should prefer the Wikimedia REST API or a static dump over live scraping, which this prototype does not do by default. Wikipedia text is CC~BY-SA; embedded images carry heterogeneous, some non-free, licenses, so the screenshots/tiles produced are derivative works we do not release here (a future release would need per-image licensing). Synthetic questions (\S\ref{sec:contrastive}) are VLM-produced and unverified, and should be labeled as such if released (\S\ref{sec:limitations}). This work involves no human subjects or user study.

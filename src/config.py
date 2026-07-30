@@ -39,10 +39,40 @@ ELEMENT_TAGS = [
     "ul", "ol", "blockquote", "pre",
 ]
 
+# Balises de texte "coulant" (par opposition à table/figure/img, dont toute la
+# boîte compte visuellement) pour lesquelles on mesure la largeur réellement
+# occupée par le texte plutôt que la largeur de la boîte bloc. Un <p>, un
+# <h1>-<h4> ou une liste <ul>/<ol> a par défaut `width: auto` en CSS -> sa
+# boîte bloc s'étend sur toute la largeur du conteneur (getBoundingClientRect
+# le confirme), même si le texte lui-même est bien plus court (un titre) ou
+# s'enroule autour d'un élément flottant à côté (ex. la liste de références
+# d'un article Wikipédia, qui commence souvent avant la fin de l'infobox et
+# enroule donc ses lignes autour d'elle comme n'importe quel paragraphe) et
+# n'occupe donc réellement qu'une partie de cette largeur. Cropper sur la
+# boîte bloc entière capturait donc aussi les pixels de l'élément flottant
+# voisin, qui se retrouvaient dupliqués dans sa propre tuile (cf.
+# dom_extraction.extract_dom_elements_async, qui utilise un Range sur le
+# contenu de ces balises plutôt que `getBoundingClientRect` pour ne récupérer
+# que les rectangles de lignes réellement rendues).
+TEXT_FLOW_TAGS = {"h1", "h2", "h3", "h4", "p", "blockquote", "ul", "ol"}
+
 # --- Balises qui ne doivent jamais être fusionnées avec leurs voisines, même
 # si leur hauteur est inférieure à MIN_TILE_HEIGHT : ce sont des frontières
 # structurelles (une section commence à un titre), pas du "bruit" à regrouper. ---
 NEVER_MERGE_TAGS = {"h1", "h2", "h3", "h4"}
+
+# Seuil de chevauchement (aire d'intersection / aire du plus petit élément) à
+# partir duquel deux éléments DOM sont tuilés ensemble plutôt que séparément
+# (cf. tiling.group_overlapping_elements). Sans ça, deux éléments dont les
+# bounding boxes se recouvrent partiellement (ex. un paragraphe qui occupe
+# toute la largeur du conteneur pendant qu'une image ou un infobox flottant
+# partage visuellement le même espace -- très courant sur les pages
+# Wikipédia) produisent chacun leur propre tuile, et les deux crops
+# contiennent alors la même région de pixels : un bout de page qui appartient
+# visuellement à une tuile se retrouve dupliqué dans une autre. Un seuil > 0
+# (plutôt que "tout chevauchement") absorbe les recouvrements de quelques
+# pixels dus aux marges/bordures, qui ne justifient pas une fusion.
+MIN_OVERLAP_RATIO = 0.15
 
 # --- Interconnexion multi-pages (liens hypertextes) ---
 # Les liens ne sont extraits que depuis les <p> (paragraphes de texte) : jamais
@@ -52,6 +82,20 @@ NEVER_MERGE_TAGS = {"h1", "h2", "h3", "h4"}
 # l'article) dont on conserve les liens sortants dans le graphe — au-delà,
 # les liens sont ignorés pour éviter l'explosion combinatoire du crawl.
 MAX_LINKED_TEXT_TILES = 3
+
+# --- Relation "semantic_neighbor" (graph_builder.compute_semantic_neighbor_edges) ---
+# Optionnelle (cf. build_graph(..., use_semantic_similarity=True)) : pensée
+# pour comparer, benchmark à l'appui, un graphe avec et sans cette relation
+# plutôt que de toujours l'activer -- cf. README, section Limitations
+# ("il manque encore semantic-neighbor").
+# Seuil minimal de similarité cosinus (TF-IDF, même approche que
+# hard_negative_mining.py et evidence_controller.py) pour qu'une arête soit
+# ajoutée entre deux tuiles.
+SEMANTIC_NEIGHBOR_THRESHOLD = 0.2
+# Nombre max de voisins sémantiques gardés par tuile (les plus similaires
+# d'abord, au-delà du seuil) -- même logique que MAX_LINKED_TEXT_TILES, pour
+# éviter un graphe trop dense sur une page au contenu répétitif.
+MAX_SEMANTIC_NEIGHBORS_PER_TILE = 3
 
 # --- Modèle VLM lecteur (Phase 1a) ---
 # "ollama" est le chemin le plus simple pour démarrer (un seul `ollama pull`).

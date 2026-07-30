@@ -34,3 +34,8 @@ peft>=0.12          # LoRA, pour la Phase 2 (entraînement contrastif)
 # --- Optionnel : quantization 4-bit, utile sur GPU CUDA < 16 Go de VRAM.
 # Pas de wheel officiel pour Apple Silicon (MPS) -> laisser commenté sur Mac. ---
 # bitsandbytes>=0.43
+
+# --- Phase 4 — questions multi-hop à partir de HotpotQA (src/multihop_qa.py,
+# scripts/build_multihop_dataset.py) : streame HotpotQA depuis le Hub sans
+# télécharger l'intégralité du jeu de données. ---
+datasets>=2.14

@@ -4,9 +4,7 @@ Phase 1d — Construction de la topologie du graphe.
 Construit un graphe multi-granulaire à 2 niveaux (inspiré de MAGE-RAG,
 arXiv:2606.15906) : un noeud "page" et des noeuds "élément" (une par tuile).
 
-Cinq relations sont prévues par MAGE-RAG ; quatre sont déjà instanciées ici
-(la cinquième, "semantic_neighbor", suppose des embeddings et reste une tâche
-de Phase 2/3) :
+Les cinq relations prévues par MAGE-RAG sont toutes instanciées ici :
   - "contains"          : page -> élément (niveau page / niveau élément)
   - "reading_order"     : élément -> élément suivant, dans l'ordre de lecture
   - "links_to"          : élément -> page externe (lien hypertexte), limité
@@ -18,6 +16,13 @@ de Phase 2/3) :
     l'imbrication des niveaux h1-h4 (arbre de sections, distinct du
     rattachement plat page -> élément de "contains") — cf.
     compute_section_hierarchy
+  - "semantic_neighbor" : élément -> élément dont le texte est proche par
+    TF-IDF + cosinus, au-delà de SEMANTIC_NEIGHBOR_THRESHOLD (indépendant de
+    l'ordre de lecture ou de la position dans la mise en page) — cf.
+    compute_semantic_neighbor_edges. Optionnelle (cf.
+    build_graph(..., use_semantic_similarity=True), désactivée par défaut) :
+    pensée pour comparer, benchmark à l'appui, un graphe avec et sans cette
+    relation plutôt que de toujours l'activer.
 
 L'ordre de lecture n'est PAS l'ordre du DOM, mais une heuristique spatiale de
 tri visuel : les tuiles sont regroupées par "lignes" (chevauchement vertical),
@@ -34,12 +39,21 @@ mais le graphe est déjà prêt à l'accueillir.
 """
 from __future__ import annotations
 
+import re
+from collections import Counter
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 import networkx as nx
 
-from .config import MAX_LINKED_TEXT_TILES
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+except ImportError:  # pragma: no cover - environnements avec un sklearn cassé
+    TfidfVectorizer = None
+    cosine_similarity = None
+
+from .config import MAX_LINKED_TEXT_TILES, MAX_SEMANTIC_NEIGHBORS_PER_TILE, SEMANTIC_NEIGHBOR_THRESHOLD
 from .tiling import Tile
 
 
@@ -154,11 +168,98 @@ def compute_section_hierarchy(ordered_tiles: list[Tile]) -> list[tuple[str, str]
     return edges
 
 
+def _tokenize(text: str) -> list[str]:
+    return re.findall(r"\b\w+\b", (text or "").lower())
+
+
+def _fallback_similarity_matrix(texts: list[str]) -> list[list[float]]:
+    """Repli sans scikit-learn (même principe que hard_negative_mining.py et
+    evidence_controller.py) : cosinus sur un simple overlap de tokens plutôt
+    que sur des vecteurs TF-IDF."""
+    token_counts = [Counter(_tokenize(t)) for t in texts]
+    norms = [sum(c * c for c in tc.values()) ** 0.5 for tc in token_counts]
+
+    n = len(texts)
+    matrix = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        matrix[i][i] = 1.0
+        for j in range(i + 1, n):
+            common = set(token_counts[i]) & set(token_counts[j])
+            if not common or not norms[i] or not norms[j]:
+                continue
+            dot = sum(token_counts[i][t] * token_counts[j][t] for t in common)
+            sim = dot / (norms[i] * norms[j])
+            matrix[i][j] = matrix[j][i] = sim
+    return matrix
+
+
+def compute_semantic_neighbor_edges(
+    tiles: list[Tile],
+    threshold: float = SEMANTIC_NEIGHBOR_THRESHOLD,
+    max_neighbors_per_tile: int = MAX_SEMANTIC_NEIGHBORS_PER_TILE,
+) -> list[tuple[str, str, float]]:
+    """Paires de tuiles dont le texte est sémantiquement proche (TF-IDF +
+    cosinus, avec le même repli sans scikit-learn que hard_negative_mining.py
+    et evidence_controller.py), indépendamment de l'ordre de lecture ou de la
+    position dans la mise en page -- c'est la relation "semantic_neighbor" de
+    MAGE-RAG (cf. module docstring), jusqu'ici manquante.
+
+    Sélection gloutonne : toutes les paires au-delà de `threshold` sont
+    triées par similarité décroissante, puis retenues une à une tant
+    qu'aucune des deux tuiles n'a déjà atteint `max_neighbors_per_tile`
+    arêtes (même logique que MAX_LINKED_TEXT_TILES : éviter un graphe trop
+    dense sur une page au contenu répétitif) -- ce qui garantit qu'aucune
+    tuile ne dépasse cette limite, y compris quand elle est la meilleure
+    correspondance de plusieurs autres tuiles à la fois.
+
+    Renvoie des triplets (id_source, id_cible, similarité), une seule arête
+    par paire (id_source < id_cible) -- la relation étant symétrique par
+    construction, contrairement à "layout_adjacency".
+    """
+    if len(tiles) < 2:
+        return []
+
+    texts = [t.text_preview or "" for t in tiles]
+    ids = [t.id for t in tiles]
+
+    if TfidfVectorizer is not None and cosine_similarity is not None:
+        vectorizer = TfidfVectorizer(stop_words="english", min_df=1)
+        try:
+            matrix = vectorizer.fit_transform(texts)
+            similarities = cosine_similarity(matrix)
+        except ValueError:  # ex. tous les texte_preview sont vides -> vocabulaire vide
+            similarities = _fallback_similarity_matrix(texts)
+    else:
+        similarities = _fallback_similarity_matrix(texts)
+
+    candidates: list[tuple[float, str, str]] = []
+    for i in range(len(tiles)):
+        for j in range(i + 1, len(tiles)):
+            score = float(similarities[i][j])
+            if score >= threshold:
+                candidates.append((score, ids[i], ids[j]))
+    candidates.sort(key=lambda c: c[0], reverse=True)
+
+    degree: dict[str, int] = {}
+    edges: list[tuple[str, str, float]] = []
+    for score, src, dst in candidates:
+        if degree.get(src, 0) >= max_neighbors_per_tile or degree.get(dst, 0) >= max_neighbors_per_tile:
+            continue
+        edges.append((src, dst, score))
+        degree[src] = degree.get(src, 0) + 1
+        degree[dst] = degree.get(dst, 0) + 1
+
+    return edges
+
+
 def build_graph(
     tiles: list[Tile],
     page_url: str = "",
     page_title: str = "",
     max_linked_text_tiles: int = MAX_LINKED_TEXT_TILES,
+    use_semantic_similarity: bool = False,
+    semantic_neighbor_threshold: float = SEMANTIC_NEIGHBOR_THRESHOLD,
+    max_semantic_neighbors_per_tile: int = MAX_SEMANTIC_NEIGHBORS_PER_TILE,
 ) -> nx.MultiDiGraph:
     """Construit le graphe multi-granulaire (1 noeud page + N noeuds élément).
 
@@ -169,6 +270,13 @@ def build_graph(
     tableaux et les listes de références en bas de page en sont exclus
     d'office. Au-delà de la limite, les liens sont ignorés pour éviter
     l'explosion combinatoire du crawl multi-pages.
+
+    `use_semantic_similarity` (False par défaut, pour ne rien changer au
+    comportement existant) : ajoute la relation "semantic_neighbor" (cf.
+    compute_semantic_neighbor_edges) entre tuiles dont le texte est proche par
+    TF-IDF + cosinus -- pensé pour comparer, benchmark à l'appui, la
+    performance du contrôleur d'évidence avec et sans cette relation plutôt
+    que de toujours l'activer.
     """
     ordered_tiles = compute_reading_order(tiles)
 
@@ -206,6 +314,12 @@ def build_graph(
 
     for parent_id, child_id in compute_section_hierarchy(ordered_tiles):
         G.add_edge(parent_id, child_id, relation="section_hierarchy")
+
+    if use_semantic_similarity:
+        for src_id, dst_id, similarity in compute_semantic_neighbor_edges(
+            ordered_tiles, semantic_neighbor_threshold, max_semantic_neighbors_per_tile,
+        ):
+            G.add_edge(src_id, dst_id, relation="semantic_neighbor", similarity=similarity)
 
     return G
 

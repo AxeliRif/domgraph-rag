@@ -2,10 +2,10 @@
 \label{sec:experiments}
 
 \begin{quote}
-\small\textit{This section describes the intended evaluation and reports its current status honestly: the pipeline of \S\ref{sec:method} is implemented and exercised end-to-end (rendering through evidence control, on live pages), but we have not yet run the full benchmark suite below. We report this as work in progress rather than fill the section with numbers ahead of the actual runs.}
+\small\textit{This section reports status honestly: the pipeline of \S\ref{sec:method} runs end-to-end on live pages, but the trained reader and full benchmark suite are not yet in place. We report one preliminary lexical ablation now rather than fill this section with numbers ahead of the actual runs.}
 \end{quote}
 
-\paragraph{Benchmarks.} We plan to evaluate on the same long-document, multimodal QA benchmarks used by MAGE-RAG -- LongDocURL~\citep{longdocurl2024} and MMLongBench-Doc~\citep{mmlongbenchdoc2024} -- plus SimpleQA~\citep{simpleqa2024} as a short-form factuality sanity check that layers of graph pruning do not regress simple, single-fact questions. Table~\ref{tab:baselines} reproduces MAGE-RAG's published numbers on the first two benchmarks as the reference to match or beat; DOM-Graph RAG's own results on these benchmarks are pending (see status paragraph below), so no comparison row is filled in yet.
+\paragraph{Benchmarks.} MAGE-RAG's protocol evaluates on LongDocURL~\citep{longdocurl2024} and MMLongBench-Doc~\citep{mmlongbenchdoc2024} (Table~\ref{tab:baselines}), but both are PDF benchmarks, and every input our method needs (DOM bounding boxes, CSS-selector chrome removal, \code{h1}/\code{h2} splitting) presupposes a renderable DOM a PDF does not have -- reporting a number on either without resolving that mismatch would not be a controlled comparison. We instead plan an HTML-native source: WebSRC~\citep{websrc2021} (human-annotated HTML + screenshots) or HotpotQA~\citep{hotpotqa2018}, whose \code{supporting\_facts} name the exact sentences, in two articles, needed per question -- multi-hop by construction and the most direct fix for our own synthetic QA's single-hop bias (\S\ref{sec:limitations}). We have implemented the HotpotQA path (\code{src/multihop\_qa.py}, \S\ref{sec:limitations}): 24/40 sampled questions yielded a complete cross-page example; scaling it is next. We do not evaluate on SimpleQA (an earlier draft's choice): with no supplied document, it cannot exercise tiling, the graph, or the controller.
 
 \begin{table}[t]
 \centering
@@ -15,13 +15,54 @@
 Benchmark & Metric & MAGE-RAG \\
 \midrule
 LongDocURL & Accuracy & 52.75 \\
-MMLongBench-Doc & Accuracy / F1 & 53.26 / 51.19 \\
+MMLongBench-Doc & Acc.\ / F1 & 53.26 / 51.19 \\
 \bottomrule
 \end{tabular}
-\caption{Published baseline numbers from MAGE-RAG~\citep{magerag2026}, the reference our evidence controller (\S\ref{sec:controller}) generalizes. DOM-Graph RAG's results on the same benchmarks are ongoing work.}
+\caption{Published MAGE-RAG~\citep{magerag2026} numbers, the reference our controller (\S\ref{sec:controller}) generalizes. Our results on the same benchmarks are ongoing work.}
 \label{tab:baselines}
 \end{table}
 
-\paragraph{Planned ablations.} Three ablations isolate each contribution of \S\ref{sec:method}: (a) \emph{tiling}: DOM-guided tiling vs.\ a blind fixed-height pixel grid over the same rendered pages, with the reader model held fixed, to isolate the effect of content-aligned tile boundaries; (b) \emph{evidence control}: the budgeted controller of \S\ref{sec:controller} vs.\ a static top-$k$ retrieval baseline using the same relevance scores, at matched budget/$k$, to isolate the effect of best-first frontier expansion over a fixed ranking; (c) \emph{contrastive fine-tuning}: the base VLM vs.\ the LoRA-fine-tuned reader of \S\ref{sec:contrastive}, to isolate the effect of tile-level contrastive adaptation.
+\paragraph{Ablation (a): DOM-guided tiling vs.\ a blind fixed-height grid.} The lexical scorer already used for hard-negative mining and controller relevance (\S\ref{sec:contrastive}, \S\ref{sec:controller}) lets us run this ablation without waiting on the trained reader. \code{scripts/grid\_baseline.py} reimplements a PixelRAG-style blind grid (1{,}024\,px bands, PixelRAG's own reported tile height, at our render width); \code{scripts/dom\_vs\_grid\_experiment.py} re-renders 18 single-unit pages (the 6 split pages need \code{sectioning.py} re-run too and are left for a follow-up), tiles each both ways, and ranks every existing \code{qa\_pairs.jsonl} question against both tile sets by TF-IDF cosine -- same scorer, only the tiling differs. Both conditions are restricted to the region covered by the first 25 DOM tiles (matching how the QA pairs were generated); a question is scored in a condition only if its answer string occurs in one of that condition's tiles, else dropped from that condition rather than counted as a miss.
 
-\paragraph{Status.} Phases 1--3 of \S\ref{sec:method} (rendering, tiling, graph construction and export, contrastive fine-tuning pipeline, and evidence controller) are implemented, unit- and smoke-tested, and demonstrated end-to-end on live Wikipedia pages (\S\ref{sec:implementation}). The contrastive dataset of \S\ref{sec:contrastive} was initially exercised on a single page only; we have since started scaling QA-pair generation to a small multi-page corpus with the batch script of \S\ref{sec:implementation} (five pages beyond the original pilot, 62 contrastive examples at the time of writing, growing as the batch continues). Scaling this generation surfaced a practical failure mode worth recording: our local reader (\code{qwen3-vl} via Ollama) reasons at length before answering, and under Ollama's default context window this reasoning occasionally consumed the entire budget before a final answer was emitted, silently producing an empty response that was discarded as an unusable tile rather than flagged as an error. We fixed this by widening the context window and disabling reasoning for this extraction-only step, which also matters for cost: even after the fix, QA generation on local (Apple Silicon, non-datacenter) hardware runs at roughly two minutes per tile, which is itself informative about the compute the benchmarks and ablations below will require at the scale MAGE-RAG's published numbers were obtained on. We will complete this section, with full results tables, in a subsequent revision, most likely after moving generation and fine-tuning to rented GPU compute.
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & $n$ & R@1 & MRR & MRR/chance \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{All attributable pairs}} \\
+DOM  & 223 & 0.543 & 0.666 & 14.2$\times$ \\
+Grid & 115 & 0.730 & 0.824 & 3.7$\times$ \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Paired (109 pairs attributable in both)}} \\
+DOM  & 109 & 0.505 & 0.661 & 15.8$\times$ \\
+Grid & 109 & 0.725 & 0.821 & 3.9$\times$ \\
+\bottomrule
+\end{tabular}
+\caption{DOM-guided vs.\ blind grid, same TF-IDF scorer, 18 pages / 425 questions. MRR/chance = MRR $\div$ mean chance-level MRR ($1/n_\text{items}$) of that row's own pool, since grid's pool is $\sim$5$\times$ smaller (Appendix~\ref{sec:appendix-tiling-cost}) and inflates raw Recall/MRR mechanically.}
+\label{tab:tiling-ablation}
+\end{table}
+
+Raw numbers say grid is more accurate -- the opposite of this paper's claim -- but are confounded: grid's pool is $\sim$5$\times$ smaller (Appendix~\ref{sec:appendix-tiling-cost}), which improves Recall/MRR mechanically regardless of ranking quality. Normalizing by each row's own chance-level MRR reverses the conclusion: DOM-guided tiling is \textbf{14--16$\times$} better than chance on its own pool, against grid's \textbf{3.7--3.9$\times$} on its own -- a gap that survives on the paired subset too, so it is not an artifact of differing question sets. We read this as a real retrieval advantage from content-aligned boundaries, larger than raw Recall@$k$ suggests, though a preliminary signal (single lexical scorer, self-generated single-hop questions, \S\ref{sec:limitations}) rather than a final result. Ablations (b)/(c) still require the trained reader.
+
+\paragraph{Status.} All stages (\S\ref{sec:method}) are implemented, tested, and demonstrated end-to-end on live pages (\S\ref{sec:implementation}). QA-pair generation has scaled to the multi-page corpus of Table~\ref{tab:dataset-stats}. Scaling surfaced a real failure mode -- our local reader occasionally reasoned until it exhausted Ollama's context window, silently emitting an empty, discarded response, fixed by widening the window and disabling reasoning for this step -- and a real cost: $\sim$2 minutes/tile on local (Apple Silicon) hardware, now partly mitigated by concurrent VLM calls (\S\ref{sec:implementation}); Appendix~\ref{sec:appendix-gpu} turns this into a compute-budget estimate for fine-tuning itself. Full results, including ablations (b)/(c), follow once both move to rented GPU compute.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Statistic & Value \\
+\midrule
+Distinct Wikipedia articles & 19 \\
+Page units (articles + split sections) & 93 \\
+Tiles extracted & 1{,}103 \\
+QA pairs generated & 970 \\
+Tiles with no usable QA (\code{SKIP}) & 133 (12.1\%) \\
+Contrastive examples (QA + hard negatives) & 534 \\
+\bottomrule
+\end{tabular}
+\caption{Contrastive dataset size (\S\ref{sec:contrastive}), computed from \code{tiles\_manifest.jsonl}, \code{qa\_pairs.jsonl}, \code{contrastive\_examples.jsonl} (lexical filter only, no VLM judge). 6 of 19 articles were split into sections (\S\ref{sec:graph}).}
+\label{tab:dataset-stats}
+\end{table}

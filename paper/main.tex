@@ -1,25 +1,24 @@
-\documentclass[10pt,twocolumn]{article}
+\documentclass[11pt]{article}
 
-% --- Layout: lightweight, self-contained ML-conference-style two-column article.
-% No proprietary venue .cls is used, so this compiles anywhere with a standard
-% TeX install; swap in a specific venue style file later if needed.
-\usepackage[letterpaper,margin=0.75in,columnsep=0.25in]{geometry}
+% ACL style (official acl-org/acl-style-files). "review" = anonymized,
+% line-numbered submission version for double-blind review (DocInsights
+% 2026 CFP requires this). Switch to \usepackage{acl} (no [review]) and
+% restore the real \author{} below for the camera-ready version.
+\usepackage[review]{acl}
+
 \usepackage{times}
+\usepackage{latexsym}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
+\usepackage{graphicx}
 
 \usepackage{amsmath,amssymb}
-\usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{caption}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
-\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
-\usepackage[numbers,sort&compress]{natbib}
-\usepackage{xcolor}
 \usepackage{enumitem}
 \setlist{noitemsep, topsep=2pt}
 
@@ -27,21 +26,20 @@
 \newcommand{\state}[1]{\textsc{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 
+\title{DOM-Graph RAG: DOM-Guided Adaptive Tiling and Budgeted Online Evidence Control for Multimodal Web-Page RAG}
+
+% Anonymized for double-blind review -- cf. DocInsights 2026 CFP
+% ("submissions must be anonymized"). Restore for camera-ready:
+% \author{Alexis Firome \\ \texttt{alexis.firome@gmail.com}}
+\author{Anonymous ACL submission}
+
 \begin{document}
+\maketitle
 
-\twocolumn[
-  \begin{center}
-    {\LARGE \bfseries DOM-Graph RAG: DOM-Guided Adaptive Tiling and Budgeted\\
-    Online Evidence Control for Multimodal Web-Page RAG \par}
-    \vspace{0.8em}
-    {\large Alexis Firome \par}
-    {\small \texttt{alexis.firome@gmail.com} \par}
-    \vspace{1em}
-  \end{center}
-  \vspace{1.5em}
-]
-
+\begin{abstract}
 \input{sections/abstract}
+\end{abstract}
+
 \input{sections/introduction}
 \input{sections/related_work}
 \input{sections/method}
@@ -49,8 +47,10 @@
 \input{sections/experiments}
 \input{sections/limitations}
 \input{sections/conclusion}
+\input{sections/ethics}
 
-\bibliographystyle{plainnat}
 \bibliography{references}
+
+\input{sections/appendix}
 
 \end{document}

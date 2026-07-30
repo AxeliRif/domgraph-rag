@@ -1,0 +1,3706 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/George_P._Gunn",
+    "n_qa_pairs": 23,
+    "n_dom_tiles": 7,
+    "n_grid_tiles": 2,
+    "dom_pixels_per_tile": 136599.7142857143,
+    "grid_pixels_per_tile": 1391616.0,
+    "n_unattributable": {
+      "dom": 8,
+      "grid": 16
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "George_P._Gunn__tile_0000__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0006__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0001__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0006__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0006__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0000__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0001__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0003__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 2,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.14285714285714285
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "George_P._Gunn__tile_0000__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 2,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.5
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Python_(programming_language)",
+    "n_qa_pairs": 20,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 7,
+    "dom_pixels_per_tile": 223947.88,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 13,
+      "grid": 16
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Python_(programming_language)__tile_0000__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0002__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0003__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0007__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0010__qa",
+          "rank": 7,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.14285714285714285,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0017__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0018__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Python_(programming_language)__tile_0002__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0003__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0007__qa",
+          "rank": 4,
+          "n_items": 7,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.14285714285714285
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0018__qa",
+          "rank": 1,
+          "n_items": 7,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.14285714285714285
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Photosynthesis",
+    "n_qa_pairs": 20,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 156515.28,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 9,
+      "grid": 12
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Photosynthesis__tile_0000__qa",
+          "rank": 17,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.058823529411764705,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0001__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0002__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0003__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0005__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0010__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0017__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0018__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Photosynthesis__tile_0000__qa",
+          "rank": 4,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0002__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0003__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0010__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0012__qa",
+          "rank": 3,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0015__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0017__qa",
+          "rank": 5,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Great_Barrier_Reef",
+    "n_qa_pairs": 20,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 159379.64,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 12,
+      "grid": 18
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0002__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0009__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0010__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0011__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0013__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0015__qa",
+          "rank": 12,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.08333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0002__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0013__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Leonardo_da_Vinci",
+    "n_qa_pairs": 20,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 148645.36,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 15,
+      "grid": 18
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0001__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0010__qa",
+          "rank": 7,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.14285714285714285,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0011__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0012__qa",
+          "rank": 12,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.08333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0012__qa",
+          "rank": 3,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Mount_Everest",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 4,
+    "dom_pixels_per_tile": 99054.2,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 10,
+      "grid": 18
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Mount_Everest__tile_0000__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0003__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0005__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0008__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0009__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0010__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0014__qa",
+          "rank": 18,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05555555555555555,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0017__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0018__qa",
+          "rank": 21,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.047619047619047616,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0019__qa",
+          "rank": 17,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.058823529411764705,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0021__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0022__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0023__qa",
+          "rank": 5,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Mount_Everest__tile_0000__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0003__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0005__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0008__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0009__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0017__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0023__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 138507.08,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 8,
+      "grid": 14
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Ada_Lovelace__tile_0000__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0001__qa",
+          "rank": 4,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0003__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0004__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0005__qa",
+          "rank": 19,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05263157894736842,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0007__qa",
+          "rank": 8,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.125,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0008__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0010__qa",
+          "rank": 10,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.1,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0011__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0012__qa",
+          "rank": 13,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.07692307692307693,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0013__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0014__qa",
+          "rank": 14,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.07142857142857142,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0016__qa",
+          "rank": 12,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.08333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0017__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0021__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0024__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Ada_Lovelace__tile_0000__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0003__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0004__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0005__qa",
+          "rank": 3,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0008__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0011__qa",
+          "rank": 5,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0014__qa",
+          "rank": 3,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0020__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0021__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0024__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Solar_System",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 132047.84,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 14,
+      "grid": 19
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Solar_System__tile_0000__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0003__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0004__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0005__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0008__qa",
+          "rank": 14,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.07142857142857142,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0009__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0011__qa",
+          "rank": 12,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.08333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0021__qa",
+          "rank": 13,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.07692307692307693,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Solar_System__tile_0024__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Solar_System__tile_0000__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Solar_System__tile_0003__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Solar_System__tile_0004__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Solar_System__tile_0008__qa",
+          "rank": 4,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Solar_System__tile_0012__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Solar_System__tile_0019__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Renaissance",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 6,
+    "dom_pixels_per_tile": 191296.64,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 16,
+      "grid": 20
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Renaissance__tile_0001__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0006__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0007__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0008__qa",
+          "rank": 4,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0014__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0022__qa",
+          "rank": 22,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.045454545454545456,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Renaissance__tile_0023__qa",
+          "rank": 11,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.09090909090909091,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Renaissance__tile_0001__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Renaissance__tile_0004__qa",
+          "rank": 5,
+          "n_items": 6,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Renaissance__tile_0012__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Renaissance__tile_0020__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Renaissance__tile_0023__qa",
+          "rank": 4,
+          "n_items": 6,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.16666666666666666
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Great_Wall_of_China",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 4,
+    "dom_pixels_per_tile": 126289.6,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 16,
+      "grid": 20
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Great_Wall_of_China__tile_0003__qa",
+          "rank": 6,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.16666666666666666,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0010__qa",
+          "rank": 4,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0014__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0015__qa",
+          "rank": 7,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.14285714285714285,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0016__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0017__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0018__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0024__qa",
+          "rank": 6,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.16666666666666666,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Great_Wall_of_China__tile_0003__qa",
+          "rank": 2,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0010__qa",
+          "rank": 2,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0015__qa",
+          "rank": 2,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0018__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0024__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Isaac_Newton",
+    "n_qa_pairs": 24,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 6,
+    "dom_pixels_per_tile": 168981.24,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 12,
+      "grid": 18
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Isaac_Newton__tile_0001__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0002__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0003__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0004__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0008__qa",
+          "rank": 18,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05555555555555555,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0011__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0012__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0014__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0017__qa",
+          "rank": 18,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05555555555555555,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0018__qa",
+          "rank": 7,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.14285714285714285,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Isaac_Newton__tile_0002__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0003__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0008__qa",
+          "rank": 6,
+          "n_items": 6,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.16666666666666666,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0011__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0018__qa",
+          "rank": 2,
+          "n_items": 6,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.16666666666666666
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0020__qa",
+          "rank": 1,
+          "n_items": 6,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.16666666666666666
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Antarctica",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 159698.08,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 13,
+      "grid": 18
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Antarctica__tile_0000__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0001__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0003__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0005__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0007__qa",
+          "rank": 8,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.125,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0008__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0016__qa",
+          "rank": 17,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.058823529411764705,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0018__qa",
+          "rank": 20,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Antarctica__tile_0021__qa",
+          "rank": 23,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.043478260869565216,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Antarctica__tile_0000__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Antarctica__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Antarctica__tile_0003__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Antarctica__tile_0007__qa",
+          "rank": 2,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Antarctica__tile_0008__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Antarctica__tile_0018__qa",
+          "rank": 4,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Antarctica__tile_0019__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Amazon_rainforest",
+    "n_qa_pairs": 24,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 4,
+    "dom_pixels_per_tile": 119665.84,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 8,
+      "grid": 14
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Amazon_rainforest__tile_0000__qa",
+          "rank": 10,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.1,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0001__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0002__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0003__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0005__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0006__qa",
+          "rank": 7,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.14285714285714285,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0008__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0013__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0014__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0016__qa",
+          "rank": 17,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.058823529411764705,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0017__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0021__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0022__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0023__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Amazon_rainforest__tile_0000__qa",
+          "rank": 3,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0002__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0003__qa",
+          "rank": 2,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0005__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0013__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0014__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0015__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0016__qa",
+          "rank": 3,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0017__qa",
+          "rank": 3,
+          "n_items": 4,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.25
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0021__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.25
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Industrial_Revolution",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 149920.04,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 9,
+      "grid": 15
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Industrial_Revolution__tile_0000__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0001__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0002__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0003__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0004__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0006__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0007__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0012__qa",
+          "rank": 8,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.125,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0016__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0017__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0021__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0022__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0023__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Industrial_Revolution__tile_0000__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0002__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0004__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0006__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0007__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0016__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0021__qa",
+          "rank": 3,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0022__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0023__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/DNA",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 155525.16,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 8,
+      "grid": 16
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "DNA__tile_0000__qa",
+          "rank": 5,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0002__qa",
+          "rank": 12,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.08333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0003__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0005__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0006__qa",
+          "rank": 18,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05555555555555555,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0007__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0008__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0009__qa",
+          "rank": 20,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.05,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0012__qa",
+          "rank": 22,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.045454545454545456,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0014__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0017__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0022__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0023__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "DNA__tile_0024__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "DNA__tile_0000__qa",
+          "rank": 2,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0006__qa",
+          "rank": 5,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0007__qa",
+          "rank": 4,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0008__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0017__qa",
+          "rank": 4,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0019__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0022__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0023__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "DNA__tile_0024__qa",
+          "rank": 2,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+    "n_qa_pairs": 24,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 207667.8,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 11,
+      "grid": 21
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Eiffel_Tower__tile_0000__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0001__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0006__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0007__qa",
+          "rank": 9,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.1111111111111111,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0008__qa",
+          "rank": 10,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.1,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0010__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0016__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0021__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0023__qa",
+          "rank": 6,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.16666666666666666,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0024__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Eiffel_Tower__tile_0000__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0006__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Marie_Curie",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 200266.96,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 10,
+      "grid": 21
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Marie_Curie__tile_0001__qa",
+          "rank": 15,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.06666666666666667,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0004__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0005__qa",
+          "rank": 12,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.08333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0008__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0009__qa",
+          "rank": 8,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.125,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0010__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0011__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0012__qa",
+          "rank": 5,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0014__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0015__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0017__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0019__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0022__qa",
+          "rank": 21,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.047619047619047616,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0023__qa",
+          "rank": 10,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.1,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Marie_Curie__tile_0004__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0008__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0017__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0019__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Great_Depression",
+    "n_qa_pairs": 25,
+    "n_dom_tiles": 25,
+    "n_grid_tiles": 5,
+    "dom_pixels_per_tile": 155834.64,
+    "grid_pixels_per_tile": 2097152.0,
+    "n_unattributable": {
+      "dom": 10,
+      "grid": 16
+    },
+    "results": {
+      "dom": [
+        {
+          "qa_id": "Great_Depression__tile_0000__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0001__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0003__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0004__qa",
+          "rank": 6,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.16666666666666666,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0005__qa",
+          "rank": 3,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0006__qa",
+          "rank": 5,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.2,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0007__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0008__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0015__qa",
+          "rank": 11,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.09090909090909091,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0018__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0019__qa",
+          "rank": 4,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "mrr": 0.25,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0020__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0022__qa",
+          "rank": 22,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "mrr": 0.045454545454545456,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0023__qa",
+          "rank": 2,
+          "n_items": 25,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.04
+        },
+        {
+          "qa_id": "Great_Depression__tile_0024__qa",
+          "rank": 1,
+          "n_items": 25,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.04
+        }
+      ],
+      "grid": [
+        {
+          "qa_id": "Great_Depression__tile_0000__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0001__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0003__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0004__qa",
+          "rank": 2,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0005__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0006__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0015__qa",
+          "rank": 3,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.3333333333333333,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0023__qa",
+          "rank": 2,
+          "n_items": 5,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 0.5,
+          "chance_mrr": 0.2
+        },
+        {
+          "qa_id": "Great_Depression__tile_0024__qa",
+          "rank": 1,
+          "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "mrr": 1.0,
+          "chance_mrr": 0.2
+        }
+      ]
+    }
+  }
+]

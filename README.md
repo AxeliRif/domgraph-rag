@@ -146,13 +146,23 @@ graphe 2 niveaux avec ordre de lecture spatial (pas l'ordre du DOM) → export
 XML lisible par un modèle lecteur.
 
 **Simplifications volontaires à connaître** (pistes d'amélioration naturelles) :
-- les éléments DOM imbriqués (ex. un `<img>` dans un `<figure>`) peuvent se
-  chevaucher — pas de déduplication hiérarchique pour l'instant ;
-- le graphe a maintenant 4 des 5 relations de MAGE-RAG (`contains`,
-  `reading_order`, `layout_adjacency`, `section_hierarchy`, + `links_to` côté
-  domgraph-rag pour l'interconnexion multi-pages) ; il manque encore
-  *semantic-neighbor*, qui demande des embeddings et reste donc une tâche de
-  Phase 2 ;
+- les éléments DOM imbriqués (ex. un `<img>` dans un `<figure>`) sont élagués
+  par inclusion totale (`tiling.prune_nested_elements`) ; les chevauchements
+  partiels entre éléments par ailleurs indépendants (ex. un paragraphe et un
+  infobox flottant qui partagent visuellement le même espace) sont tuilés
+  ensemble plutôt que séparément (`tiling.group_overlapping_elements`), et la
+  largeur des balises de texte "coulant" (`h1`-`h4`, `p`, `blockquote`, `ul`,
+  `ol`) est mesurée sur le texte réellement rendu plutôt que sur leur boîte
+  bloc entière (`dom_extraction.py`, `TEXT_FLOW_TAGS`) — les deux évitent
+  qu'une même région de pixels se retrouve dupliquée dans deux tuiles ;
+- le graphe instancie maintenant les 5 relations de MAGE-RAG (`contains`,
+  `reading_order`, `layout_adjacency`, `section_hierarchy`, `semantic_neighbor`,
+  + `links_to` côté domgraph-rag pour l'interconnexion multi-pages).
+  `semantic_neighbor` (TF-IDF + cosinus entre tuiles, cf.
+  `graph_builder.compute_semantic_neighbor_edges`) est **désactivée par
+  défaut** : `build_graph(..., use_semantic_similarity=True)` l'active,
+  pensé pour comparer le contrôleur d'évidence avec et sans cette relation
+  plutôt que de toujours l'imposer ;
 - chaque noeud élément a déjà un attribut `state` (`inactive` par défaut) —
   prêt pour que le contrôleur d'évidence de la Phase 3 le fasse évoluer.
 

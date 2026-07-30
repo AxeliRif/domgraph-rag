@@ -1,0 +1,121 @@
+\appendix
+
+\section{Hyperparameters}
+\label{sec:appendix-hyperparams}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Parameter & Value \\
+\midrule
+Viewport / max tile width & 2048\,px \\
+Max tile height (patching) & 2048\,px \\
+Min tile height (merging) & 80\,px \\
+Row-grouping tolerance & 20\,px \\
+Nesting tolerance & 1\,px \\
+Overlap-grouping threshold & 15\% of smaller area \\
+Link-bearing tiles kept ($k$) & 3 \\
+Oversize-split threshold & $10\times$ max tile height \\
+Mined hard negatives ($n$) & 2 \\
+Semantic-neighbor threshold & 0.2 cosine \\
+Semantic neighbors / tile (max) & 3 \\
+Downscale factor (ablation) & 0.5 \\
+LoRA $r$ / $\alpha$ / dropout & 16 / 32 / 0.05 \\
+InfoNCE temperature $\tau$ & 0.05 \\
+\bottomrule
+\end{tabular}
+\caption{All pipeline hyperparameters (\S\ref{sec:tiling}--\S\ref{sec:contrastive}). Each is a single documented, centralized value, not swept; see \S\ref{sec:limitations}.}
+\label{tab:appendix-hyperparams}
+\end{table}
+
+\section{Compute budget for contrastive fine-tuning}
+\label{sec:appendix-gpu}
+
+Estimated from the training loop's structure (\S\ref{sec:contrastive}), not measured: at batch size 4, $n{=}2$ hard negatives, 3 epochs over the 534 examples of Table~\ref{tab:dataset-stats}, one optimizer step embeds 4 questions and 12 tile images; the current implementation calls the model once per question and once per image rather than as a single batched forward pass, so one step costs 16 sequential forward passes through \texttt{Qwen2-VL-7B-Instruct}, and a full run costs $402$ steps $\times$ 16 $=$ 6{,}432 forward passes, all contributing to one shared backward per step. Weights alone are $\approx$14\,GB in \texttt{bfloat16}; LoRA keeps the optimizer state small, but activation memory scales with the frozen base model's forward/backward graph across all 16 unbatched calls held simultaneously before the shared backward. We expect a single 40--80\,GB datacenter GPU (A100/H100 class) to suffice at this dataset size -- no multi-GPU training is warranted -- sized conservatively until peak memory is profiled, since the vision encoder can still emit a large token count for our largest tiles ($2048\times2048$\,px) before its own internal resizing caps it. At an assumed 150--400\,ms per forward call, the 6{,}432 calls total 16--43 minutes of forward compute alone; including backward and the overhead of 16 unbatched calls per step, we would not be surprised by anything from under an hour to several hours wall-clock for the full run. Batching \code{embed\_questions}/\code{embed\_tiles} into one padded forward pass per step is the highest-value change before renting GPU time, reducing both the estimate and its uncertainty; we flag it as the next engineering step rather than fold an unbatched-loop number into a claimed result.
+
+\section{Tiling ablation: cost detail}
+\label{sec:appendix-tiling-cost}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & Tiles/page & Px/tile & Total px/page \\
+\midrule
+DOM  & 24.0 & 158{,}072 & 3{,}793{,}738 \\
+Grid & 4.9  & 2{,}081{,}117 & 10{,}174{,}350 \\
+\bottomrule
+\end{tabular}
+\caption{Tiling cost, same 18 pages as Table~\ref{tab:tiling-ablation}. DOM-guided tiling produces more, smaller tiles, yet a smaller \emph{total} pixel budget per page (2.7$\times$ less) -- a direct consequence of the text-flow bounding-box measurement of \S\ref{sec:tiling}, which crops text tiles to the width their content actually occupies instead of the full page width every grid band uses regardless of content. If image tokens scale with pixel area, as they do for \texttt{Qwen2-VL}'s vision encoder, DOM-guided tiling need not trade accuracy for token cost against a blind grid.}
+\label{tab:appendix-tiling-cost}
+\end{table}
+
+Attach rate (the fraction of questions whose answer string survives a tiling's 200-character text preview) is 52.5\% for DOM (223/425) against 27.1\% for grid (115/425) -- consistent with grid bands aggregating far more raw content into the same fixed text budget, diluting the specific snippet a lexical scorer needs to surface.
+
+\section{Additional figures}
+\label{sec:appendix-figures}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  block/.style={draw, rounded corners, align=center, minimum height=0.7cm, minimum width=2.5cm, font=\small},
+  arr/.style={-{Stealth[length=2mm]}, thick}
+]
+\node[block] (render) {Render page\\(Playwright, DOM removed)};
+\node[block, below=0.35cm of render] (tile) {DOM-guided tiling\\\& patching (\S\ref{sec:tiling})};
+\node[block, below=0.35cm of tile] (graph) {Multigranular graph\\(page/element, \S\ref{sec:graph})};
+\node[block, below=0.35cm of graph] (ctrl) {Evidence controller\\(budgeted, \S\ref{sec:controller})};
+\node[block, below=0.35cm of ctrl] (reader) {Contrastively fine-tuned\\VLM reader (\S\ref{sec:contrastive})};
+\draw[arr] (render) -- (tile);
+\draw[arr] (tile) -- (graph);
+\draw[arr] (graph) -- (ctrl);
+\draw[arr] (ctrl) -- (reader);
+\end{tikzpicture}
+\caption{Pipeline overview. Rendering and tiling happen once per page; the evidence controller runs once per query, deciding which graph nodes the reader opens.}
+\label{fig:pipeline}
+\end{figure}
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/tiling_overlay.pdf}
+\caption{DOM-guided tiles (colored by content category, numbered in reading order) overlaid on the rendered page for \texttt{en.wikipedia.org/wiki/George\_P.\_Gunn}. Tile boundaries follow the DOM's own element boundaries: the infobox table (tile 2) is never split mid-row and stays disjoint from the body text and reference list that visually share its column range (tiles 1, 3--6), each section heading is paired with its first content block -- a paragraph for tiles 3--5, the reference list itself for tile 6 -- rather than emitted alone, and the trailing category footer (tile 7) is merged into its own tile rather than left as a flood of near-empty fragments.}
+\label{fig:tiling-overlay}
+\end{figure*}
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=0.55\textwidth]{figures/page_graph.pdf}
+\caption{Page/element graph for the same page as Figure~\ref{fig:tiling-overlay}, laid out by real horizontal position ($x$) and reading-order rank ($y$). \code{reading\_order} (solid black) and \code{contains} (light gray) are the two relations MAGE-RAG also has; \code{layout\_adjacency} (dotted blue) and \code{section\_hierarchy} (dashed red) are the two we add. Most headings here are paired with their content into one tile (\S\ref{sec:tiling}), so \code{section\_hierarchy} shows only where trailing non-heading content (the category footer) attaches to the last open section, rather than between the (sibling, not nested) section headings themselves.}
+\label{fig:page-graph}
+\end{figure*}
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/section_split_overview.pdf}
+\caption{Page-level view of the graph for \texttt{en.wikipedia.org/wiki/The\_Beatles} (278 DOM elements, split into 16 sections at \code{h1}/\code{h2} boundaries -- only the first 6 are shown for legibility). Each diamond is a \code{page} node, one per section; \code{continues} edges (black) chain them in document order; \code{links\_to} edges (pink) reach external pages, collapsed here from their true element-level source (\S\ref{sec:graph}) to stay at page granularity. The leftmost node is the entry point.}
+\label{fig:section-split}
+\end{figure*}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[font=\footnotesize]
+\node[draw, rectangle, fill=gray!8, align=left, text width=0.46\textwidth, inner sep=6pt] (xml) {
+\ttfamily
+<page url="..." title="..."> \\
+\ \ <element id="tile\_0000" tag="merged"\\
+\ \ \ \ \ \ \ \ \ \ state="\textcolor{gray}{inactive}">...</element> \\
+\ \ <element id="tile\_0003" tag="p"\\
+\ \ \ \ \ \ \ \ \ \ state="\textcolor{teal!70!black}{opened}">Gunn was born\\
+\ \ \ \ on October 11, 1903...</element> \\
+\ \ <element id="tile\_0004" tag="h2+p"\\
+\ \ \ \ \ \ \ \ \ \ state="\textcolor{gray}{inactive}">...</element> \\
+\ \ ...\\
+</page>
+};
+\end{tikzpicture}
+\caption{Excerpt of the XML rendering of a page graph after the evidence controller has run on the query ``When and where was George Purnell Gunn born?''. Only the paragraph tile carrying the birth date/place has been opened; the rest remains inactive or pruned.}
+\label{fig:xml}
+\end{figure}

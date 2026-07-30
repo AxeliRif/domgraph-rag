@@ -1,8 +1,9 @@
 """
 Phase 2d — Fine-tuning LoRA du VLM lecteur (ViT + LLM dégelés) par contraste.
 
-Nécessite le backend "transformers" (voir requirements.txt, section commentée
-Phase 2 : torch, transformers, accelerate, qwen-vl-utils, peft, bitsandbytes).
+Nécessite le backend "transformers" (voir requirements.txt, section Phase 2 :
+torch, transformers, accelerate, qwen-vl-utils, peft ; bitsandbytes optionnel,
+utile sur GPU CUDA < 16 Go de VRAM).
 Ce module n'est pas importé par le reste du pipeline pour ne pas forcer cette
 dépendance lourde sur la Phase 1 — il ne charge torch/transformers/peft qu'à
 l'exécution (dans `load_reader_model` et `main`).
@@ -76,9 +77,17 @@ def discover_lora_target_modules(model, suffixes: list[str]) -> list[str]:
     return matches
 
 
-def load_reader_model(hf_model: str = HF_MODEL, r: int = LORA_R, alpha: int = LORA_ALPHA, dropout: float = LORA_DROPOUT):
+def load_reader_model(
+    hf_model: str = HF_MODEL, r: int = LORA_R, alpha: int = LORA_ALPHA, dropout: float = LORA_DROPOUT,
+    gradient_checkpointing: bool = False,
+):
     """Charge le VLM lecteur et lui applique LoRA sur le LLM ET la tour de
-    vision (cf. docstring du module). Retourne (model, processor)."""
+    vision (cf. docstring du module). Retourne (model, processor).
+
+    `gradient_checkpointing` : réduit la mémoire d'activations au prix d'un
+    recalcul partiel au backward (~20-30% plus lent) -- filet de sécurité si
+    le GPU obtenu a moins de VRAM que prévu (cf. Appendix B du papier, qui
+    recommande 80 Go ou ce flag sur une carte à 40 Go)."""
     import torch
     from peft import LoraConfig, get_peft_model
     from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
@@ -99,43 +108,122 @@ def load_reader_model(hf_model: str = HF_MODEL, r: int = LORA_R, alpha: int = LO
         target_modules=target_modules, bias="none", task_type=None,
     )
     model = get_peft_model(base_model, lora_config)
+    if gradient_checkpointing:
+        model.gradient_checkpointing_enable()
+        model.enable_input_require_grads()  # nécessaire avec LoRA : les embeddings d'entrée sont gelés,
+        # sans quoi gradient checkpointing casse la rétropropagation faute de tenseur d'entrée demandant un gradient.
+        print("[lora_finetune] gradient checkpointing activé (mémoire réduite, ~20-30% plus lent)")
     model.print_trainable_parameters()
     return model, processor
 
 
-def _last_token_hidden_state(model, processor, text: str, image=None):
-    """Passe (texte [+ image]) dans le modèle et retourne l'état caché du
-    dernier token de la dernière couche — c'est l'embedding utilisé pour la
-    loss contrastive (cf. docstring du module)."""
-    if image is not None:
-        content = [{"type": "image", "image": image}, {"type": "text", "text": _EMBEDDING_PROMPT}]
-    else:
-        content = [{"type": "text", "text": f"{text}\n{_EMBEDDING_PROMPT}"}]
+def _build_messages(texts: list[str] | None, images: list | None) -> list[list[dict]]:
+    if images is not None:
+        return [
+            [{"role": "user", "content": [{"type": "image", "image": img}, {"type": "text", "text": _EMBEDDING_PROMPT}]}]
+            for img in images
+        ]
+    return [
+        [{"role": "user", "content": [{"type": "text", "text": f"{t}\n{_EMBEDDING_PROMPT}"}]}]
+        for t in texts
+    ]
 
-    messages = [{"role": "user", "content": content}]
-    chat_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs = processor(
-        text=[chat_text], images=[image] if image is not None else None, return_tensors="pt"
-    ).to(model.device)
+
+def _sequential_last_token_hidden_state(model, processor, texts: list[str] | None = None, images: list | None = None):
+    """Un appel modèle par élément (texte OU image), jamais batché -- lent
+    (cf. Appendix B du papier : 16 appels séquentiels par étape à
+    batch_size=4/n_negatives=2) mais sans aucune hypothèse sur la façon dont
+    Qwen2-VL gère le padding : chaque séquence est son propre batch de
+    taille 1, donc `hidden_states[:, -1, :]` est trivialement son dernier
+    token réel. Filet de sécurité si `scripts/verify_batching.py` échoue sur
+    _batched_last_token_hidden_state (cf. son docstring) -- passer
+    `TrainConfig.batched_embeddings=False` pour l'utiliser."""
+    embeds = []
+    for m in _build_messages(texts, images):
+        chat_text = processor.apply_chat_template(m, tokenize=False, add_generation_prompt=True)
+        image = m[0]["content"][0]["image"] if images is not None else None
+        inputs = processor(
+            text=[chat_text], images=[image] if image is not None else None, return_tensors="pt"
+        ).to(model.device)
+        outputs = model(**inputs, output_hidden_states=True, return_dict=True)
+        embeds.append(outputs.hidden_states[-1][:, -1, :])
+    import torch
+
+    return torch.cat(embeds, dim=0)
+
+
+def _batched_last_token_hidden_state(model, processor, texts: list[str] | None = None, images: list | None = None):
+    """Calcule l'embedding (dernier token, dernière couche) d'un batch
+    d'entrées EN UN SEUL forward pass, plutôt qu'un par un -- le changement à
+    plus fort impact identifié avant de louer du GPU (cf. Appendix B du
+    papier : la version séquentielle fait 16 appels modèle par étape à
+    batch_size=4/n_negatives=2, contre 2 ici, un pour les questions, un pour
+    les tuiles).
+
+    Exactement une des deux (`texts`, `images`) doit être fournie, jamais les
+    deux (comme dans les usages existants `embed_questions`/`embed_tiles`).
+
+    ATTENTION -- vérifié empiriquement avant d'écrire cette fonction, sur un
+    petit modèle causal texte-seul (`tiny-random-gpt2`) : un padding à
+    gauche SEUL ne suffit PAS à faire pointer `hidden_states[:, -1, :]` sur
+    le bon token -- sans position_ids explicites dérivés du masque
+    d'attention, la similarité cosinus contre un calcul de référence non
+    batché tombe à ~0.51 (cassé), contre ~0.9999997 une fois les
+    position_ids correctement calculés. Qwen2-VL utilise un encodage de
+    position M-RoPE (3 axes temporel/hauteur/largeur, pas une simple suite
+    1D), plus complexe à répliquer à la main sans risquer une nouvelle
+    version silencieusement incorrecte de ce même bug -- on laisse donc
+    volontairement `Qwen2VLForConditionalGeneration.forward` calculer ses
+    position_ids en interne à partir de `input_ids`/`attention_mask`/
+    `image_grid_thw` (ce que son architecture est censée savoir faire, y
+    compris sous padding, puisque le batching multimodal fait partie de son
+    usage prévu) plutôt que de les recalculer nous-mêmes. Ce choix N'EST PAS
+    vérifié empiriquement contre le vrai modèle (pas de GPU disponible pour
+    l'écrire) -- c'est exactement ce que `scripts/verify_batching.py` vérifie
+    avant tout entraînement réel : s'il échoue, appeler avec
+    `TrainConfig.batched_embeddings=False` (cf. _sequential_last_token_hidden_state)
+    plutôt que de lancer l'entraînement sur une loss potentiellement calculée
+    à partir du mauvais token.
+    """
+    from qwen_vl_utils import process_vision_info
+
+    if (texts is None) == (images is None):
+        raise ValueError("Fournir exactement un de `texts` ou `images`, jamais les deux ni aucun.")
+
+    messages_batch = _build_messages(texts, images)
+    chat_texts = [
+        processor.apply_chat_template(m, tokenize=False, add_generation_prompt=True) for m in messages_batch
+    ]
+    image_inputs, video_inputs = process_vision_info(messages_batch)
+
+    tokenizer = getattr(processor, "tokenizer", processor)
+    original_padding_side = tokenizer.padding_side
+    tokenizer.padding_side = "left"
+    try:
+        inputs = processor(
+            text=chat_texts,
+            images=image_inputs if image_inputs else None,
+            videos=video_inputs if video_inputs else None,
+            padding=True,
+            return_tensors="pt",
+        ).to(model.device)
+    finally:
+        tokenizer.padding_side = original_padding_side
 
     outputs = model(**inputs, output_hidden_states=True, return_dict=True)
-    return outputs.hidden_states[-1][:, -1, :]  # (1, hidden_dim)
+    return outputs.hidden_states[-1][:, -1, :]  # (len(texts or images), hidden_dim)
 
 
-def embed_questions(model, processor, questions: list[str]):
+def embed_questions(model, processor, questions: list[str], batched: bool = True):
     """Embedding de chaque question (modalité texte seule)."""
-    import torch
+    fn = _batched_last_token_hidden_state if batched else _sequential_last_token_hidden_state
+    return fn(model, processor, texts=questions)
 
-    return torch.cat([_last_token_hidden_state(model, processor, q) for q in questions], dim=0)
 
-
-def embed_tiles(model, processor, images: list) -> "torch.Tensor":  # noqa: F821
+def embed_tiles(model, processor, images: list, batched: bool = True):
     """Embedding de chaque image de tuile (modalité image + prompt fixe)."""
-    import torch
-
-    return torch.cat(
-        [_last_token_hidden_state(model, processor, "", image=img) for img in images], dim=0
-    )
+    fn = _batched_last_token_hidden_state if batched else _sequential_last_token_hidden_state
+    return fn(model, processor, images=images)
 
 
 def info_nce_loss(question_embeds, tile_embeds, positive_indices: list[int], temperature: float = CONTRASTIVE_TEMPERATURE):
@@ -176,6 +264,12 @@ class TrainConfig:
     # cf. image_compression.py), ce qui rend la comparaison pleine résolution
     # vs compressée une simple bascule de ce chemin.
     images_root: str = str(QA_DATASET_DIR)
+    # Mettre à False si scripts/verify_batching.py échoue sur cet environnement
+    # (cf. _batched_last_token_hidden_state) -- retombe sur un appel modèle par
+    # élément, plus lent mais sans hypothèse sur le padding/position_ids de
+    # Qwen2-VL en batch.
+    batched_embeddings: bool = True
+    gradient_checkpointing: bool = False
 
 
 def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
@@ -188,7 +282,7 @@ def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
 
     from .contrastive_dataset import ContrastiveTileDataset, contrastive_collate_fn
 
-    model, processor = load_reader_model()
+    model, processor = load_reader_model(gradient_checkpointing=train_config.gradient_checkpointing)
     dataset = ContrastiveTileDataset(n_negatives=train_config.n_negatives, images_root=Path(train_config.images_root))
     if len(dataset) == 0:
         raise RuntimeError(
@@ -211,8 +305,8 @@ def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
     for epoch in range(train_config.epochs):
         total_loss = 0.0
         for batch in loader:
-            question_embeds = embed_questions(model, processor, batch["questions"])
-            tile_embeds = embed_tiles(model, processor, batch["tile_images"])
+            question_embeds = embed_questions(model, processor, batch["questions"], batched=train_config.batched_embeddings)
+            tile_embeds = embed_tiles(model, processor, batch["tile_images"], batched=train_config.batched_embeddings)
             loss = info_nce_loss(question_embeds, tile_embeds, batch["positive_indices"])
 
             optimizer.zero_grad()
@@ -249,11 +343,24 @@ def main() -> None:
             "compressées plutôt que pleine résolution."
         ),
     )
+    parser.add_argument(
+        "--no-batched-embeddings", dest="batched_embeddings", action="store_false",
+        help=(
+            "Désactive le batching des appels modèle (embed_questions/embed_tiles), retombant "
+            "sur un appel par élément. À utiliser si scripts/verify_batching.py échoue sur cet "
+            "environnement -- plus lent mais sans hypothèse sur le padding/position_ids en batch."
+        ),
+    )
+    parser.add_argument(
+        "--gradient-checkpointing", action="store_true",
+        help="Réduit la mémoire d'activations (~20-30%% plus lent) -- filet de sécurité sur un GPU à VRAM limitée.",
+    )
     args = parser.parse_args()
 
     train_lora(TrainConfig(
         epochs=args.epochs, batch_size=args.batch_size, lr=args.lr,
         n_negatives=args.n_negatives, output_dir=args.output_dir, images_root=args.images_root,
+        batched_embeddings=args.batched_embeddings, gradient_checkpointing=args.gradient_checkpointing,
     ))
 
 
