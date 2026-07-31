@@ -26,6 +26,9 @@ scikit-learn>=1.4
 # (src/lora_finetune.py). Installation plus lourde (~1 Go) ; tourne sur GPU
 # CUDA, MPS (Apple Silicon) ou CPU selon ce que torch détecte. ---
 torch>=2.3
+torchvision          # requis par transformers>=5 pour le processeur vidéo de Qwen2-VL,
+                     # même si aucune vidéo n'est utilisée ici (texte + images seulement) --
+                     # AutoProcessor.from_pretrained() plante à l'import sinon.
 transformers>=4.45
 accelerate>=0.33
 qwen-vl-utils>=0.0.8
