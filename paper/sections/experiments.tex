@@ -46,7 +46,7 @@ Grid & 109 & 0.725 & 0.821 & 3.9$\times$ \\
 
 Raw numbers say grid is more accurate -- the opposite of this paper's claim -- but are confounded: grid's pool is $\sim$5$\times$ smaller (Appendix~\ref{sec:appendix-tiling-cost}), which improves Recall/MRR mechanically regardless of ranking quality. Normalizing by each row's own chance-level MRR reverses the conclusion: DOM-guided tiling is \textbf{14--16$\times$} better than chance on its own pool, against grid's \textbf{3.7--3.9$\times$} on its own -- a gap that survives on the paired subset too, so it is not an artifact of differing question sets. We read this as a real retrieval advantage from content-aligned boundaries, larger than raw Recall@$k$ suggests, though a preliminary signal (single lexical scorer, self-generated single-hop questions, \S\ref{sec:limitations}) rather than a final result. Ablations (b)/(c) still require the trained reader.
 
-\paragraph{Status.} All stages (\S\ref{sec:method}) are implemented, tested, and demonstrated end-to-end on live pages (\S\ref{sec:implementation}). QA-pair generation has scaled to the multi-page corpus of Table~\ref{tab:dataset-stats}. Scaling surfaced a real failure mode -- our local reader occasionally reasoned until it exhausted Ollama's context window, silently emitting an empty, discarded response, fixed by widening the window and disabling reasoning for this step -- and a real cost: $\sim$2 minutes/tile on local (Apple Silicon) hardware, now partly mitigated by concurrent VLM calls (\S\ref{sec:implementation}); Appendix~\ref{sec:appendix-gpu} turns this into a compute-budget estimate for fine-tuning itself. Full results, including ablations (b)/(c), follow once both move to rented GPU compute.
+\paragraph{Status.} All stages (\S\ref{sec:method}) are implemented, tested, and demonstrated end-to-end on live pages (\S\ref{sec:implementation}). QA-pair generation has scaled to the multi-page corpus of Table~\ref{tab:dataset-stats}. Scaling surfaced a real failure mode -- our local reader occasionally reasoned until it exhausted Ollama's context window, silently emitting an empty, discarded response, fixed by widening the window and disabling reasoning for this step -- and a real cost: $\sim$2 minutes/tile on local (Apple Silicon) hardware, now partly mitigated by concurrent VLM calls (\S\ref{sec:implementation}); Appendix~\ref{sec:appendix-gpu} turns this into a compute-budget estimate for fine-tuning itself. Since that estimate, fine-tuning has completed on rented GPU compute (3 epochs, final average training InfoNCE loss $0.057$) -- a loss value only, not yet a retrieval result, since no train/val split existed for that run. We have since added an article-level split and a Recall@$k$/MRR evaluation of the fine-tuned reader against the base model, scored over every tile of a page rather than the small mined pool the training loss uses; it awaits the same class of rented GPU the fine-tuning run used, since a 16\,GB laptop cannot even load \texttt{Qwen2-VL-7B-Instruct} without disk offload, which breaks \code{peft} adapter loading outright. Full results, including ablations (b)/(c), follow once that run completes.
 
 \begin{table}[t]
 \centering
@@ -56,13 +56,13 @@ Raw numbers say grid is more accurate -- the opposite of this paper's claim -- b
 Statistic & Value \\
 \midrule
 Distinct Wikipedia articles & 19 \\
-Page units (articles + split sections) & 93 \\
-Tiles extracted & 1{,}103 \\
-QA pairs generated & 970 \\
-Tiles with no usable QA (\code{SKIP}) & 133 (12.1\%) \\
-Contrastive examples (QA + hard negatives) & 534 \\
+Page units (articles + split sections) & 185 \\
+Tiles extracted & 1{,}927 \\
+QA pairs generated & 1{,}775 \\
+Tiles with no usable QA (\code{SKIP}) & 152 (7.9\%) \\
+Contrastive examples (QA + hard negatives) & 1{,}339 \\
 \bottomrule
 \end{tabular}
-\caption{Contrastive dataset size (\S\ref{sec:contrastive}), computed from \code{tiles\_manifest.jsonl}, \code{qa\_pairs.jsonl}, \code{contrastive\_examples.jsonl} (lexical filter only, no VLM judge). 6 of 19 articles were split into sections (\S\ref{sec:graph}).}
+\caption{Contrastive dataset size (\S\ref{sec:contrastive}), computed from \code{tiles\_manifest.jsonl}, \code{qa\_pairs.jsonl}, \code{contrastive\_examples.jsonl} (lexical filter only, no VLM judge). 12 of 19 articles were split into sections (\S\ref{sec:graph}).}
 \label{tab:dataset-stats}
 \end{table}
