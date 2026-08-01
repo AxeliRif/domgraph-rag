@@ -13,6 +13,7 @@ question une similarité plus grande avec la tuile positive qu'avec les autres
 from __future__ import annotations
 
 import json
+import random
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,6 +22,49 @@ from torch.utils.data import Dataset
 
 from .config import CONTRASTIVE_EXAMPLES_PATH, QA_DATASET_DIR, TILES_MANIFEST_PATH
 from .hard_negative_mining import ContrastiveExample, load_contrastive_examples
+
+
+def _article_root(page_slug: str) -> str:
+    """"Mount_Everest__sec6" -> "Mount_Everest" : les `page_slug` de ce jeu de
+    données sont des *sections* d'articles Wikipédia, pas des articles entiers
+    (cf. build_dataset.py). Regrouper par article plutôt que par section évite
+    la fuite d'un split train/val : deux sections du même article partagent
+    souvent du vocabulaire, des entités et parfois des tuiles quasi-identiques
+    (infobox répétée, résumé en tête de section)."""
+    return page_slug.split("__sec")[0]
+
+
+def split_examples_by_article(
+    examples: list[ContrastiveExample], val_fraction: float = 0.2, seed: int = 0
+) -> tuple[list[ContrastiveExample], list[ContrastiveExample]]:
+    """Split (train, val) par ARTICLE (cf. `_article_root`), pas par exemple ni
+    par section : sans ça, le modèle a pu voir d'autres questions sur les
+    mêmes tuiles (ou des tuiles très proches) pendant l'entraînement, ce qui
+    gonflerait artificiellement le recall/MRR mesurés sur le split "val".
+
+    Les articles sont mélangés (seed fixe = reproductible) puis ajoutés au
+    split val un par un jusqu'à couvrir `val_fraction` des exemples -- une
+    approximation par article plutôt qu'un pourcentage exact par exemple,
+    puisque les articles ont des nombres d'exemples très inégaux (cf. la
+    distribution constatée sur ce jeu de données : de 1 à 25 exemples par
+    section).
+    """
+    examples_by_article: dict[str, list[ContrastiveExample]] = {}
+    for ex in examples:
+        examples_by_article.setdefault(_article_root(ex.page_slug), []).append(ex)
+
+    articles = list(examples_by_article)
+    random.Random(seed).shuffle(articles)
+
+    target_val_count = round(len(examples) * val_fraction)
+    val: list[ContrastiveExample] = []
+    train: list[ContrastiveExample] = []
+    for article in articles:
+        if len(val) < target_val_count:
+            val.extend(examples_by_article[article])
+        else:
+            train.extend(examples_by_article[article])
+    return train, val
 
 
 def load_tile_image_paths(manifest_path: Path = TILES_MANIFEST_PATH) -> dict[str, str]:
