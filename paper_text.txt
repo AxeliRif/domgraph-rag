@@ -1,0 +1,864 @@
+      DOM-Graph RAG: DOM-Guided Adaptive Tiling and Budgeted Online
+             Evidence Control for Multimodal Web-Page RAG
+
+
+                                         Anonymous ACL submission
+
+
+
+
+001                     Abstract                                 numbers is ongoing work, reported as such in       046
+                                                                 Section 5.                                         047
+
+002    Recent visual retrieval-augmented generation
+                                                             1   Introduction                                       048
+003    (RAG) systems render documents as pixel
+004    screenshots and let a vision-language model           Retrieval-augmented generation (RAG) over vi-          049
+005    (VLM) read tiles of the image directly,               sually rich documents – web pages, tables, in-         050
+006    avoiding the information loss of OCR and
+                                                             foboxes – has long relied on text extraction: parse    051
+007    text extraction.      PixelRAG (Wang et al.,
+008    2026) popularized this idea but tiles the             the HTML or run OCR, chunk the text, retrieve          052
+
+009    rendered page on a ﬁxed pixel grid, blind             with a dense retriever. This discards exactly what     053
+010    to content boundaries: a table or paragraph           layout encodes: which numbers belong to which          054
+011    can be sliced in half mid-tile. Separately,           table row, which caption belongs to which ﬁg-          055
+012    MAGE-RAG (Zuo et al., 2026) organizes long            ure. PixelRAG (Wang et al., 2026) instead shows        056
+013    documents into a multigranular page/element           that a VLM retrieving directly over rendered page      057
+014    evidence graph and reads it with an online con-       screenshots can match or beat text-based retrieval     058
+015    troller that activates, opens, and prunes graph
+                                                             on long, layout-heavy documents – but its tiling is    059
+016    nodes under a ﬁxed action budget, but targets
+017    already-parsed long PDFs rather than rendered         a ﬁxed pixel grid, blind to what is on the page: ev-   060
+
+018    web pages. We present DOM-Graph RAG, a                ery tile has the same height regardless of content,    061
+019    pipeline that replaces PixelRAG’s blind grid          so a table row or paragraph can be split with no       062
+020    with tiling guided by the page’s own DOM              awareness it was ever one unit. A retriever built      063
+021    structure, so tile boundaries follow content          on such tiles must reconstruct boundaries the ren-     064
+022    boundaries by construction. The resulting             derer already knew and threw away.                     065
+023    tiles are organized into a MAGE-RAG-style
+                                                                MAGE-RAG (Zuo et al., 2026) addresses a dif-        066
+024    multigranular graph, extended across pages
+025    via hyperlink edges into a small corpus graph.        ferent problem: given an already-segmented long        067
+
+026    We ﬁne-tune a VLM reader contrastively on             document, which passages should an agent read          068
+027    synthetically generated (tile, question) pairs        under a bounded budget? It builds a multigranular      069
+028    with mined hard negatives (LoRA, both vision          evidence graph (containment, reading order, lay-       070
+029    tower and decoder, InfoNCE), and implement            out adjacency, section hierarchy, semantic neigh-      071
+030    an online evidence controller that evolves            bors) and an online controller (its Algorithm 1)       072
+031    every node through a four-state machine               that activates, opens, and prunes nodes under bud-     073
+032    (INACTIVE→ACTIVE→OPENED/PRUNED)
+                                                             get – but assumes the document is already parsed,      074
+033    via best-ﬁrst search under budget, so the
+034    reader gets a small, prioritized evidence sub-        and does not address obtaining content-aligned         075
+
+035    graph instead of the whole page. We describe          tiles from a rendered page in the ﬁrst place.          076
+036    the full, open-sourced pipeline in detail and            The two are complementary: PixelRAG shows           077
+037    report a ﬁrst preliminary result: on a slice          pixel tiles read by a VLM are a viable retrieval       078
+038    of our own synthetic QA set, DOM-guided               unit, but tiles blindly; MAGE-RAG shows a              079
+039    tiling’s lexical retrieval signal is 14–16×           budget-aware graph controller beats static top-k,      080
+040    stronger than chance, against 3.7–3.9× for a
+                                                             but assumes elements already exist. This pa-           081
+041    blind ﬁxed-height grid at the same resolution,
+042    once pool-size differences between the two            per combines them via the one artifact Pixel-          082
+
+043    tilings are controlled for. Full benchmark            RAG discards and MAGE-RAG never had to con-            083
+044    evaluation against MAGE-RAG’s published               struct: the DOM. For a rendered web page, the          084
+045    LongDocURL and MMLongBench-Doc                        browser’s own layout engine already knows every        085
+
+
+                                                         1
+086   element’s exact bounding box before a single pixel          ument Screenshot Embedding (Ma et al., 2024a)           135
+087   is cropped.                                                 (whole-page VLM embeddings, no parsing), and            136
+                                                                  VisRAG (Yu et al., 2024)/M3DocRAG (Cho                  137
+088   Contributions. We introduce DOM-Graph                       et al., 2024) (full retrieve-then-generate pipelines,   138
+089   RAG, an open-source pipeline (§3) that: (1)                 the latter multi-page/-document). None address          139
+090   replaces PixelRAG’s blind grid with DOM-guided              how a page is cut into retrievable units – what         140
+091   adaptive tiling – elements cropped along their              our tiling (§3.1) targets, so it could feed any         141
+092   own bounding boxes, undersized ones merged,                 of them, not only PixelRAG, whose own blind             142
+093   oversized ones split, headings always paired                ﬁxed-height grid lets a table or paragraph straddle     143
+094   with their content, nested duplicates pruned                a tile boundary. PixelRAG also reports up to 3×         144
+095   before tiling (§3.1); (2) organizes tiles into a            token-cost reduction at lower resolution without        145
+096   multigranular graph in the style of MAGE-RAG                specifying the ﬁlter or resolutions tested; we build    146
+097   – all ﬁve of its relations, plus cross-page hyperlink       a matched full-/reduced-resolution pair on our          147
+098   edges into a small corpus graph, and oversized              own tiles to measure this directly (§3.3).              148
+099   pages split into section-level sub-pages via a new
+100   continues relation, so document length grows                Graph-structured evidence and controllers.              149
+
+101   the graph rather than excluding long documents              MAGE-RAG (Zuo et al., 2026) (evalu-                     150
+
+102   (§3.2); (3) ﬁne-tunes a general-purpose VLM                 ated on LongDocURL (Deng et al., 2025),                 151
+
+103   into a page-element reader via contrastive LoRA             MMLongBench-Doc (Ma et al., 2024b)) builds              152
+
+104   training on synthetic (tile, question) pairs with           an ofﬂine multigranular evidence graph and reads        153
+
+105   lexically- and, optionally, VLM-judge-mined hard            it with a budgeted controller – the direct ancestor     154
+
+106   negatives, mirrored at reduced resolution for a             of §3.4; the difference is provenance: we build         155
+
+107   controlled test of PixelRAG’s resolution/token-             the graph from a rendered page’s DOM, giving            156
+
+108   cost claim (§3.3); (4) implements an online                 exact boundaries and reading order for free, and        157
+
+109   evidence controller generalizing MAGE-RAG’s                 now instantiate all ﬁve of its relation types (§3.2).   158
+
+110   Algorithm 1 to live-DOM graphs via an explicit              GraphRAG (Edge et al., 2024) shares the premise         159
+
+111   four-state machine under a node-opening budget              of building an explicit graph before querying it,       160
+
+112   (§3.4).                                                     over extracted entities rather than layout structure    161
+
+113      The full pipeline is implemented and exer-               – complementary rather than competing. Layout-          162
+
+114   cised end-to-end on live Wikipedia pages, with              and markup-aware pretraining (LayoutLM (Xu              163
+
+115   dependency-light unit tests over the geometric,             et al., 2020), MarkupLM (Li et al., 2022)) instead      164
+
+116   graph, mining, and image-processing logic. §5 re-           bakes structure into the model’s representation;        165
+
+117   ports a ﬁrst preliminary ablation and lays out the          we use the DOM directly at inference time,              166
+
+118   evaluation against MAGE-RAG’s published base-               with no pretraining required. Web-agent work            167
+
+119   lines as work in progress, rather than fabricate            (WebArena (Zhou et al., 2023), Mind2Web (Deng           168
+
+120   numbers ahead of running it.                                et al., 2023), SeeAct (Zheng et al., 2024)) has         169
+                                                                  already studied when DOM structure is reliable          170
+121   2 Related Work                                              enough to act on – the same failure mode (JS-           171
+                                                                  hydrated, div-soup markup) that scopes our own          172
+122   Text-based document RAG. Standard RAG                       claim to semantically marked-up pages (§6).             173
+123   chunks extracted text and retrieves with a dense
+124   bi-encoder (Karpukhin et al., 2020). On visually            Contrastive ﬁne-tuning and hard-negative min-           174
+
+125   rich documents this requires a layout-aware parser          ing. Training with in-batch negatives plus mined        175
+
+126   or OCR, both lossy on complex layouts, and dis-             hard negatives (lexically/semantically close but        176
+
+127   cards 2D structure (which text belongs to which             non-answering) is standard in dense retrieval, e.g.     177
+
+128   cell or caption) before retrieval ever runs.                DPR’s BM25-mined negatives (Karpukhin et al.,           178
+                                                                  2020); we use TF-IDF at tile granularity in-            179
+129   Screenshot-based        visual      RAG. Pixel-             stead. Training pairs are generated synthetically       180
+130   RAG (Wang et al., 2026) retrieves over rendered-            by prompting a VLM per tile, in the spirit of           181
+131   page image tiles with a VLM embedding model,                InPars (Bonifacio et al., 2022) and Promptaga-          182
+132   part of an established line retrieving over page            tor (Dai et al., 2022) adapted to image tiles. We       183
+133   images rather than text: ColPali (Faysse et al.,            ﬁne-tune with LoRA (Hu et al., 2021) on both the        184
+134   2024) (late-interaction patch embeddings), Doc-             decoder and the vision tower.                           185
+
+
+                                                              2
+186   3 Method                                                    heading pairing – a heading is never a standalone        235
+                                                                  tile, but held and merged with the next element          236
+187   A page is rendered once with a headless browser             (e.g. h2+p); (2) merging – non-heading elements          237
+188   (Appendix D, Figure 2 diagrams the ﬂow); its                under 80 px are buffered until their union spans         238
+189   DOM geometry drives an adaptive tiling step                 that minimum, then ﬂushed as one merged tile;            239
+190   (§3.1); tiles are organized into a two-level graph,         (3) patching – an element taller than 2048 px is         240
+191   optionally spanning several hyperlinked pages               sliced into ⌈h/hmax ⌉ equal-height sub-tiles. This       241
+192   (§3.2); a VLM reader is contrastively ﬁne-tuned             directly targets PixelRAG’s failure mode: a table        242
+193   to score (question, tile) pairs (§3.3); and, at query       that would straddle a ﬁxed grid cell is instead one      243
+194   time, an online controller walks the graph under a          tile (or content-aligned sub-tiles if unusually tall),   244
+195   budget to decide which nodes the reader actually            and a short caption merges with its neighbor rather      245
+196   opens (§3.4).                                               than orphaning. Each tile keeps a pointer to its         246
+
+197   3.1 DOM-Guided Adaptive Tiling                              source element(s) (tag, text, links), used both for      247
+                                                                  the graph (§3.2) and as ground truth for negative-       248
+198   Rendering and extraction. We load the page                  mining (§3.3). Figure 3 (Appendix D) shows tiles         249
+199   in headless Chromium at a ﬁxed viewport width               overlaid on a real page.                                 250
+200   (2048 px), remove interface chrome via a CSS se-
+201   lector list (navigation, footers, Wikipedia furni-
+                                                                  3.2 Multigranular Graph Construction                     251
+202   ture), and take a full-page screenshot. For a conﬁg-
+203   urable tag set (h1–h4, p, table, figure, img,               Tiles are organized into a two-level directed graph      252
+204   ul/ol, blockquote, pre) we read each ele-                   (one page node, one element node per tile)               253
+205   ment’s absolute bounding box directly from the              with all ﬁve of MAGE-RAG’s relation types, plus          254
+206   rendered DOM. For non-text containers this is               one of our own for cross-page connectivity:              255
+207   getBoundingClientRect; for text-ﬂow tags,                      • contains (page → element): every ele-               256
+208   whose CSS box spans the full container width by                  ment belongs to its page.                           257
+209   default regardless of actual content, we instead               • reading_order            (elementi         →        258
+210   union the client rects of every descendant text node             elementi+1 ):     a spatial heuristic, not          259
+211   (never the element itself, which would also pick up              DOM order – elements are grouped into vi-           260
+212   a nested block child’s box). Without this, a para-               sual rows (20 px vertical-overlap tolerance),       261
+213   graph or reference list sharing a row with a ﬂoated              each sorted left-to-right, rows concatenated        262
+214   infobox reports a bounding box running through                   top-to-bottom, since DOM and visual order           263
+215   the infobox’s column even though its text stops                  diverge under CSS positioning (a sidebar that       264
+216   well short of it. Hyperlinks are collected from                  appears late in the DOM but renders beside          265
+217   <p> elements only, seeding the cross-page edges                  the lead paragraph).                                266
+218   of §3.2.                                                       • layout_adjacency (element                  ↔        267
+
+219   Overlap resolution. Nested tags (an <img> in                     element): reciprocal edges to the 2D neigh-         268
+
+220   a <figure>) yield duplicate bounding boxes for                   bors reading order ﬂattens away (left/right         269
+
+221   the same content; we sort by DOM depth and drop                  within a row; above/below to the nearest            270
+
+222   any element already fully contained (1 px toler-                 horizontally-overlapping tile in the next           271
+
+223   ance) in a shallower kept element. Containment                   row), keeping a multi-column layout’s true          272
+
+224   is not the only overlap source: a ﬂoated sidebar                 neighbors explicit.                                 273
+
+225   and the text sharing its row can genuinely intersect           • section_hierarchy (heading                 →        274
+
+226   even after the text-ﬂow tightening above. Rather                 child): each heading points to its nested sub-      275
+
+227   than tile such elements independently and dupli-                 heading/content, respecting level nesting,          276
+
+228   cate the shared pixels, we connect any two ele-                  forming a section tree distinct from the ﬂat        277
+
+229   ments whose bounding-box intersection exceeds a                  contains relation.                                  278
+
+230   small fraction of the smaller one’s area, and tile             • semantic_neighbor (element                 ↔        279
+
+231   each connected component as one crop spanning                    element):       TF-IDF-cosine edges be-             280
+
+232   their union.                                                     tween lexically close elements regard-              281
+                                                                       less of position, added greedily un-                282
+233   Adaptive tiling and patching. Elements are                       der a per-tile degree cap.           Optional       283
+234   processed top-to-bottom under three rules: (1)                   (use_semantic_similarity=True,                      284
+
+
+                                                              3
+285         off by default) – meant to be toggled to              state=...>text</element> per node) as                   335
+286         compare the controller with and without it            the reader’s structured input, in the spirit of         336
+287        (§5), not assumed to help unconditionally,             MAGE-RAG’s structured-rendering step (exam-             337
+288         and needing no learned embedder to test as            ple in Appendix D, Figure 6).                           338
+289         an ablation.
+290      • links_to (element → external_page):                    3.3 Contrastive Reader Fine-Tuning                      339
+291         hyperlinks from the ﬁrst k=3 link-bearing
+                                                                  To turn a general-purpose VLM into a tile-level         340
+292         text tiles (reading order); beyond that budget,
+                                                                  reader that also scores how well a tile answers a       341
+293         links are dropped to bound the corpus crawl’s
+                                                                  query, we ﬁne-tune it contrastively on synthetic        342
+294         branching factor.
+                                                                  data, in three stages.                                  343
+295   Every element node starts with a state attribute
+296   (INACTIVE), which the controller (§3.4) evolves at          Synthetic QA generation. For every tile, we             344
+297   query time. Figure 4 (Appendix D) shows the re-             prompt the VLM with the tile image alone for one        345
+298   sulting graph for the page of Figure 3.                     self-contained, factual question answerable only        346
+                                                                  from that tile, or SKIP if it carries no exploitable    347
+299   Oversized-page splitting. One article’s screen-
+                                                                  content – the recipe of synthetic query generation      348
+300   shot exceeded 46,000 px and produced dozens of
+                                                                  for retriever training (InPars, Promptagator; Boni-     349
+301   tiles whose sequential QA generation (§3.3) ran
+                                                                  facio et al., 2022; Dai et al., 2022) applied to im-    350
+302   for hours with no partial progress saved on fail-
+                                                                  age tiles. Every tile crop is persisted regardless      351
+303   ure, since the whole page was one unit of work.
+                                                                  of outcome, so SKIPped tiles remain available as        352
+304   Rather than exclude such pages, one whose ele-
+                                                                  candidate hard negatives.                               353
+305   ment height exceeds 10× the max tile height is
+306   split into sections before tiling, at h1/h2 bound-          Hard-negative mining. For each question, we             354
+307   aries (content before the ﬁrst heading forms a              rank every other tile from the same page by TF-         355
+308   preamble section), with any still-oversized section         IDF cosine similarity and keep the top n=2 clear-       356
+309   further re-chunked by a height budget. Each sec-            ing two false-negative ﬁlters: (a) a free lexical ﬁl-   357
+310   tion is tiled and graphed as a standalone page              ter rejecting any tile whose text already contains      358
+311   would be, and the per-section graphs are merged             the answer verbatim, and (b), optionally, a VLM-        359
+312   by node-namespacing, with consecutive sections’             judge ﬁlter showing the candidate image to the          360
+313   page nodes linked by a new continues rela-                  reader VLM and asking whether it can recover the        361
+314   tion – distinct from links_to: sequential parts             answer there – catching non-lexical false negatives     362
+315   of the same document, not a hyperlink elsewhere.            (paraphrase, logo, chart color) at the cost of one      363
+316   Every page’s graph, split or not, exposes an entry          extra VLM call per candidate, so it is opt-in.          364
+317   point (the sole page node, or the ﬁrst section’s)
+318   for the corpus graph below to rewire onto; the con-         Contrastive LoRA ﬁne-tuning. Qwen2-VL is                365
+319   troller does not yet cross continues edges auto-            generative, not a similarity encoder; we turn it        366
+320   matically (§6). Figure 5 (Appendix D) shows an              into one via PromptEOL (Jiang et al., 2024) (a          367
+321   example split into 16 sections.                             short ﬁxed instruction, “summarize the above in         368
+
+322   Corpus graph. From a seed page we crawl up                  one word,” after the question or a tile image, tak-     369
+
+323   to m pages reachable via its links_to edges                 ing the last token’s ﬁnal-layer hidden state as em-     370
+
+324   (one hop, non-recursive), build each linked page’s          bedding), originally proposed for text-only LLMs        371
+
+325   graph independently, and merge by namespacing               and applied here to a VLM’s image+instruction in-       372
+
+326   every node with a URL-derived slug, rewiring                put. LoRA (r=16, α=32, dropout 0.05) adapts             373
+
+327   each placeholder external-page node onto the                both the decoder’s attention projections and the vi-    374
+
+328   crawled page’s entry point. links_to is the only            sion tower’s, since the task requires reﬁning what      375
+
+329   cross-document connective tissue, continues                 the model attends to in the image jointly with how      376
+
+330   the only cross-section one – the substrate the ev-          it reads the question. Given B questions each with      377
+
+331   idence controller (§3.4) operates over.                     one positive and K mined negatives, we minimize         378
+                                                                  a temperature-scaled (τ =0.05) InfoNCE loss over        379
+332   Structured rendering. Any (sub-)graph serial-               the B(1+K) tiles in the batch, so each positive         380
+333   izes its page node and directly-contained elements          competes against its own negatives and, in-batch,       381
+334   to XML (one <element id=... tag=...                         every other question’s tiles.                           382
+
+
+                                                              4
+                                                         1)
+                                                                   Algorithm 1 Budgeted best-ﬁrst evidence control
+                                                              OPENED
+                                                    get –
+                                               (bud             Require: graph G, query q, budget B, seed count
+                                          open
+
+        INACTIVE
+                      activate
+                                 ACTIVE
+                                                                     k, thresholds θopen , θact
+                                                                  1: score every element node by sim(q, text(n))
+                                            prun
+                                                 e (fr
+                                                       ee)        2: activate the k highest-scoring inactive nodes ▷
+                                                           PRUNED    seed
+                                                                  3: b ← 0
+      Figure 1: The controller’s state machine. Opening a         4: while b < B and some node is ACTIVE do
+      node consumes budget and may activate unexplored
+                                                                  5:     n ← arg max score over ACTIVE nodes
+      reading_order neighbors; pruning is free and ap-
+      plied to any node still ACTIVE once budget is ex-           6:     if score(n) < θopen then
+      hausted.                                                    7:          n ← PRUNED                       ▷ free
+                                                                  8:     else
+                                                                  9:          n ← OPENED; b ← b + 1; record its
+383   Resolution as an efﬁciency lever. PixelRAG re-                 text as evidence
+384   ports up to 3× token-cost reduction at lower reso-         10:          for each inactive reading_order
+385   lution without specifying the ﬁlter or resolutions             neighbor n′ of n do
+386   tested. We build the infrastructure to test this           11:              if score(n′ ) ≥ θact then
+387   directly: every tile can be mirrored via Lanc-             12:                   n′ ← ACTIVE
+388   zos resampling at a conﬁgurable scale (0.5 de-             13:              end if
+389   fault). Since tiles_manifest.jsonl and                     14:          end for
+390   the mined examples store only paths relative to            15:     end if
+391   an images root, never pixel dimensions, the same           16: end while
+392   questions/positives/negatives are reused unmodi-           17: prune every node still ACTIVE          ▷ ﬁnalize
+393   ﬁed at both resolutions – comparing them is a mat-         18: return concatenation of OPENED nodes’ text,
+394   ter of pointing ﬁne-tuning at one root or the other,           in reading order
+395   isolating resolution as the only variable (§5).
+
+396   3.4 Online Evidence Controller
+                                                                     rather than a ﬁxed global ranking – what distin-       420
+397   Given a query, the controller decides which ele-               guishes it from static top-k retrieval over the same   421
+398   ment nodes the reader actually reads, rather than              scores (ablation in §5).                               422
+399   the whole page or a static top-k. It evolves
+400   each node’s state through the four-state ma-                   Output. The concatenation of OPENED nodes’             423
+
+401   chine of Figure 1, generalizing MAGE-RAG’s Al-                 text, in reading order, is the ﬁnal evidence passed    424
+
+402   gorithm 1.                                                     to the downstream reader, with the controller’s ac-    425
+                                                                     tion log available for inspection.                     426
+403   Relevance scoring. Every element node is
+404   scored against the query by TF-IDF cosine simi-                4   Implementation                                     427
+405   larity (same mechanism as hard-negative mining,
+                                                                     The pipeline is Python, one module per stage           428
+406   with a pure-Python fallback if scikit-learn
+                                                                     of §3:     rendering/extraction via Playwright         429
+407   is unavailable) – a deliberate placeholder for the
+                                                                     (dom_extraction.py); tiling and pruning                430
+408   ﬁne-tuned reader’s own learned similarity (§6).
+                                                                     over Pillow crops (tiling.py); graph construc-         431
+409   Policy. Algorithm 1: (1) seed the frontier with                tion with networkx (graph_builder.py);                 432
+410   the k highest-scoring inactive nodes; (2) repeat-              the reader VLM via Ollama (qwen3-vl,                   433
+411   edly take the highest-scoring active node, pruning             default, no GPU needed) or Hugging Face                434
+412   it for free below an opening threshold or opening it           transformers (Qwen2-VL-7B-Instruct)                    435
+413   (one unit of budget B) and activating still-inactive           for LoRA ﬁne-tuning, every call cached to disk         436
+414   reading_order neighbors that clear an activa-                  by a hash of (image, prompt, decoding-conﬁg)           437
+415   tion threshold; (3) once budget is exhausted or no             – safe since decoding is greedy (temperature           438
+416   active node remains, prune whatever is left active.            0), so a retried page never re-pays a call al-         439
+417   Neighbors are only considered after their node is              ready made (vlm_client.py); synthetic                  440
+418   opened, so the frontier grows along reading order              QA       generation    (qa_generation.py);             441
+419   conditioned on what has already proven relevant,               hard-negative mining via scikit-learn                  442
+
+
+                                                                 5
+443   TF-IDF with a dependency-free fallback                    scripts/build_multihop_dataset.py                         493
+444   (hard_negative_mining.py); and con-                       reports unreachable-article vs. unmatched-                494
+445   trastive LoRA ﬁne-tuning with peft/torch,                 sentence drops separately. Positive-tile attribution      495
+446   target modules discovered by introspecting the            uses stopword-ﬁltered token overlap rather than           496
+447   loaded model rather than hard-coded, so the code          exact substring matching, since the latter rarely         497
+448   does not silently no-op if transformers’ inter-           survives a decade of article edits since HotpotQA’s       498
+449   nal naming changes (lora_finetune.py).                    2017 source dump.                                         499
+
+450   Oversized-page splitting, composition, and                Demonstration and tests. A notebook runs ev-              500
+451   concurrency. sectioning.py                   imple-       ery stage end-to-end with interactive pyvis               501
+452   ments the h1/h2 split as a pure function over             graph visualizations. Dependency-light unit tests         502
+453   already-extracted elements, unit-testable without         cover the geometric pipeline, graph construction          503
+454   Playwright. corpus_builder.py separates                   and splitting, hard-negative mining (lexical and          504
+455   network-bound fetch from a synchronous core               VLM-judge, stub client), the VLM cache and                505
+456   that tiles, decides whether to split, and composes        call concurrency (asserting calls actually over-          506
+457   per-section graphs, exposing an entry_page                lap in time), and resolution compression, all on          507
+458   on every graph; multi-page (links_to) and                 synthetic ﬁxtures needing no network, VLM, or             508
+459   multi-section (continues) composition share               GPU. Playwright-backed tests check the text-ﬂow           509
+460   the same node-namespacing machinery. QA                   bounding-box measurement (ﬂoated-sidebar ﬁx-              510
+461   generation issues per-tile VLM calls concurrently         ture) and the full geometric pipeline end-to-end          511
+462   within a page (a thread pool sized to Ollama’s            (DOM extraction through XML export) against a             512
+463   default parallelism); the controller does the same        bundled local HTML ﬁxture – neither needs a paid          513
+464   on the query path, since which nodes open de-             or rate-limited service.                                  514
+465   pends only on relevance scores computed upfront,
+466   never on a VLM response, so their reads have no           5   Evaluation Protocol and Status                        515
+
+467   inter-dependency once that set is ﬁxed.                        This section reports status honestly: the pipeline   516
+                                                                     of §3 runs end-to-end on live pages, but the         517
+468   Batch construction and resolution ablation.                    trained reader and full benchmark suite are not      518
+                                                                     yet in place. We report one preliminary lexical      519
+469   scripts/build_dataset.py drives the                            ablation now rather than ﬁll this section with       520
+470   pipeline over a page list with retrying fetches;               numbers ahead of the actual runs.                    521
+471   its unit of work is a page unit (a page, or one
+472   split section), checkpointed independently to             Benchmarks. MAGE-RAG’s protocol evaluates                 522
+
+473   contrastive_examples.jsonl – a failure                    on LongDocURL (Deng et al., 2025) and                     523
+
+474   partway through an oversized page costs only the          MMLongBench-Doc (Ma et al., 2024b) (Table 1),             524
+
+475   section in ﬂight, motivated by an early run that          but both are PDF benchmarks, and every input              525
+
+476   lost hours of work when the whole page was the            our method needs (DOM bounding boxes, CSS-                526
+
+477   retry unit. image_compression.py mirrors                  selector chrome removal, h1/h2 splitting) presup-         527
+
+478   tile images at a reduced scale under a separate           poses a renderable DOM a PDF does not have                528
+
+479   root with identical ﬁlenames and relative paths,          – reporting a number on either without resolving          529
+
+480   so switching a training run between resolutions           that mismatch would not be a controlled compar-           530
+
+481   (§3.3) is a single --images-root ﬂag.                     ison. We instead plan an HTML-native source:              531
+                                                                WebSRC (Chen et al., 2021) (human-annotated               532
+482   Tiling ablation and multi-hop data.                       HTML + screenshots) or HotpotQA (Yang et al.,             533
+483   scripts/grid_baseline.py                   reim-          2018), whose supporting_facts name the                    534
+484   plements the blind grid as a mod-                         exact sentences, in two articles, needed per ques-        535
+485   ule      independent       of      tiling.py;             tion – multi-hop by construction and the most di-         536
+486   scripts/dom_vs_grid_experiment.py                         rect ﬁx for our own synthetic QA’s single-hop bias        537
+487   re-renders each page, builds both tilings, and            (§6). We have implemented the HotpotQA path               538
+488   ranks existing questions against both by TF-IDF           (src/multihop_qa.py, §6): 24/40 sampled                   539
+489   (§5). src/multihop_qa.py builds cross-                    questions yielded a complete cross-page example;          540
+490   page examples from HotpotQA (Yang et al.,                 scaling it is next. We do not evaluate on SimpleQA        541
+491   2018) records streamed via the datasets                   (an earlier draft’s choice): with no supplied docu-       542
+492   library (only sampled questions are fetched);             ment, it cannot exercise tiling, the graph, or the        543
+
+
+                                                            6
+          Benchmark                  Metric      MAGE-RAG            Statistic                                        Value
+          LongDocURL                Accuracy         52.75           Distinct Wikipedia articles                          19
+          MMLongBench-Doc           Acc. / F1    53.26 / 51.19       Page units (articles + split sections)              185
+                                                                     Tiles extracted                                   1,927
+      Table 1: Published MAGE-RAG (Zuo et al., 2026)                 QA pairs generated                                1,775
+                                                                     Tiles with no usable QA (SKIP)               152 (7.9%)
+      numbers, the reference our controller (§3.4) general-          Contrastive examples (QA + hard negatives)        1,339
+      izes. Our results on the same benchmarks are ongoing
+      work.                                                          Table 3: Contrastive dataset size (§3.3), computed from
+                                                                     tiles_manifest.jsonl, qa_pairs.jsonl,
+                      n    R@1        MRR       MRR/chance           contrastive_examples.jsonl (lexical ﬁlter
+           All attributable pairs                                    only, no VLM judge). 12 of 19 articles were split into
+           DOM 223 0.543              0.666           14.2×          sections (§3.2).
+           Grid      115 0.730        0.824            3.7×
+           Paired (109 pairs attributable in both)
+           DOM 109 0.505 0.661                        15.8×
+           Grid     109 0.725 0.821                    3.9×          own pool, against grid’s 3.7–3.9× on its own – a          574
+                                                                     gap that survives on the paired subset too, so it         575
+      Table 2: DOM-guided vs. blind grid, same TF-IDF                is not an artifact of differing question sets. We         576
+      scorer, 18 pages / 425 questions. MRR/chance = MRR
+      ÷ mean chance-level MRR (1/nitems ) of that row’s own
+                                                                     read this as a real retrieval advantage from content-     577
+
+      pool, since grid’s pool is ∼5× smaller (Appendix C)            aligned boundaries, larger than raw Recall@k sug-         578
+      and inﬂates raw Recall/MRR mechanically.                       gests, though a preliminary signal (single lexi-          579
+                                                                     cal scorer, self-generated single-hop questions, §6)      580
+                                                                     rather than a ﬁnal result. Ablations (b)/(c) still re-    581
+544   controller.                                                    quire the trained reader.                                 582
+
+545   Ablation (a): DOM-guided tiling vs. a blind
+546   ﬁxed-height grid. The lexical scorer al-
+547   ready used for hard-negative mining and                        Status. All stages (§3) are implemented, tested,          583
+548   controller relevance (§3.3, §3.4) lets us run                  and demonstrated end-to-end on live pages (§4).           584
+549   this ablation without waiting on the trained                   QA-pair generation has scaled to the multi-page           585
+550   reader.        scripts/grid_baseline.py                        corpus of Table 3. Scaling surfaced a real failure        586
+551   reimplements        a     PixelRAG-style      blind            mode – our local reader occasionally reasoned un-         587
+552   grid (1,024 px bands, PixelRAG’s own re-                       til it exhausted Ollama’s context window, silently        588
+553   ported tile height, at our render width);                      emitting an empty, discarded response, ﬁxed by            589
+554   scripts/dom_vs_grid_experiment.py                              widening the window and disabling reasoning for           590
+555   re-renders 18 single-unit pages (the 6 split pages             this step – and a real cost: ∼2 minutes/tile on local     591
+556   need sectioning.py re-run too and are left                     (Apple Silicon) hardware, now partly mitigated            592
+557   for a follow-up), tiles each both ways, and ranks              by concurrent VLM calls (§4); Appendix B turns            593
+558   every existing qa_pairs.jsonl question                         this into a compute-budget estimate for ﬁne-tuning        594
+559   against both tile sets by TF-IDF cosine – same                 itself. Since that estimate, ﬁne-tuning has com-          595
+560   scorer, only the tiling differs. Both conditions               pleted on rented GPU compute (3 epochs, ﬁnal av-          596
+561   are restricted to the region covered by the ﬁrst               erage training InfoNCE loss 0.057) – a loss value         597
+562   25 DOM tiles (matching how the QA pairs were                   only, not yet a retrieval result, since no train/val      598
+563   generated); a question is scored in a condition                split existed for that run. We have since added           599
+564   only if its answer string occurs in one of that                an article-level split and a Recall@k/MRR eval-           600
+565   condition’s tiles, else dropped from that condition            uation of the ﬁne-tuned reader against the base           601
+566   rather than counted as a miss.                                 model, scored over every tile of a page rather            602
+567      Raw numbers say grid is more accurate – the op-             than the small mined pool the training loss uses;         603
+568   posite of this paper’s claim – but are confounded:             it awaits the same class of rented GPU the ﬁne-           604
+569   grid’s pool is ∼5× smaller (Appendix C), which                 tuning run used, since a 16 GB laptop cannot even         605
+570   improves Recall/MRR mechanically regardless of                 load Qwen2-VL-7B-Instruct without disk                    606
+571   ranking quality. Normalizing by each row’s own                 ofﬂoad, which breaks peft adapter loading out-            607
+572   chance-level MRR reverses the conclusion: DOM-                 right. Full results, including ablations (b)/(c), fol-    608
+573   guided tiling is 14–16× better than chance on its              low once that run completes.                              609
+
+
+                                                                 7
+610   6 Limitations                                              gain could partly reﬂect the generator’s idiosyn-       660
+                                                                 crasies rather than genuine document understand-        661
+611   Relation coverage is complete, consumption is
+                                                                 ing; hand-verifying generated pairs, and eventu-        662
+612   not. All ﬁve of MAGE-RAG’s relation types
+                                                                 ally human-authored questions, is needed to rule        663
+613   are instantiated (§3.2), but the controller’s fron-
+                                                                 this out.                                               664
+614   tier expansion (Algorithm 1) only ever follows
+615   reading_order:            layout_adjacency,                Arbitrary slicing, lexical scoring, and other           665
+616   section_hierarchy, and continues                           gaps. Patching (§3.1) splits an oversized ele-          666
+617   are built and visualized but never queried, and            ment into equal-height sub-tiles regardless of con-     667
+618   semantic_neighbor is off by default pending                tent – a narrower version of PixelRAG’s own             668
+619   an ablation. Operationally the graph the controller        failure mode; a dynamic, resolution-preserving          669
+620   walks is closer to a chain than the structure it is        scheme (Qwen2-VL’s AnyRes) is the natural ﬁx.           670
+621   built from. Type-aware, per-relation expansion is          The controller’s TF-IDF relevance scoring (§3.4)        671
+622   the natural next step, and a higher-value one than         misses paraphrases and cross-modal cues the ﬁne-        672
+623   adding further relations.                                  tuned reader would catch; wiring in the reader’s        673
+                                                                 own similarity is the natural next iteration, unify-    674
+624   Single-hop self-generated data cannot exer-
+                                                                 ing mining and control. The VLM-judge false-            675
+625   cise the graph – addressed via HotpotQA,
+                                                                 negative ﬁlter is opt-in and unused so far; hard-       676
+626   at modest scale. §3.3’s QA generation asks
+                                                                 negative mining is single-page outside the Hot-         677
+627   for a question answerable only from the tile
+                                                                 potQA path above; the corpus crawl is one               678
+628   shown, by construction, so an oracle controller
+                                                                 hop, non-recursive; and all hyperparameters (Ap-        679
+629   could answer every such question from one
+                                                                 pendix A) are centralized but chosen once, not          680
+630   node: the graph cannot be shown to help on
+                                                                 swept, with pixel-valued ones tied to a single          681
+631   this data. src/multihop_qa.py closes this
+                                                                 2048 px viewport.                                       682
+632   gap with HotpotQA (Yang et al., 2018) instead:
+633   each question’s supporting_facts names                     7   Conclusion                                          683
+634   two Wikipedia articles and the sentences in each
+635   needed to answer it, so we render both, keep tiles         DOM-Graph RAG grounds two ideas in visual               684
+
+636   overlapping a supporting sentence (token over-             and graph-structured RAG – PixelRAG’s screen-           685
+
+637   lap, tolerant of rewording since HotpotQA’s 2017           shot tiles and MAGE-RAG’s budgeted graph con-           686
+
+638   source dump) as positives, and mine hard nega-             troller – in the DOM a rendered web page already        687
+
+639   tives by TF-IDF pooled across both articles’ tiles –       provides for free: content-aligned tiling replaces      688
+
+640   unavoidably cross-page, since the positives them-          a blind pixel grid, a multigranular graph replaces      689
+
+641   selves span two pages. On 40 sampled questions,            a ﬂat tile list, a contrastively ﬁne-tuned reader re-   690
+
+642   24 (60%) yielded a complete example, every re-             places a generic VLM, and a four-state evidence         691
+
+643   jection an unmatched sentence rather than a miss-          controller replaces reading the whole page or a         692
+
+644   ing article. Scaling this and using it in train-           static top-k. Every stage runs end-to-end on live       693
+
+645   ing/evaluation remains future work.                        pages, and a ﬁrst lexical ablation (§5) suggests the    694
+                                                                 tiling carries a real retrieval advantage once pool-    695
+646   Scoped to semantically marked-up pages.                    size effects are controlled for. Next: an HTML-         696
+647   Chrome removal uses a MediaWiki-speciﬁc selec-             native benchmark, the remaining ablations, and          697
+648   tor list, and every result here is on Wikipedia;           closing the gaps of §6 – most importantly, the          698
+649   we do not claim this works unmodiﬁed on JS-                controller’s lexical scoring replaced with the ﬁne-     699
+650   hydrated SPAs or div-soup layouts, the regime              tuned reader’s own learned similarity.                  700
+651   web-agent work such as WebArena (Zhou et al.,
+652   2023), Mind2Web (Deng et al., 2023), and See-              Ethics Statement                                        701
+653   Act (Zheng et al., 2024) already studies from the
+                                                                 The corpus builder fetches a seed Wikipedia page        702
+654   acting side. The open web is future work.
+                                                                 plus a small, bounded number of linked pages,           703
+655   Same-model-family generation, judging, and                 with retry-and-backoff rather than aggressive re-       704
+656   reading. Synthetic questions, the optional false-          fetching; we crawled only Wikipedia, built for          705
+657   negative judge, and (a different generation                programmatic access at this volume, though a            706
+658   of) the ﬁne-tuned reader all come from the                 production deployment should prefer the Wikime-         707
+659   qwen3-vl/Qwen2-VL family, so any measured                  dia REST API or a static dump over live scrap-          708
+
+
+                                                             8
+709   ing, which this prototype does not do by de-                 Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan        763
+710   fault. Wikipedia text is CC BY-SA; embedded im-                Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang,            764
+                                                                     and Weizhu Chen. 2021.        Lora: Low-rank           765
+711   ages carry heterogeneous, some non-free, licenses,
+                                                                     adaptation of large language models. Preprint,         766
+712   so the screenshots/tiles produced are derivative               arXiv:2106.09685.                                      767
+713   works we do not release here (a future release
+714   would need per-image licensing). Synthetic ques-             Ting Jiang, Shaohan Huang, Zhongzhi Luan, Deqing         768
+                                                                     Wang, and Fuzhen Zhuang. 2024. Scaling sentence        769
+715   tions (§3.3) are VLM-produced and unveriﬁed,                   embeddings with large language models. In Find-        770
+716   and should be labeled as such if released (§6). This           ings of the Association for Computational Linguis-     771
+717   work involves no human subjects or user study.                 tics: EMNLP 2024, pages 3182–3196.                     772
+
+                                                                   Vladimir Karpukhin, Barlas Oğuz, Sewon Min, Patrick     773
+718   References                                                     Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and       774
+                                                                     Wen-tau Yih. 2020. Dense passage retrieval for         775
+719   Luiz Bonifacio, Hugo Abonizio, Marzieh Fadaee, and             open-domain question answering. In Proceedings of      776
+720     Rodrigo Nogueira. 2022. Inpars: Data augmenta-               the 2020 Conference on Empirical Methods in Natu-      777
+721     tion for information retrieval using large language          ral Language Processing (EMNLP).                       778
+722     models. Preprint, arXiv:2202.05144.
+                                                                   Junlong Li, Yiheng Xu, Lei Cui, and Furu Wei. 2022.      779
+723   Xingyu Chen, Zihan Zhao, Lu Chen, Danyang Zhang,               MarkupLM: Pre-training of text and markup lan-         780
+724     Jiabao Ji, Ao Luo, Yuxuan Xiong, and Kai Yu. 2021.           guage for visually-rich document understanding. In     781
+725     WebSRC: A dataset for web-based structural read-             Proceedings of the 60th Annual Meeting of the Asso-    782
+726     ing comprehension. In Proceedings of the 2021 Con-           ciation for Computational Linguistics (ACL).           783
+727     ference on Empirical Methods in Natural Language
+728     Processing (EMNLP).                                        Xueguang Ma, Sheng-Chieh Lin, Minghan Li, Wenhu          784
+                                                                     Chen, and Jimmy Lin. 2024a. Unifying multimodal        785
+729   Jaemin Cho, Debanjan Mahata, Ozan Irsoy, Yu-                   retrieval via document screenshot embedding. In        786
+730      jie He, and Mohit Bansal. 2024.       M3docrag:             Proceedings of the 2024 Conference on Empirical        787
+731      Multi-modal retrieval is what you need for multi-           Methods in Natural Language Processing (EMNLP).        788
+732      page multi-document understanding.      Preprint,
+733      arXiv:2411.04952.                                         Yubo Ma, Yuhang Zang, Liangyu Chen, Meiqi Chen,          789
+                                                                     Yizhu Jiao, Xinze Li, Xinyuan Lu, Ziyu Liu, Yan        790
+734   Zhuyun Dai, Vincent Y. Zhao, Ji Ma, Yi Luan, Jianmo            Ma, Xiaoyi Dong, Pan Zhang, Liangming Pan, Yu-         791
+735     Ni, Jing Lu, Anton Bakalov, Kelvin Guu, Keith B.             Gang Jiang, Jiaqi Wang, Yixin Cao, and Aixin Sun.      792
+736     Hall, and Ming-Wei Chang. 2022. Promptagator:                2024b. Mmlongbench-doc: Benchmarking long-             793
+737     Few-shot dense retrieval from 8 examples. Preprint,          context document understanding with visualizations.    794
+738     arXiv:2209.11755.                                            Preprint, arXiv:2407.01523.                            795
+739   Chao Deng, Jiale Yuan, Pi Bu, Peijie Wang, Zhong-
+740     Zhi Li, Jian Xu, Xiao-Hui Li, Yuan Gao, Jun                Yichuan Wang, Zhifei Li, Zirui Wang, Paul Teiletche,     796
+741     Song, Bo Zheng, and Cheng-Lin Liu. 2025. Long-               Lesheng Jin, Matei Zaharia, Joseph E. Gonza-           797
+742     DocURL: a comprehensive multimodal long docu-                lez, and Sewon Min. 2026.            Pixelrag: Web     798
+743     ment benchmark integrating understanding, reason-            screenshots beat text for retrieval-augmented gener-   799
+744     ing, and locating. In Proceedings of the 63rd Annual         ation. Preprint, arXiv:2606.28344. UC Berkeley /       800
+745     Meeting of the Association for Computational Lin-            BAIR / Berkeley NLP. Code: github.com/StarTrail-       801
+746     guistics (Volume 1: Long Papers), pages 1135–1159,           org/PixelRAG.                                          802
+747     Vienna, Austria. Association for Computational Lin-
+                                                                   Yiheng Xu, Minghao Li, Lei Cui, Shaohan Huang,           803
+748     guistics.
+                                                                     Furu Wei, and Ming Zhou. 2020. LayoutLM: Pre-          804
+749   Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen,                  training of text and layout for document image         805
+750     Samuel Stevens, Boshi Wang, Huan Sun, and Yu Su.             understanding. In Proceedings of the 26th ACM          806
+751     2023. Mind2web: Towards a generalist agent for the           SIGKDD International Conference on Knowledge           807
+752     web. Preprint, arXiv:2306.06070. NeurIPS 2023.               Discovery & Data Mining (KDD).                         808
+
+753   Darren Edge, Ha Trinh, Newman Cheng, Joshua                  Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Ben-        809
+754     Bradley, Alex Chao, Apurva Mody, Steven Truitt,              gio, William W. Cohen, Ruslan Salakhutdinov, and       810
+755     and Jonathan Larson. 2024. From local to global: A           Christopher D. Manning. 2018. HotpotQA: A              811
+756     graph RAG approach to query-focused summariza-               dataset for diverse, explainable multi-hop question    812
+757     tion. Preprint, arXiv:2404.16130. Microsoft.                 answering. In Proceedings of the 2018 Conference       813
+                                                                     on Empirical Methods in Natural Language Process-      814
+758   Manuel Faysse, Hugues Sibille, Tony Wu, Bilel Om-              ing (EMNLP).                                           815
+759    rani, Gautier Viaud, Céline Hudelot, and Pierre
+760    Colombo. 2024. Colpali: Efﬁcient document re-               Shi Yu, Chaoyue Tang, Bokai Xu, Junbo Cui, Jun-          816
+761    trieval with vision language models. Preprint,                hao Ran, Yukun Yan, Zhenghao Liu, Shuo Wang,           817
+762    arXiv:2407.01449.                                             Xu Han, Zhiyuan Liu, and Maosong Sun. 2024.            818
+
+
+                                                               9
+819     Visrag: Vision-based retrieval-augmented gener-              keeps the optimizer state small, but activation               853
+820     ation on multi-modality documents.     Preprint,             memory scales with the frozen base model’s for-               854
+821     arXiv:2410.10594.
+                                                                     ward/backward graph across all 16 unbatched calls             855
+822   Boyuan Zheng, Boyu Gou, Jihyung Kil, Huan Sun,                 held simultaneously before the shared backward.               856
+823     and Yu Su. 2024. GPT-4V(ision) is a generalist               We expect a single 40–80 GB datacenter GPU                    857
+824     web agent, if grounded. Preprint, arXiv:2401.01614.          (A100/H100 class) to sufﬁce at this dataset size –            858
+825     ICML 2024.
+                                                                     no multi-GPU training is warranted – sized con-               859
+826   Shuyan Zhou, Frank F. Xu, Hao Zhu, Xuhui Zhou,                 servatively until peak memory is proﬁled, since               860
+827     Robert Lo, Abishek Sridhar, Xianyi Cheng, Tianyue            the vision encoder can still emit a large token               861
+828     Ou, Yonatan Bisk, Daniel Fried, Uri Alon, and Gra-
+829     ham Neubig. 2023. Webarena: A realistic web envi-            count for our largest tiles (2048 × 2048 px) be-              862
+830     ronment for building autonomous agents. Preprint,            fore its own internal resizing caps it. At an as-             863
+831     arXiv:2307.13854. ICLR 2024.                                 sumed 150–400 ms per forward call, the 6,432                  864
+                                                                     calls total 16–43 minutes of forward compute                  865
+832   Yilong Zuo, Xunkai Li, Jing Yuan, Qiangqiang
+833      Dai, Hongchao Qin, and Ronghua Li. 2026.                    alone; including backward and the overhead of                 866
+834      MAGE-RAG: Multigranular adaptive graph ev-                  16 unbatched calls per step, we would not be sur-             867
+835      idence for agentic multimodal RAG in long-                  prised by anything from under an hour to sev-                 868
+836      document QA. Preprint, arXiv:2606.15906. Code:              eral hours wall-clock for the full run. Batching              869
+837      github.com/laonuo2004/MAGE-RAG.
+                                                                     embed_questions/embed_tiles into one                          870
+838   A Hyperparameters                                              padded forward pass per step is the highest-value             871
+                                                                     change before renting GPU time, reducing both                 872
+                                                                     the estimate and its uncertainty; we ﬂag it as                873
+        Parameter                                      Value
+                                                                     the next engineering step rather than fold an                 874
+        Viewport / max tile width                    2048 px
+        Max tile height (patching)                   2048 px
+                                                                     unbatched-loop number into a claimed result. This             875
+        Min tile height (merging)                       80 px        estimate predated the run: ﬁne-tuning has since               876
+        Row-grouping tolerance                          20 px        completed 3 epochs without incident on rented                 877
+        Nesting tolerance                                1 px
+        Overlap-grouping threshold        15% of smaller area
+                                                                     GPU compute, consistent with the order of magni-              878
+        Link-bearing tiles kept (k)                         3        tude above, though wall-clock time was not logged             879
+        Oversize-split threshold          10× max tile height        precisely enough to report a measured ﬁgure here.             880
+        Mined hard negatives (n)                            2
+        Semantic-neighbor threshold                0.2 cosine
+        Semantic neighbors / tile (max)                     3        C Tiling ablation: cost detail                                881
+        Downscale factor (ablation)                       0.5
+        LoRA r / α / dropout                   16 / 32 / 0.05
+        InfoNCE temperature τ                            0.05                      Tiles/page      Px/tile   Total px/page
+                                                                          DOM           24.0      158,072       3,793,738
+      Table 4: All pipeline hyperparameters (§3.1–§3.3).                  Grid           4.9    2,081,117      10,174,350
+      Each is a single documented, centralized value, not
+      swept; see §6.                                                 Table 5: Tiling cost, same 18 pages as Table 2. DOM-
+                                                                     guided tiling produces more, smaller tiles, yet a smaller
+                                                                     total pixel budget per page (2.7× less) – a direct conse-
+839   B Compute budget for contrastive                               quence of the text-ﬂow bounding-box measurement of
+840     ﬁne-tuning                                                   §3.1, which crops text tiles to the width their content ac-
+                                                                     tually occupies instead of the full page width every grid
+841   Estimated from the training loop’s structure (§3.3),           band uses regardless of content. If image tokens scale
+842   not measured: at batch size 4, n=2 hard neg-                   with pixel area, as they do for Qwen2-VL’s vision en-
+843   atives, 3 epochs over the 534 examples of Ta-                  coder, DOM-guided tiling need not trade accuracy for
+844   ble 3, one optimizer step embeds 4 questions and               token cost against a blind grid.
+845   12 tile images; the current implementation calls
+846   the model once per question and once per im-                     Attach rate (the fraction of questions whose an-            882
+847   age rather than as a single batched forward pass,              swer string survives a tiling’s 200-character text            883
+848   so one step costs 16 sequential forward passes                 preview) is 52.5% for DOM (223/425) against                   884
+849   through Qwen2-VL-7B-Instruct, and a full                       27.1% for grid (115/425) – consistent with grid               885
+850   run costs 402 steps × 16 = 6,432 forward passes,               bands aggregating far more raw content into the               886
+851   all contributing to one shared backward per step.              same ﬁxed text budget, diluting the speciﬁc snip-             887
+852   Weights alone are ≈14 GB in bfloat16; LoRA                     pet a lexical scorer needs to surface.                        888
+
+
+                                                                10
+889   D Additional ﬁgures
+
+                          Render page
+                   (Playwright, DOM removed)
+
+                        DOM-guided tiling
+                        & patching (§3.1)
+
+                       Multigranular graph
+                       (page/element, §3.2)
+
+                       Evidence controller
+                        (budgeted, §3.4)
+
+                     Contrastively ﬁne-tuned
+                       VLM reader (§3.3)
+
+      Figure 2: Pipeline overview. Rendering and tiling
+      happen once per page; the evidence controller runs
+      once per query, deciding which graph nodes the reader
+      opens.
+
+
+
+
+                                                              11
+                                                                        Tiles and reading order, overlaid on the page
+                                                                              1                                                  2                                                               Category
+                                                                              3                                                                                                                 Text (p / merged)
+                                                                                                                                                                                                Table
+                                                                                                                                                                                                List
+
+
+                                                                              4
+
+
+
+                                                                              5
+
+
+
+
+                                                                              6
+
+
+
+                                                                              7
+
+
+
+
+Figure 3: DOM-guided tiles (colored by content category, numbered in reading order) overlaid on the rendered
+page for en.wikipedia.org/wiki/George_P._Gunn. Tile boundaries follow the DOM’s own element
+boundaries: the infobox table (tile 2) is never split mid-row and stays disjoint from the body text and reference list
+that visually share its column range (tiles 1, 3–6), each section heading is paired with its ﬁrst content block – a
+paragraph for tiles 3–5, the reference list itself for tile 6 – rather than emitted alone, and the trailing category footer
+(tile 7) is merged into its own tile rather than left as a ﬂood of near-empty fragments.
+
+                                               Page/element graph -- x = real horizontal position, y = reading order
+                                                                                                                                                                                     Category
+                                                                                                  page                                                                              Text (p / merged)
+                                                                                                                                                                                    Table
+                                                                                                                                                                                    List
+                                                                                   merged
+
+
+                                                                                                                                                   table
+
+
+                                                                                  h2+p
+                                                                                                                                                                                      Relation
+                                                                                                                                                                                    reading_order
+                                                                                   h2+p                                                                                             contains
+                                                                                                                                                                                    layout_adjacency
+                                                                                                                                                                                    section_hierarchy
+                                                                                   h2+p
+
+
+                                                                                  h2+ol
+
+
+                                                                                                    merged
+
+
+
+
+Figure 4: Page/element graph for the same page as Figure 3, laid out by real horizontal position (x) and reading-
+order rank (y). reading_order (solid black) and contains (light gray) are the two relations MAGE-RAG
+also has; layout_adjacency (dotted blue) and section_hierarchy (dashed red) are the two we add.
+Most headings here are paired with their content into one tile (§3.1), so section_hierarchy shows only
+where trailing non-heading content (the category footer) attaches to the last open section, rather than between the
+(sibling, not nested) section headings themselves.
+
+                                        Page-of-pages view: sections (continues) and external links (links_to)
+                                                                                                                                                                                                                         eme
+                                                                                                                     ite 2
+                                                                                                                             )                                                                                  hi e v                Relation
+                                         tle   s                                                               (su                                                                                  an   d ac                           continues
+                                    Be a                               tory                               tory                            stry                    g ac y                       rd s
+                              The                               Hi s                               Hi s                              Arti                    Le                            Awa                                          links_to
+                                                                                                                                                                                                                               +10 more sections
+                                                                                                                                                                                                                               (continues)
+
+
+
+
+                  Roc            Liv               John             Skiffl        Now             Gra              Walt        C               Roll          Rob               Ord          Aca
+                      k   mus +42 erpool                  Len             e             an d           mm              er E o n s o n a             ing         e
+                                                                                                                                                        Sto +13 rt Gre
+                                                                                                                                                                                  er o           d
+                                                                                                                                                                                       f th +18emy A
+                             ic                               no+15
+                                                                n                              The +4 y Awa                vere+10 nce                     ne          enfi                e Br     war
+                                                                                                  n (B      rd f               tt (     an d                               e l                 i       d fo
+                                                                                                      e         or                           d
+
+
+
+
+Figure 5: Page-level view of the graph for en.wikipedia.org/wiki/The_Beatles (278 DOM elements,
+split into 16 sections at h1/h2 boundaries – only the ﬁrst 6 are shown for legibility). Each diamond is a page
+node, one per section; continues edges (black) chain them in document order; links_to edges (pink) reach
+external pages, collapsed here from their true element-level source (§3.2) to stay at page granularity. The leftmost
+node is the entry point.
+
+
+                                                                                                                                     12
+ <page url="..." title="...">
+  <element id="tile_0000" tag="merged"
+       state="inactive">...</element>
+  <element id="tile_0003" tag="p"
+       state="opened">Gunn was born
+   on October 11, 1903...</element>
+  <element id="tile_0004" tag="h2+p"
+       state="inactive">...</element>
+  ...
+ </page>
+
+Figure 6: Excerpt of the XML rendering of a page
+graph after the evidence controller has run on the query
+“When and where was George Purnell Gunn born?”.
+Only the paragraph tile carrying the birth date/place has
+been opened; the rest remains inactive or pruned.
+
+
+
+
+                                                            13
+

@@ -1,49 +1,46 @@
 # DOM-Graph RAG — Phase 1 (starter)
 
-Squelette de projet pour démarrer la pipeline décrite dans *Visuel DOM-Graph RAG* :
-combiner le rendu pixel de **PixelRAG** avec le graphe multi-granulaire de
-**MAGE-RAG**, mais en remplaçant le découpage aveugle en grille par un
-découpage guidé par le DOM.
+Project skeleton to get started on the pipeline described in *Visuel DOM-Graph RAG*:
+combining **PixelRAG**'s pixel rendering with **MAGE-RAG**'s multigranular
+graph, but replacing the blind grid tiling with DOM-guided tiling.
 
-## 0. Les deux articles source sont réels — et open-source
+## 0. The two source papers are real — and open-source
 
-En préparant ce squelette, j'ai vérifié les deux articles cités dans tes slides :
-ce sont deux publications récentes (juin 2026), avec code public.
+While preparing this skeleton, I checked the two papers cited in your slides:
+both are recent publications (June 2026) with public code.
 
 - **PixelRAG** — *PIXELRAG: Web Screenshots Beat Text for Retrieval-Augmented
   Generation* (Yichuan Wang et al., UC Berkeley/BAIR/Berkeley NLP).
   [arXiv:2606.28344](https://arxiv.org/abs/2606.28344) ·
   [github.com/StarTrail-org/PixelRAG](https://github.com/StarTrail-org/PixelRAG)
   (Apache-2.0, `pip install pixelrag`).
-  Rendu à 875px de large, tuiles de 1024px de haut → correspond bien aux
-  "875x1024 pixels" de ta slide. Le modèle d'embedding utilisé est
-  `Qwen/Qwen3-VL-Embedding-2B` (LoRA). Une différence à noter : l'index FAISS
-  complet pour Wikipédia fait ~217 Go d'après le README actuel du repo, et non
-  <120 Go — soit la slide se référait à une config différente (ex. index
-  compressé), soit à une version antérieure du papier ; à vérifier si le
-  chiffre exact t'importe pour ton rapport.
+  Rendered at 875px wide, 1024px-tall tiles → matches the "875x1024 pixels"
+  from your slide. The embedding model used is `Qwen/Qwen3-VL-Embedding-2B`
+  (LoRA). One thing worth noting: the full FAISS index for Wikipedia is
+  ~217 GB according to the repo's current README, not <120 GB — either the
+  slide referred to a different config (e.g. a compressed index) or an
+  earlier version of the paper; worth checking if the exact figure matters
+  for your report.
 - **MAGE-RAG** — *Multigranular Adaptive Graph Evidence for Agentic
   Multimodal RAG in Long-Document QA* (Yilong Zuo et al.).
   [arXiv:2606.15906](https://arxiv.org/abs/2606.15906) ·
-  code : `github.com/laonuo2004/MAGE-RAG` (pas de paquet pip identifié — plutôt
-  un repo de recherche à cloner et lire).
-  Résultats publiés : 52.75 (accuracy) sur LongDocURL, 53.26 acc / 51.19 F1
-  sur MMLongBench-Doc — ce sont les chiffres de référence à battre pour ta
-  Phase 4.
+  code: `github.com/laonuo2004/MAGE-RAG` (no pip package identified — more of
+  a research repo to clone and read).
+  Published results: 52.75 (accuracy) on LongDocURL, 53.26 acc / 51.19 F1 on
+  MMLongBench-Doc — these are the reference numbers to beat for your Phase 4.
 
-Point notable : une critique indépendante (VentureBeat) sur PixelRAG confirme
-exactement le problème que ta slide 6 identifie — *"it slices pages by fixed
+Worth noting: an independent review (VentureBeat) of PixelRAG confirms
+exactly the problem your slide 6 identifies — *"it slices pages by fixed
 pixel height, meaning a table or paragraph can get cut in half mid-tile with
-no awareness of content boundaries"*. Ton angle (tuilage guidé par le DOM) répond
-donc à une limite réelle et déjà repérée par la communauté, pas seulement à une
-hypothèse — bon signal pour la suite.
+no awareness of content boundaries"*. Your angle (DOM-guided tiling) therefore
+addresses a real limitation already flagged by the community, not just a
+hypothesis — a good signal going forward.
 
-## 1. Jouer avec PixelRAG et MAGE-RAG directement
+## 1. Playing with PixelRAG and MAGE-RAG directly
 
-Avant de coder ta propre version, ça vaut le coup de voir tourner les deux
-projets sources.
+Before coding your own version, it's worth seeing the two source projects run.
 
-**PixelRAG — quickstart sur un seul document (pas besoin des 217 Go d'index Wikipédia) :**
+**PixelRAG — single-document quickstart (no need for the 217 GB Wikipedia index):**
 ```bash
 pip install 'pixelrag[index]'
 
@@ -55,7 +52,7 @@ source:
   path: ./paper.pdf
 embed:
   model: Qwen/Qwen3-VL-Embedding-2B
-  device: auto   # cuda sur Linux, mps sur Mac Apple Silicon, cpu sinon
+  device: auto   # cuda on Linux, mps on Apple Silicon Macs, cpu otherwise
 output: ./paper_index
 EOF
 
@@ -66,174 +63,171 @@ curl -X POST http://localhost:30001/search \
   -H "Content-Type: application/json" \
   -d '{"queries": [{"text": "Overview of PixelRAG and the diagram"}], "n_docs": 1}'
 ```
-Le paquet expose aussi `from pixelrag_render import render_url` — pratique
-pour comparer, sur une même page, le découpage en grille aveugle de PixelRAG
-et ton découpage guidé par le DOM (bon candidat d'ablation pour ton rapport).
+The package also exposes `from pixelrag_render import render_url` — handy
+for comparing, on the same page, PixelRAG's blind grid tiling against your
+DOM-guided tiling (a good ablation candidate for your report).
 
-**MAGE-RAG — pas de paquet pip, on clone et on lit le code :**
+**MAGE-RAG — no pip package, clone and read the code instead:**
 ```bash
 git clone https://github.com/laonuo2004/MAGE-RAG.git
 ```
-Regarde en particulier la construction du graphe offline (noeuds page/élément,
-relations *containment*, *reading order*, *layout adjacency*, *section
-hierarchy*, *semantic-neighbor*) et le contrôleur d'évidence en ligne
-(Algorithme 1 du papier) — c'est la partie que la Phase 3 de ton projet
-réimplémentera.
+Look in particular at the offline graph construction (page/element nodes,
+*containment*, *reading order*, *layout adjacency*, *section hierarchy*,
+*semantic-neighbor* relations) and the online evidence controller
+(Algorithm 1 in the paper) — that's the part Phase 3 of your project will
+reimplement.
 
-## 2. Installer ce squelette
+## 2. Installing this skeleton
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate        # .venv\Scripts\activate sous Windows
+source .venv/bin/activate        # .venv\Scripts\activate on Windows
 pip install -r requirements.txt
-playwright install chromium      # télécharge le navigateur headless
+playwright install chromium      # downloads the headless browser
 
-# Backend VLM recommandé pour démarrer (léger, tu as déjà l'habitude d'Ollama) :
+# Recommended VLM backend to get started (lightweight, and you already know Ollama):
 ollama pull qwen3-vl
 ```
 
-Dans VS Code : ouvre le dossier `domgraph-rag/`, installe l'extension
-**Python** + **Jupyter**, sélectionne l'interpréteur `.venv`, puis ouvre
-`notebooks/01_pipeline_playground.ipynb` et choisis ce même environnement
-comme kernel.
+In VS Code: open the `domgraph-rag/` folder, install the **Python** +
+**Jupyter** extensions, select the `.venv` interpreter, then open
+`notebooks/01_pipeline_playground.ipynb` and pick that same environment
+as the kernel.
 
-## 3. Démarrer
+## 3. Getting started
 
 ```bash
-# Vérifie que tout fonctionne (page locale, pas besoin d'internet) :
+# Check that everything works (local page, no internet needed):
 python3 tests/test_pipeline_smoke.py
 ```
-Puis ouvre `notebooks/01_pipeline_playground.ipynb` dans VS Code et exécute
-les cellules une à une. Par défaut il tourne sur une page de test locale ; il
-suffit de changer la variable `URL` par une vraie page (ex. un article
-Wikipedia) pour tester en conditions réelles — le code ne change pas,
-Playwright gère aussi bien `file://` qu'une URL distante.
+Then open `notebooks/01_pipeline_playground.ipynb` in VS Code and run the
+cells one by one. By default it runs against a local test page; just change
+the `URL` variable to a real page (e.g. a Wikipedia article) to test under
+real conditions — the code doesn't change, Playwright handles `file://` and
+remote URLs the same way.
 
-## 4. Structure du projet
+## 4. Project structure
 
 ```
 domgraph-rag/
 ├── src/
-│   ├── config.py               # constantes (tailles de tuiles, sélecteurs de bruit, modèle VLM, hyperparamètres LoRA...)
-│   ├── dom_extraction.py       # Phase 1a/1b — Playwright + extraction des bounding boxes DOM
-│   ├── tiling.py                # Phase 1c — tuilage adaptatif + patching (pas une grille fixe)
-│   ├── graph_builder.py         # Phase 1d — graphe page/éléments + ordre de lecture + export XML
-│   ├── corpus_builder.py        # Phase 1e — graphe multi-pages (liens hypertextes)
-│   ├── vlm_client.py            # Phase 1a — wrapper VLM (Ollama ou Transformers)
-│   ├── qa_generation.py         # Phase 2a — paires question/réponse synthétiques par tuile
-│   ├── hard_negative_mining.py  # Phase 2b — négatifs difficiles (TF-IDF + cosinus)
-│   ├── contrastive_dataset.py   # Phase 2c — Dataset PyTorch (question, positif, négatifs)
-│   ├── lora_finetune.py         # Phase 2d — fine-tuning LoRA du VLM lecteur (ViT + LLM)
-│   └── evidence_controller.py   # Phase 3 — contrôleur d'évidence en ligne (Algorithme 1 MAGE-RAG)
-├── webapp/                      # Phase 3 — site de démo (question -> réponse + graphe interactif)
+│   ├── config.py               # constants (tile sizes, noise selectors, VLM model, LoRA hyperparameters...)
+│   ├── dom_extraction.py       # Phase 1a/1b — Playwright + DOM bounding-box extraction
+│   ├── tiling.py                # Phase 1c — adaptive tiling + patching (not a fixed grid)
+│   ├── graph_builder.py         # Phase 1d — page/element graph + reading order + XML export
+│   ├── corpus_builder.py        # Phase 1e — multi-page graph (hyperlinks)
+│   ├── vlm_client.py            # Phase 1a — VLM wrapper (Ollama or Transformers)
+│   ├── qa_generation.py         # Phase 2a — synthetic question/answer pairs per tile
+│   ├── hard_negative_mining.py  # Phase 2b — hard negatives (TF-IDF + cosine)
+│   ├── contrastive_dataset.py   # Phase 2c — PyTorch Dataset (question, positive, negatives)
+│   ├── lora_finetune.py         # Phase 2d — LoRA fine-tuning of the reader VLM (ViT + LLM)
+│   └── evidence_controller.py   # Phase 3 — online evidence controller (MAGE-RAG Algorithm 1)
+├── webapp/                      # Phase 3 — demo site (question -> answer + interactive graph)
 │   ├── backend/
-│   │   ├── main.py              # API FastAPI (POST /api/ask) + fichiers statiques du frontend
-│   │   └── pipeline.py          # orchestre DOM -> tuiles -> graphe -> contrôleur d'évidence -> VLM
-│   └── frontend/                # HTML/CSS/JS statique, sans build step (cytoscape.js via CDN)
+│   │   ├── main.py              # FastAPI app (POST /api/ask) + frontend static files
+│   │   └── pipeline.py          # orchestrates DOM -> tiles -> graph -> evidence controller -> VLM
+│   └── frontend/                # static HTML/CSS/JS, no build step (cytoscape.js via CDN)
 ├── notebooks/
-│   └── 01_pipeline_playground.ipynb   # bout en bout Phase 1 + démo Phase 2/3, avec visualisations
+│   └── 01_pipeline_playground.ipynb   # end-to-end Phase 1 + Phase 2/3 demo, with visualizations
 ├── tests/
-│   ├── fixtures/sample_page.html      # page de test locale (aucun accès réseau requis)
-│   ├── test_pipeline_smoke.py         # script de vérification bout-en-bout (Phase 1)
-│   └── test_phase2_smoke.py           # génération QA + mining + dataset (sans VLM ni GPU réels)
+│   ├── fixtures/sample_page.html      # local test page (no network access required)
+│   ├── test_pipeline_smoke.py         # end-to-end sanity check script (Phase 1)
+│   └── test_phase2_smoke.py           # QA generation + mining + dataset (no real VLM or GPU)
 └── requirements.txt
 ```
 
-**Ce qui est déjà fonctionnel et testé** (bout en bout, sur la page de test locale) :
-extraction DOM avec retrait du bruit d'interface → tuilage adaptatif (fusion
-des petits éléments, découpe des éléments trop grands) → construction du
-graphe 2 niveaux avec ordre de lecture spatial (pas l'ordre du DOM) → export
-XML lisible par un modèle lecteur.
+**What's already working and tested** (end-to-end, on the local test page):
+DOM extraction with interface-noise removal → adaptive tiling (merging small
+elements, splitting oversized ones) → two-level graph construction with
+spatial reading order (not DOM order) → XML export readable by a reader
+model.
 
-**Simplifications volontaires à connaître** (pistes d'amélioration naturelles) :
-- les éléments DOM imbriqués (ex. un `<img>` dans un `<figure>`) sont élagués
-  par inclusion totale (`tiling.prune_nested_elements`) ; les chevauchements
-  partiels entre éléments par ailleurs indépendants (ex. un paragraphe et un
-  infobox flottant qui partagent visuellement le même espace) sont tuilés
-  ensemble plutôt que séparément (`tiling.group_overlapping_elements`), et la
-  largeur des balises de texte "coulant" (`h1`-`h4`, `p`, `blockquote`, `ul`,
-  `ol`) est mesurée sur le texte réellement rendu plutôt que sur leur boîte
-  bloc entière (`dom_extraction.py`, `TEXT_FLOW_TAGS`) — les deux évitent
-  qu'une même région de pixels se retrouve dupliquée dans deux tuiles ;
-- le graphe instancie maintenant les 5 relations de MAGE-RAG (`contains`,
+**Deliberate simplifications worth knowing about** (natural next steps):
+- nested DOM elements (e.g. an `<img>` inside a `<figure>`) are pruned by
+  full containment (`tiling.prune_nested_elements`); partial overlaps between
+  otherwise independent elements (e.g. a paragraph and a floated infobox that
+  visually share the same space) are tiled together rather than separately
+  (`tiling.group_overlapping_elements`), and the width of "text-flow" tags
+  (`h1`-`h4`, `p`, `blockquote`, `ul`, `ol`) is measured on the actually
+  rendered text rather than their full block box (`dom_extraction.py`,
+  `TEXT_FLOW_TAGS`) — both avoid the same region of pixels ending up
+  duplicated across two tiles;
+- the graph now instantiates all 5 of MAGE-RAG's relations (`contains`,
   `reading_order`, `layout_adjacency`, `section_hierarchy`, `semantic_neighbor`,
-  + `links_to` côté domgraph-rag pour l'interconnexion multi-pages).
-  `semantic_neighbor` (TF-IDF + cosinus entre tuiles, cf.
-  `graph_builder.compute_semantic_neighbor_edges`) est **désactivée par
-  défaut** : `build_graph(..., use_semantic_similarity=True)` l'active,
-  pensé pour comparer le contrôleur d'évidence avec et sans cette relation
-  plutôt que de toujours l'imposer ;
-- chaque noeud élément a déjà un attribut `state` (`inactive` par défaut) —
-  prêt pour que le contrôleur d'évidence de la Phase 3 le fasse évoluer.
+  plus `links_to` on the domgraph-rag side for cross-page connectivity).
+  `semantic_neighbor` (TF-IDF + cosine between tiles, see
+  `graph_builder.compute_semantic_neighbor_edges`) is **off by default**:
+  `build_graph(..., use_semantic_similarity=True)` turns it on, meant for
+  comparing the evidence controller with and without this relation rather
+  than always forcing it on;
+- every element node already has a `state` attribute (`inactive` by
+  default) — ready for the Phase 3 evidence controller to evolve it.
 
-## 5. Phase 2 — entraînement contrastif (implémentée)
+## 5. Phase 2 — contrastive training (implemented)
 
-Génère un jeu de données synthétique (question → tuile) et fine-tune le VLM
-lecteur par contraste. Quatre étapes, une par module :
+Generates a synthetic (question → tile) dataset and contrastively
+fine-tunes the reader VLM. Four steps, one per module:
 
-1. **`qa_generation.py`** — le VLM lit chaque tuile et pose une question dont
-   la réponse n'est visible que dans cette tuile (prompt `QA_GENERATION_PROMPT`
-   dans `config.py`). Toutes les tuiles sont sauvegardées sur disque
-   (`data/qa_dataset/images/`), pas seulement celles retenues comme positif,
-   pour que le mining (étape 2) puisse y piocher des négatifs.
-2. **`hard_negative_mining.py`** — pour chaque question, sélectionne quelques
-   tuiles de la même page lexicalement proches (TF-IDF + cosinus,
-   scikit-learn) mais qui ne contiennent pas la réponse : des négatifs
-   "difficiles", plus utiles à l'entraînement qu'une tuile prise au hasard.
-   Fonctionne page par page (les `Tile.id` ne sont uniques qu'à l'échelle
-   d'une page) ; miner des négatifs *entre* pages d'un corpus est une
-   extension naturelle décrite dans le docstring du module.
-3. **`contrastive_dataset.py`** — assemble un `torch.utils.data.Dataset`
-   (question, image de la tuile positive, images des tuiles négatives) à
-   partir des `.jsonl` produits par les deux étapes précédentes.
-4. **`lora_finetune.py`** — fine-tune `Qwen2VLForConditionalGeneration` par
-   LoRA, appliqué à la fois sur le LLM et sur la tour de vision (ViT), avec
-   une loss InfoNCE (le modèle générateur est transformé en encodeur via un
-   prompt court, à la façon des VLM utilisés comme encodeurs universels dans
-   la littérature récente — référence exacte à vérifier avant de la citer
-   dans le rapport, dans le même esprit que la note de sourcing en tête de ce
-   README). Nécessite le backend `transformers` + `peft` (voir
-   `requirements.txt`, section commentée) et idéalement un GPU ; s'exécute via :
+1. **`qa_generation.py`** — the VLM reads each tile and asks a question whose
+   answer is only visible in that tile (prompt `QA_GENERATION_PROMPT` in
+   `config.py`). Every tile is saved to disk (`data/qa_dataset/images/`), not
+   just the ones kept as positives, so mining (step 2) can draw negatives
+   from them.
+2. **`hard_negative_mining.py`** — for each question, picks a few tiles from
+   the same page that are lexically close (TF-IDF + cosine, scikit-learn)
+   but don't contain the answer: "hard" negatives, more useful for training
+   than a randomly picked tile. Works page by page (`Tile.id` is only unique
+   within a page); mining negatives *across* pages of a corpus is a natural
+   extension described in the module's docstring.
+3. **`contrastive_dataset.py`** — assembles a `torch.utils.data.Dataset`
+   (question, positive tile image, negative tile images) from the `.jsonl`
+   files produced by the two previous steps.
+4. **`lora_finetune.py`** — fine-tunes `Qwen2VLForConditionalGeneration` via
+   LoRA, applied to both the LLM and the vision tower (ViT), with an InfoNCE
+   loss (the generative model is turned into an encoder via a short prompt,
+   in the spirit of VLMs used as universal encoders in the recent literature
+   — exact reference to double-check before citing it in the report, in the
+   same spirit as the sourcing note at the top of this README). Requires the
+   `transformers` + `peft` backend (see the commented-out section of
+   `requirements.txt`) and ideally a GPU; run via:
    ```bash
    python3 -m src.lora_finetune --epochs 3 --batch-size 4
    ```
 
-Voir la section 7-9 de `notebooks/01_pipeline_playground.ipynb` pour une démo
-des étapes 1 à 3 sur la page chargée en Phase 1, et
-`tests/test_phase2_smoke.py` pour des tests qui n'ont besoin ni de VLM réel ni
-de GPU (génération avec un client factice, mining, assemblage du dataset).
+See sections 7-9 of `notebooks/01_pipeline_playground.ipynb` for a demo of
+steps 1 to 3 on the page loaded in Phase 1, and `tests/test_phase2_smoke.py`
+for tests that need neither a real VLM nor a GPU (generation with a fake
+client, mining, dataset assembly).
 
-## 6. Phase 3 — contrôleur d'évidence + site de démo (implémentée)
+## 6. Phase 3 — evidence controller + demo site (implemented)
 
-`src/evidence_controller.py` fait évoluer l'attribut `state` de chaque noeud
-élément (`inactive → active → opened`/`pruned`) selon la boucle
-activer/ouvrir/chercher/élaguer sous budget de l'Algorithme 1 de MAGE-RAG,
-étant donné une requête. Voir la section 10 du notebook pour une démo pas à
-pas, et `src/evidence_controller.py` pour la politique complète (pertinence
-TF-IDF + cosinus, best-first sous budget).
+`src/evidence_controller.py` evolves each element node's `state` attribute
+(`inactive → active → opened`/`pruned`) following MAGE-RAG Algorithm 1's
+activate/open/search/prune loop under budget, given a query. See section 10
+of the notebook for a step-by-step demo, and `src/evidence_controller.py`
+for the full policy (TF-IDF + cosine relevance, best-first under budget).
 
-`webapp/` expose cette même boucle derrière un petit site : un formulaire
-"URL Wikipédia + question" lance le pipeline complet (extraction DOM →
-tuilage → graphe → contrôleur d'évidence, qui lit chaque tuile ouverte via le
-VLM) puis affiche la réponse synthétisée, le graphe interactif (catégorie de
-contenu en couleur, état du contrôleur en bordure, arêtes filtrables par
-relation) et les pages Wikipédia liées (`links_to`) — avec un badge qui
-signale celles portées par une tuile effectivement retenue comme évidence.
+`webapp/` exposes this same loop behind a small site: a "Wikipedia URL +
+question" form runs the full pipeline (DOM extraction → tiling → graph →
+evidence controller, which reads each opened tile via the VLM) and then
+displays the synthesized answer, the interactive graph (content category by
+color, controller state by border, edges filterable by relation) and the
+linked Wikipedia pages (`links_to`) — with a badge flagging the ones carried
+by a tile actually retained as evidence.
 
 ```bash
-# Ollama doit tourner avec le modèle configuré (config.OLLAMA_MODEL) :
+# Ollama must be running with the configured model (config.OLLAMA_MODEL):
 ollama pull qwen3-vl
 
-pip install -r requirements.txt   # ajoute fastapi + uvicorn
+pip install -r requirements.txt   # adds fastapi + uvicorn
 uvicorn webapp.backend.main:app --reload
 ```
-Puis ouvrir http://127.0.0.1:8000/. Chaque requête relance le pipeline en
-direct (pas de corpus pré-construit) — compter de quelques dizaines de
-secondes à quelques minutes selon la page et le budget du contrôleur (le VLM
-est interrogé une fois par tuile ouverte, plus une fois pour synthétiser la
-réponse finale).
+Then open http://127.0.0.1:8000/. Each request re-runs the pipeline live (no
+pre-built corpus) — expect anywhere from a few dozen seconds to a few
+minutes depending on the page and the controller's budget (the VLM is
+queried once per opened tile, plus once to synthesize the final answer).
 
-## 7. Feuille de route (Phase 4)
+## 7. Roadmap (Phase 4)
 
-- **Phase 4 — évaluation** : benchmarks LongDocURL, MMLongBench-Doc, SimpleQA ;
-  diagnostic parser/rank/reader loss ; rédaction.
+- **Phase 4 — evaluation**: LongDocURL, MMLongBench-Doc, SimpleQA benchmarks;
+  diagnostic parser/rank/reader loss; write-up.
