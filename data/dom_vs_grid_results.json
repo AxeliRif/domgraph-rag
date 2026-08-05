@@ -1,14 +1,14 @@
 [
   {
     "url": "https://en.wikipedia.org/wiki/George_P._Gunn",
-    "n_qa_pairs": 23,
+    "n_qa_pairs": 7,
     "n_dom_tiles": 7,
     "n_grid_tiles": 2,
     "dom_pixels_per_tile": 136599.7142857143,
     "grid_pixels_per_tile": 1391616.0,
     "n_unattributable": {
-      "dom": 8,
-      "grid": 16
+      "dom": 3,
+      "grid": 5
     },
     "results": {
       "dom": [
@@ -51,171 +51,11 @@
           "recall@5": true,
           "mrr": 0.5,
           "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 7,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 7,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0006__qa",
-          "rank": 2,
-          "n_items": 7,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 7,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 7,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 2,
-          "n_items": 7,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0006__qa",
-          "rank": 2,
-          "n_items": 7,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0000__qa",
-          "rank": 2,
-          "n_items": 7,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0001__qa",
-          "rank": 2,
-          "n_items": 7,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0003__qa",
-          "rank": 1,
-          "n_items": 7,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 2,
-          "n_items": 7,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
         }
       ],
       "grid": [
         {
           "qa_id": "George_P._Gunn__tile_0000__qa",
-          "rank": 1,
-          "n_items": 2,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 2,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 2,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 2,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
-          "rank": 1,
-          "n_items": 2,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
-        },
-        {
-          "qa_id": "George_P._Gunn__tile_0004__qa",
           "rank": 1,
           "n_items": 2,
           "recall@1": true,
@@ -784,7 +624,7 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 4,
-    "dom_pixels_per_tile": 99054.2,
+    "dom_pixels_per_tile": 99164.6,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 10,
@@ -2508,11 +2348,11 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
-    "dom_pixels_per_tile": 149920.04,
+    "dom_pixels_per_tile": 149023.8,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 9,
-      "grid": 15
+      "grid": 17
     },
     "results": {
       "dom": [
@@ -2730,16 +2570,16 @@
         },
         {
           "qa_id": "Industrial_Revolution__tile_0007__qa",
-          "rank": 1,
+          "rank": 5,
           "n_items": 5,
-          "recall@1": true,
-          "recall@3": true,
+          "recall@1": false,
+          "recall@3": false,
           "recall@5": true,
-          "mrr": 1.0,
+          "mrr": 0.2,
           "chance_mrr": 0.2
         },
         {
-          "qa_id": "Industrial_Revolution__tile_0016__qa",
+          "qa_id": "Industrial_Revolution__tile_0015__qa",
           "rank": 1,
           "n_items": 5,
           "recall@1": true,
@@ -2750,26 +2590,6 @@
         },
         {
           "qa_id": "Industrial_Revolution__tile_0021__qa",
-          "rank": 3,
-          "n_items": 5,
-          "recall@1": false,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.2
-        },
-        {
-          "qa_id": "Industrial_Revolution__tile_0022__qa",
-          "rank": 1,
-          "n_items": 5,
-          "recall@1": true,
-          "recall@3": true,
-          "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
-        },
-        {
-          "qa_id": "Industrial_Revolution__tile_0023__qa",
           "rank": 1,
           "n_items": 5,
           "recall@1": true,

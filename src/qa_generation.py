@@ -58,6 +58,22 @@ def save_tile_images(tiles: list[Tile], page_slug: str, images_dir: Path = QA_IM
     return paths
 
 
+def _existing_manifest_keys(manifest_path: Path) -> set[tuple[str, str]]:
+    """Lit `manifest_path` et retourne l'ensemble des (page_slug, tile_id) déjà
+    présents, pour rendre `append_tiles_manifest` idempotent (cf. son
+    docstring)."""
+    if not manifest_path.exists():
+        return set()
+    keys: set[tuple[str, str]] = set()
+    with manifest_path.open(encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            d = json.loads(line)
+            keys.add((d["page_slug"], d["tile_id"]))
+    return keys
+
+
 def append_tiles_manifest(
     tiles: list[Tile],
     page_url: str,
@@ -75,10 +91,22 @@ def append_tiles_manifest(
     dataset, cf. ContrastiveTileDataset), pas au dossier `images/` lui-même —
     c'est ce qui permet à `image_paths` de venir de n'importe quel dossier
     (utile en test, ou si `generate_qa_dataset` est appelé avec un
-    `output_dir` custom)."""
+    `output_dir` custom).
+
+    Idempotent par (page_slug, tile_id) : si `generate_qa_dataset` est
+    rappelé sur une unité déjà (partiellement) écrite -- ex. un run interrompu
+    entre cet appel et le check-point de `scripts/build_dataset.py`, qui ne
+    marque une unité "faite" qu'après le mining, pas après ce seul appel --,
+    les tuiles déjà présentes ne sont pas réécrites. Sans ça, `qa_pairs.jsonl`
+    / `tiles_manifest.jsonl` accumulent des doublons à chaque reprise, alors
+    que `contrastive_examples.jsonl` (check-pointé, lui) reste propre --
+    constaté en pratique sur plusieurs pages du corpus."""
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    existing = _existing_manifest_keys(manifest_path)
     with manifest_path.open("a", encoding="utf-8") as f:
         for tile in tiles:
+            if (page_slug, tile.id) in existing:
+                continue
             record = {
                 "tile_id": tile.id,
                 "page_url": page_url,
@@ -181,7 +209,15 @@ def generate_qa_dataset(
     entrée (même si elles terminent dans un ordre différent), donc
     `qa_pairs.jsonl` reste écrit dans l'ordre de lecture des tuiles, comme en
     séquentiel.
-    """
+
+    Idempotent par id de QAPair (`{page_slug}__{tile_id}__qa`) : les tuiles
+    dont l'id est déjà présent dans `qa_pairs.jsonl` ne sont ni réinterrogées
+    (pas d'appel VLM superflu) ni réécrites -- leur QAPair existante est
+    réutilisée telle quelle dans la valeur de retour. Nécessaire pour la même
+    raison qu'`append_tiles_manifest` : `scripts/build_dataset.py` ne marque
+    une unité "faite" qu'après le mining qui suit cet appel, donc une reprise
+    après interruption rappelle `generate_qa_dataset` sur une unité déjà
+    (partiellement) écrite."""
     client = client or VLMClient()
     images_dir = output_dir / "images"
     manifest_path = output_dir / "tiles_manifest.jsonl"
@@ -190,20 +226,28 @@ def generate_qa_dataset(
     image_paths = save_tile_images(tiles, page_slug, images_dir)
     append_tiles_manifest(tiles, page_url, page_slug, image_paths, manifest_path, images_root=output_dir)
 
+    existing_by_id = {qa.id: qa for qa in load_qa_pairs(qa_pairs_path) if qa.page_slug == page_slug}
+    tiles_to_generate = [t for t in tiles if f"{page_slug}__{t.id}__qa" not in existing_by_id]
+
     def _generate(tile: Tile) -> QAPair | None:
         return generate_qa_pair_for_tile(tile, client, page_url, page_slug, image_paths, images_root=output_dir)
 
-    qa_pairs: list[QAPair] = []
+    newly_written: dict[str, QAPair] = {}
     qa_pairs_path.parent.mkdir(parents=True, exist_ok=True)
     with qa_pairs_path.open("a", encoding="utf-8") as f:
-        with ThreadPoolExecutor(max_workers=max(1, min(max_workers, len(tiles)))) as executor:
-            for qa in executor.map(_generate, tiles):
+        with ThreadPoolExecutor(max_workers=max(1, min(max_workers, len(tiles_to_generate) or 1))) as executor:
+            for qa in executor.map(_generate, tiles_to_generate):
                 if qa is None:
                     continue
-                qa_pairs.append(qa)
+                newly_written[qa.id] = qa
                 f.write(json.dumps(asdict(qa), ensure_ascii=False) + "\n")
 
-    return qa_pairs
+    return [
+        existing_by_id[qid] if qid in existing_by_id else newly_written[qid]
+        for tile in tiles
+        for qid in [f"{page_slug}__{tile.id}__qa"]
+        if qid in existing_by_id or qid in newly_written
+    ]
 
 
 def load_qa_pairs(path: Path = QA_PAIRS_PATH) -> list[QAPair]:

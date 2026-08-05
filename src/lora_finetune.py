@@ -270,6 +270,15 @@ class TrainConfig:
     # Qwen2-VL en batch.
     batched_embeddings: bool = True
     gradient_checkpointing: bool = False
+    # > 0 : entraîne uniquement sur le split train de `split_examples_by_article`
+    # (même découpage par article, même défaut de seed que
+    # `scripts/eval_retrieval.py`), pour que le split "val" évalué ensuite par
+    # ce script soit un vrai jeu tenu à l'écart de CET adaptateur -- sans ça,
+    # `train_lora` voit l'intégralité de contrastive_examples.jsonl (comme le
+    # premier run, cf. eval_retrieval.py, docstring) et les chiffres
+    # Recall@k/MRR obtenus ensuite sont optimistes (fuite train/val).
+    val_fraction: float = 0.0
+    seed: int = 0
 
 
 def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
@@ -280,10 +289,27 @@ def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
     import torch
     from torch.utils.data import DataLoader
 
-    from .contrastive_dataset import ContrastiveTileDataset, contrastive_collate_fn
+    from .contrastive_dataset import ContrastiveTileDataset, contrastive_collate_fn, split_examples_by_article
+    from .hard_negative_mining import load_contrastive_examples
 
     model, processor = load_reader_model(gradient_checkpointing=train_config.gradient_checkpointing)
-    dataset = ContrastiveTileDataset(n_negatives=train_config.n_negatives, images_root=Path(train_config.images_root))
+
+    train_examples = None
+    if train_config.val_fraction > 0:
+        from .config import CONTRASTIVE_EXAMPLES_PATH
+        all_examples = load_contrastive_examples(CONTRASTIVE_EXAMPLES_PATH)
+        train_examples, val_examples = split_examples_by_article(
+            all_examples, val_fraction=train_config.val_fraction, seed=train_config.seed
+        )
+        print(
+            f"[lora_finetune] split train/val par article : {len(train_examples)} train / "
+            f"{len(val_examples)} val (val_fraction={train_config.val_fraction}, seed={train_config.seed}) "
+            "-- entraînement sur le train uniquement, cf. TrainConfig.val_fraction."
+        )
+
+    dataset = ContrastiveTileDataset(
+        examples=train_examples, n_negatives=train_config.n_negatives, images_root=Path(train_config.images_root)
+    )
     if len(dataset) == 0:
         raise RuntimeError(
             "Dataset contrastif vide — lance d'abord qa_generation.generate_qa_dataset "
@@ -355,12 +381,23 @@ def main() -> None:
         "--gradient-checkpointing", action="store_true",
         help="Réduit la mémoire d'activations (~20-30%% plus lent) -- filet de sécurité sur un GPU à VRAM limitée.",
     )
+    parser.add_argument(
+        "--val-fraction", type=float, default=TrainConfig.val_fraction,
+        help=(
+            "> 0 : entraîne uniquement sur le split train (par article, cf. "
+            "split_examples_by_article), pour que scripts/eval_retrieval.py -- mêmes "
+            "--val-fraction/--seed par défaut -- évalue sur un vrai jeu tenu à l'écart. "
+            "0 (défaut) = entraîne sur tout contrastive_examples.jsonl, comme avant."
+        ),
+    )
+    parser.add_argument("--seed", type=int, default=TrainConfig.seed, help="Seed du split train/val (cf. --val-fraction).")
     args = parser.parse_args()
 
     train_lora(TrainConfig(
         epochs=args.epochs, batch_size=args.batch_size, lr=args.lr,
         n_negatives=args.n_negatives, output_dir=args.output_dir, images_root=args.images_root,
         batched_embeddings=args.batched_embeddings, gradient_checkpointing=args.gradient_checkpointing,
+        val_fraction=args.val_fraction, seed=args.seed,
     ))
 
 

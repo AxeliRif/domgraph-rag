@@ -45,15 +45,15 @@ Estimated from the training loop's structure (\S\ref{sec:contrastive}), not meas
 \toprule
  & Tiles/page & Px/tile & Total px/page \\
 \midrule
-DOM  & 24.0 & 158{,}072 & 3{,}793{,}738 \\
-Grid & 4.9  & 2{,}081{,}117 & 10{,}174{,}350 \\
+DOM  & 24.0 & 157{,}170 & 3{,}772{,}076 \\
+Grid & 4.9  & 2{,}057{,}956 & 10{,}061{,}116 \\
 \bottomrule
 \end{tabular}
 \caption{Tiling cost, same 18 pages as Table~\ref{tab:tiling-ablation}. DOM-guided tiling produces more, smaller tiles, yet a smaller \emph{total} pixel budget per page (2.7$\times$ less) -- a direct consequence of the text-flow bounding-box measurement of \S\ref{sec:tiling}, which crops text tiles to the width their content actually occupies instead of the full page width every grid band uses regardless of content. If image tokens scale with pixel area, as they do for \texttt{Qwen2-VL}'s vision encoder, DOM-guided tiling need not trade accuracy for token cost against a blind grid.}
 \label{tab:appendix-tiling-cost}
 \end{table}
 
-Attach rate (the fraction of questions whose answer string survives a tiling's 200-character text preview) is 52.5\% for DOM (223/425) against 27.1\% for grid (115/425) -- consistent with grid bands aggregating far more raw content into the same fixed text budget, diluting the specific snippet a lexical scorer needs to surface.
+Attach rate (the fraction of questions whose answer string survives a tiling's 200-character text preview) is 51.8\% for DOM (212/409) against 26.4\% for grid (108/409) -- consistent with grid bands aggregating far more raw content into the same fixed text budget, diluting the specific snippet a lexical scorer needs to surface.
 
 \section{Additional figures}
 \label{sec:appendix-figures}
