@@ -23,14 +23,31 @@ from src.config import QA_DATASET_DIR
 from src.multihop_qa import ArticleUnavailableError, build_multihop_example
 
 MULTIHOP_EXAMPLES_PATH = QA_DATASET_DIR / "multihop_examples.jsonl"
+# Journal de TOUTE question tentée (succès ou échec), distinct de
+# `multihop_examples.jsonl` qui ne contient que les succès : sans lui, une
+# relance saute les questions déjà réussies mais retente indéfiniment celles
+# déjà tentées-et-échouées (article introuvable / phrase non rattachée),
+# puisque leur id n'apparaît jamais dans `multihop_examples.jsonl` -- ce sont
+# des échecs déterministes (même page, même phrase de support), donc les
+# retenter ne les fait jamais réussir, et retarde d'autant l'atteinte de
+# questions réellement neuves plus loin dans le flux HotpotQA.
+MULTIHOP_ATTEMPTED_IDS_PATH = QA_DATASET_DIR / "multihop_attempted_ids.jsonl"
 
 
-def load_hotpotqa(split: str, limit: int) -> list[dict]:
+def load_hotpotqa(split: str, limit: int, exclude_ids: set[str]) -> list[dict]:
+    """Streame les `limit` premiers enregistrements NON déjà présents dans
+    `exclude_ids` -- sans ça, relancer ce script pour scaler le dataset (cf.
+    `main_async`) restreame depuis le tout début du dataset HotpotQA et
+    retente (ou, pour les succès, duplique en écriture "a") des questions
+    déjà traitées lors d'un run précédent, le même bug de fond que celui
+    corrigé dans `qa_generation.append_tiles_manifest`."""
     from datasets import load_dataset  # import différé : dépendance optionnelle (cf. requirements.txt)
 
     dataset = load_dataset("hotpotqa/hotpot_qa", "distractor", split=split, streaming=True)
     records: list[dict] = []
     for record in dataset:
+        if record["id"] in exclude_ids:
+            continue
         records.append(record)
         if len(records) >= limit:
             break
@@ -38,17 +55,38 @@ def load_hotpotqa(split: str, limit: int) -> list[dict]:
 
 
 async def main_async(limit: int, split: str) -> None:
-    print(f"Chargement de {limit} question(s) HotpotQA ({split}, streaming)...", flush=True)
-    records = load_hotpotqa(split, limit)
+    # Union des deux journaux : un succès n'est écrit que dans
+    # MULTIHOP_EXAMPLES_PATH (jamais dans MULTIHOP_ATTEMPTED_IDS_PATH avant
+    # cette relecture), donc se limiter à ce dernier laisserait passer à
+    # nouveau tout succès antérieur à l'introduction de ce fichier -- bug
+    # constaté en pratique : un premier run après ce correctif a reconstruit
+    # en double les 24 succès du tout premier batch, faute de cette union.
+    attempted_ids: set[str] = set()
+    if MULTIHOP_EXAMPLES_PATH.exists():
+        with MULTIHOP_EXAMPLES_PATH.open(encoding="utf-8") as f:
+            attempted_ids |= {json.loads(line)["id"] for line in f if line.strip()}
+    if MULTIHOP_ATTEMPTED_IDS_PATH.exists():
+        with MULTIHOP_ATTEMPTED_IDS_PATH.open(encoding="utf-8") as f:
+            attempted_ids |= {json.loads(line)["id"] for line in f if line.strip()}
+
+    print(
+        f"Chargement de {limit} nouvelle(s) question(s) HotpotQA ({split}, streaming) -- "
+        f"{len(attempted_ids)} déjà tentées (succès ou échec) ignorées...",
+        flush=True,
+    )
+    records = load_hotpotqa(split, limit, attempted_ids)
 
     MULTIHOP_EXAMPLES_PATH.parent.mkdir(parents=True, exist_ok=True)
     n_built = 0
     n_article_unavailable = 0
     n_support_not_matched = 0
-    with MULTIHOP_EXAMPLES_PATH.open("a", encoding="utf-8") as f:
+    with MULTIHOP_EXAMPLES_PATH.open("a", encoding="utf-8") as f, \
+         MULTIHOP_ATTEMPTED_IDS_PATH.open("a", encoding="utf-8") as attempted_f:
         for i, record in enumerate(records, 1):
             titles = list(dict.fromkeys(record["supporting_facts"]["title"]))
             print(f"[{i}/{len(records)}] {record['id']} ({record['type']}, {' + '.join(titles)})...", flush=True)
+            attempted_f.write(json.dumps({"id": record["id"]}) + "\n")
+            attempted_f.flush()
             try:
                 example = await build_multihop_example(record)
             except ArticleUnavailableError as exc:
