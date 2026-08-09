@@ -25,11 +25,15 @@ Boucle best-first sous budget :
        - sous `open_threshold`, il est élagué (gratuit, ne consomme pas le
          budget) ;
        - sinon il est ouvert (consomme une unité de budget) et ses voisins
-         "reading_order" encore inactifs sont activés si leur propre score
-         dépasse `activate_threshold` — cette propagation d'activation fait
-         avancer la frontière au fil de l'exploration, comme un best-first
-         search local plutôt qu'un score de pertinence figé calculé une fois
-         pour toutes sur toute la page.
+         encore inactifs sont activés si leur propre score dépasse
+         `activate_threshold` -- le long de `reading_order` (même page) ET,
+         si le noeud ouvert en a, en franchissant une frontière de document
+         via `links_to` (élément -> page cible, rebranchée sur son vrai
+         point d'entrée par `corpus_builder.build_corpus_graph`) ou
+         `continues` (page -> section suivante d'une page découpée, §3.2) --
+         cette propagation d'activation fait avancer la frontière au fil de
+         l'exploration, comme un best-first search local plutôt qu'un score
+         de pertinence figé calculé une fois pour toutes sur toute la page.
   3. Une fois le budget épuisé (ou plus aucun noeud actif), les noeuds encore
      "active" sont élagués : aucun noeud élément ne doit rester dans un état
      transitoire à la fin.
@@ -131,14 +135,59 @@ def _reading_order_neighbors(graph: nx.MultiDiGraph, node_id: str) -> list[str]:
     return neighbors
 
 
+def _page_elements(graph: nx.MultiDiGraph, page_node_id: str) -> list[str]:
+    return [v for _, v, d in graph.out_edges(page_node_id, data=True) if d.get("relation") == "contains"]
+
+
+def _containing_page(graph: nx.MultiDiGraph, node_id: str) -> str | None:
+    for u, _, d in graph.in_edges(node_id, data=True):
+        if d.get("relation") == "contains":
+            return u
+    return None
+
+
+def _cross_document_neighbors(graph: nx.MultiDiGraph, node_id: str) -> list[str]:
+    """Éléments atteignables depuis `node_id` en franchissant une frontière
+    de document -- ce que `reading_order` (§Limitations : "closer to a chain
+    than the structure it is built from") ne fait jamais : soit un lien
+    hypertexte (`links_to`, élément -> page cible, rebranché sur le vrai
+    point d'entrée de la page liée par `corpus_builder.build_corpus_graph`,
+    pas un placeholder `external_page`), soit `continues` (page -> page
+    suivante, pour une page démesurée découpée en sections, §3.2). Dans les
+    deux cas on ouvre la porte sur TOUS les éléments de la page cible, à
+    charge pour leur propre score de décider s'ils passent le seuil
+    d'activation -- symétrique à la façon dont `reading_order` active un
+    voisin, jamais une activation automatique."""
+    candidates: list[str] = []
+    for _, v, d in graph.out_edges(node_id, data=True):
+        if d.get("relation") == "links_to" and graph.nodes[v].get("type") == "page":
+            candidates.extend(_page_elements(graph, v))
+    container = _containing_page(graph, node_id)
+    if container is not None:
+        for _, v, d in graph.out_edges(container, data=True):
+            if d.get("relation") == "continues":
+                candidates.extend(_page_elements(graph, v))
+    return candidates
+
+
 def run_evidence_controller(
     graph: nx.MultiDiGraph,
     tiles: list[Tile],
     query: str,
     config: EvidenceControllerConfig | None = None,
+    precomputed_scores: dict[str, float] | None = None,
 ) -> list[ControllerAction]:
     """Fait évoluer l'attribut `state` des noeuds élément de `graph` (en place)
     selon la politique décrite en tête de module, pour la requête `query`.
+
+    `precomputed_scores` : si fourni, remplace le scorer TF-IDF par défaut
+    (`_relevance_scores`) -- un noeud absent du dict reçoit un score de 0.0.
+    Pensé pour brancher le lecteur VLM fine-tuné (Phase 2, `lora_finetune.py`)
+    comme scorer de pertinence à la place du placeholder lexical, sans
+    toucher à la politique best-first/budget ci-dessous (cf. Limitations du
+    papier, "wiring in the reader's own similarity"). Le calcul de ces scores
+    (embeddings image/texte du lecteur) reste hors de ce module, délibérément
+    agnostique à la façon dont ils ont été obtenus.
 
     Retourne le journal des actions prises (une entrée par transition
     d'état), utile pour l'inspection/la visualisation dans le notebook.
@@ -147,8 +196,11 @@ def run_evidence_controller(
 
     tiles_by_id = {t.id: t for t in tiles}
     element_ids = [n for n, d in graph.nodes(data=True) if d.get("type") == "element"]
-    texts = [graph.nodes[n].get("text_preview", "") for n in element_ids]
-    scores = _relevance_scores(query, element_ids, texts)
+    if precomputed_scores is not None:
+        scores = {n: precomputed_scores.get(n, 0.0) for n in element_ids}
+    else:
+        texts = [graph.nodes[n].get("text_preview", "") for n in element_ids]
+        scores = _relevance_scores(query, element_ids, texts)
 
     for node_id, score in scores.items():
         graph.nodes[node_id]["relevance_score"] = score
@@ -194,7 +246,8 @@ def run_evidence_controller(
         budget_used += 1
         opened_node_ids.append(node_id)
 
-        for neighbor_id in _reading_order_neighbors(graph, node_id):
+        frontier = _reading_order_neighbors(graph, node_id) + _cross_document_neighbors(graph, node_id)
+        for neighbor_id in frontier:
             if graph.nodes[neighbor_id].get("type") != "element":
                 continue
             if graph.nodes[neighbor_id]["state"] != "inactive":

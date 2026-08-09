@@ -4,11 +4,13 @@
     "n_qa_pairs": 7,
     "n_dom_tiles": 7,
     "n_grid_tiles": 2,
+    "n_text_chunks": 4,
     "dom_pixels_per_tile": 136599.7142857143,
     "grid_pixels_per_tile": 1391616.0,
     "n_unattributable": {
       "dom": 3,
-      "grid": 5
+      "grid": 5,
+      "text": 3
     },
     "results": {
       "dom": [
@@ -19,8 +21,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 0.8333333333333334
         },
         {
           "qa_id": "George_P._Gunn__tile_0004__qa",
@@ -29,8 +30,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "George_P._Gunn__tile_0006__qa",
@@ -39,8 +39,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 0.8333333333333334
         },
         {
           "qa_id": "George_P._Gunn__tile_0001__qa",
@@ -49,8 +48,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 0.8333333333333334
         }
       ],
       "grid": [
@@ -61,8 +59,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "George_P._Gunn__tile_0004__qa",
@@ -71,8 +68,45 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.5
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "George_P._Gunn__tile_0000__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0004__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0006__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "George_P._Gunn__tile_0001__qa",
+          "rank": 1,
+          "n_items": 4,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -82,11 +116,13 @@
     "n_qa_pairs": 20,
     "n_dom_tiles": 25,
     "n_grid_tiles": 7,
-    "dom_pixels_per_tile": 223947.88,
+    "n_text_chunks": 16,
+    "dom_pixels_per_tile": 223951.72,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 13,
-      "grid": 16
+      "grid": 16,
+      "text": 9
     },
     "results": {
       "dom": [
@@ -97,28 +133,25 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Python_(programming_language)__tile_0002__qa",
-          "rank": 2,
+          "rank": 3,
           "n_items": 25,
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Python_(programming_language)__tile_0003__qa",
-          "rank": 2,
+          "rank": 3,
           "n_items": 25,
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Python_(programming_language)__tile_0007__qa",
@@ -127,8 +160,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Python_(programming_language)__tile_0010__qa",
@@ -137,8 +169,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.14285714285714285,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Python_(programming_language)__tile_0017__qa",
@@ -147,8 +178,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Python_(programming_language)__tile_0018__qa",
@@ -157,8 +187,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         }
       ],
       "grid": [
@@ -169,8 +198,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Python_(programming_language)__tile_0003__qa",
@@ -179,8 +207,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Python_(programming_language)__tile_0007__qa",
@@ -189,8 +216,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Python_(programming_language)__tile_0018__qa",
@@ -199,8 +225,108 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.14285714285714285
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Python_(programming_language)__tile_0000__qa",
+          "rank": 2,
+          "n_items": 16,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9333333333333333
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0002__qa",
+          "rank": 1,
+          "n_items": 16,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0003__qa",
+          "rank": 1,
+          "n_items": 16,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0004__qa",
+          "rank": 1,
+          "n_items": 16,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0007__qa",
+          "rank": 1,
+          "n_items": 16,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0010__qa",
+          "rank": 5,
+          "n_items": 16,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.7333333333333334
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0014__qa",
+          "rank": 6,
+          "n_items": 16,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0016__qa",
+          "rank": 3,
+          "n_items": 16,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8666666666666667
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0017__qa",
+          "rank": 1,
+          "n_items": 16,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0018__qa",
+          "rank": 1,
+          "n_items": 16,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Python_(programming_language)__tile_0019__qa",
+          "rank": 2,
+          "n_items": 16,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9333333333333333
         }
       ]
     }
@@ -210,11 +336,13 @@
     "n_qa_pairs": 20,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 14,
     "dom_pixels_per_tile": 156515.28,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 9,
-      "grid": 12
+      "grid": 12,
+      "text": 9
     },
     "results": {
       "dom": [
@@ -225,8 +353,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.058823529411764705,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Photosynthesis__tile_0001__qa",
@@ -235,8 +362,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Photosynthesis__tile_0002__qa",
@@ -245,8 +371,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0003__qa",
@@ -255,8 +380,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Photosynthesis__tile_0005__qa",
@@ -265,8 +389,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0010__qa",
@@ -275,8 +398,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0012__qa",
@@ -285,8 +407,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0015__qa",
@@ -295,8 +416,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0017__qa",
@@ -305,8 +425,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Photosynthesis__tile_0018__qa",
@@ -315,8 +434,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Photosynthesis__tile_0019__qa",
@@ -325,8 +443,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -337,8 +454,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.25
         },
         {
           "qa_id": "Photosynthesis__tile_0001__qa",
@@ -347,8 +463,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0002__qa",
@@ -357,8 +472,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0003__qa",
@@ -367,8 +481,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0010__qa",
@@ -377,8 +490,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0012__qa",
@@ -387,8 +499,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Photosynthesis__tile_0015__qa",
@@ -397,8 +508,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Photosynthesis__tile_0017__qa",
@@ -407,8 +517,108 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Photosynthesis__tile_0000__qa",
+          "rank": 9,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.3846153846153846
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0001__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0002__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0003__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0005__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0010__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0012__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0015__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0017__qa",
+          "rank": 2,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9230769230769231
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0018__qa",
+          "rank": 5,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6923076923076923
+        },
+        {
+          "qa_id": "Photosynthesis__tile_0019__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -418,11 +628,13 @@
     "n_qa_pairs": 20,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 159379.64,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 12,
-      "grid": 18
+      "grid": 18,
+      "text": 12
     },
     "results": {
       "dom": [
@@ -433,8 +645,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0009__qa",
@@ -443,8 +654,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0010__qa",
@@ -453,8 +663,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0011__qa",
@@ -463,8 +672,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0012__qa",
@@ -473,8 +681,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0013__qa",
@@ -483,8 +690,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0015__qa",
@@ -493,8 +699,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.08333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5416666666666667
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0019__qa",
@@ -503,8 +708,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -515,8 +719,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Barrier_Reef__tile_0013__qa",
@@ -525,8 +728,81 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0002__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0009__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0010__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0011__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0012__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0013__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0015__qa",
+          "rank": 6,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5833333333333333
+        },
+        {
+          "qa_id": "Great_Barrier_Reef__tile_0019__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -536,11 +812,13 @@
     "n_qa_pairs": 20,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 11,
     "dom_pixels_per_tile": 148645.36,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 15,
-      "grid": 18
+      "grid": 18,
+      "text": 10
     },
     "results": {
       "dom": [
@@ -551,8 +829,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Leonardo_da_Vinci__tile_0010__qa",
@@ -561,8 +838,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.14285714285714285,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Leonardo_da_Vinci__tile_0011__qa",
@@ -571,8 +847,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Leonardo_da_Vinci__tile_0012__qa",
@@ -581,8 +856,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.08333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5416666666666667
         },
         {
           "qa_id": "Leonardo_da_Vinci__tile_0019__qa",
@@ -591,8 +865,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -603,18 +876,108 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
-          "qa_id": "Leonardo_da_Vinci__tile_0012__qa",
-          "rank": 3,
+          "qa_id": "Leonardo_da_Vinci__tile_0019__qa",
+          "rank": 1,
           "n_items": 5,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0001__qa",
+          "rank": 2,
+          "n_items": 11,
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.9
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0006__qa",
+          "rank": 1,
+          "n_items": 11,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0009__qa",
+          "rank": 1,
+          "n_items": 11,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0010__qa",
+          "rank": 4,
+          "n_items": 11,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.7
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0011__qa",
+          "rank": 1,
+          "n_items": 11,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0012__qa",
+          "rank": 7,
+          "n_items": 11,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.4
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0014__qa",
+          "rank": 4,
+          "n_items": 11,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.7
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0016__qa",
+          "rank": 1,
+          "n_items": 11,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0017__qa",
+          "rank": 1,
+          "n_items": 11,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Leonardo_da_Vinci__tile_0019__qa",
+          "rank": 1,
+          "n_items": 11,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -624,11 +987,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 4,
+    "n_text_chunks": 9,
     "dom_pixels_per_tile": 99164.6,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 10,
-      "grid": 18
+      "grid": 18,
+      "text": 10
     },
     "results": {
       "dom": [
@@ -639,8 +1004,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Mount_Everest__tile_0003__qa",
@@ -649,8 +1013,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0005__qa",
@@ -659,8 +1022,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0008__qa",
@@ -669,8 +1031,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Mount_Everest__tile_0009__qa",
@@ -679,8 +1040,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Mount_Everest__tile_0010__qa",
@@ -689,8 +1049,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0012__qa",
@@ -699,8 +1058,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0014__qa",
@@ -709,8 +1067,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05555555555555555,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.29166666666666663
         },
         {
           "qa_id": "Mount_Everest__tile_0015__qa",
@@ -719,8 +1076,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0017__qa",
@@ -729,8 +1085,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0018__qa",
@@ -739,8 +1094,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.047619047619047616,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.16666666666666663
         },
         {
           "qa_id": "Mount_Everest__tile_0019__qa",
@@ -749,8 +1103,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.058823529411764705,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Mount_Everest__tile_0021__qa",
@@ -759,8 +1112,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0022__qa",
@@ -769,8 +1121,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0023__qa",
@@ -779,8 +1130,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.8333333333333334
         }
       ],
       "grid": [
@@ -791,8 +1141,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0003__qa",
@@ -801,8 +1150,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0005__qa",
@@ -811,8 +1159,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0008__qa",
@@ -821,8 +1168,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0009__qa",
@@ -831,8 +1177,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0017__qa",
@@ -841,8 +1186,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Mount_Everest__tile_0023__qa",
@@ -851,8 +1195,144 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Mount_Everest__tile_0000__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0003__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0005__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0008__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0009__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0010__qa",
+          "rank": 5,
+          "n_items": 9,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.5
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0012__qa",
+          "rank": 3,
+          "n_items": 9,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.75
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0014__qa",
+          "rank": 4,
+          "n_items": 9,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.625
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0015__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0017__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0018__qa",
+          "rank": 8,
+          "n_items": 9,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.125
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0019__qa",
+          "rank": 9,
+          "n_items": 9,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0021__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0022__qa",
+          "rank": 1,
+          "n_items": 9,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Mount_Everest__tile_0023__qa",
+          "rank": 2,
+          "n_items": 9,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.875
         }
       ]
     }
@@ -862,11 +1342,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 12,
     "dom_pixels_per_tile": 138507.08,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 8,
-      "grid": 14
+      "grid": 14,
+      "text": 8
     },
     "results": {
       "dom": [
@@ -877,8 +1359,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Ada_Lovelace__tile_0001__qa",
@@ -887,8 +1368,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.875
         },
         {
           "qa_id": "Ada_Lovelace__tile_0003__qa",
@@ -897,8 +1377,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Ada_Lovelace__tile_0004__qa",
@@ -907,8 +1386,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0005__qa",
@@ -917,8 +1395,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05263157894736842,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.25
         },
         {
           "qa_id": "Ada_Lovelace__tile_0007__qa",
@@ -927,8 +1404,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.125,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7083333333333333
         },
         {
           "qa_id": "Ada_Lovelace__tile_0008__qa",
@@ -937,8 +1413,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0010__qa",
@@ -947,8 +1422,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.1,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.625
         },
         {
           "qa_id": "Ada_Lovelace__tile_0011__qa",
@@ -957,8 +1431,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0012__qa",
@@ -967,8 +1440,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.07692307692307693,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Ada_Lovelace__tile_0013__qa",
@@ -977,8 +1449,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0014__qa",
@@ -987,8 +1458,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.07142857142857142,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.45833333333333337
         },
         {
           "qa_id": "Ada_Lovelace__tile_0016__qa",
@@ -997,8 +1467,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.08333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5416666666666667
         },
         {
           "qa_id": "Ada_Lovelace__tile_0017__qa",
@@ -1007,8 +1476,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0020__qa",
@@ -1017,8 +1485,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0021__qa",
@@ -1027,8 +1494,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0024__qa",
@@ -1037,8 +1503,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -1049,8 +1514,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0001__qa",
@@ -1059,8 +1523,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0003__qa",
@@ -1069,8 +1532,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0004__qa",
@@ -1079,8 +1541,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0005__qa",
@@ -1089,8 +1550,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Ada_Lovelace__tile_0008__qa",
@@ -1099,8 +1559,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0011__qa",
@@ -1109,8 +1568,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0014__qa",
@@ -1119,8 +1577,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Ada_Lovelace__tile_0020__qa",
@@ -1129,8 +1586,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0021__qa",
@@ -1139,8 +1595,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Ada_Lovelace__tile_0024__qa",
@@ -1149,8 +1604,162 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Ada_Lovelace__tile_0000__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0001__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0003__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0004__qa",
+          "rank": 2,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9090909090909091
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0005__qa",
+          "rank": 2,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9090909090909091
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0007__qa",
+          "rank": 4,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.7272727272727273
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0008__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0010__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0011__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0012__qa",
+          "rank": 6,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5454545454545454
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0013__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0014__qa",
+          "rank": 6,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5454545454545454
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0016__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0017__qa",
+          "rank": 3,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8181818181818181
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0020__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0021__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Ada_Lovelace__tile_0024__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -1160,11 +1769,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 132047.84,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 14,
-      "grid": 19
+      "grid": 19,
+      "text": 14
     },
     "results": {
       "dom": [
@@ -1175,8 +1786,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Solar_System__tile_0003__qa",
@@ -1185,8 +1795,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0004__qa",
@@ -1195,8 +1804,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Solar_System__tile_0005__qa",
@@ -1205,8 +1813,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Solar_System__tile_0008__qa",
@@ -1215,8 +1822,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.07142857142857142,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.45833333333333337
         },
         {
           "qa_id": "Solar_System__tile_0009__qa",
@@ -1225,8 +1831,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0011__qa",
@@ -1235,8 +1840,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.08333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5416666666666667
         },
         {
           "qa_id": "Solar_System__tile_0012__qa",
@@ -1245,8 +1849,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0019__qa",
@@ -1255,8 +1858,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0021__qa",
@@ -1265,8 +1867,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.07692307692307693,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Solar_System__tile_0024__qa",
@@ -1275,8 +1876,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -1287,8 +1887,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0003__qa",
@@ -1297,8 +1896,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0004__qa",
@@ -1307,8 +1905,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0008__qa",
@@ -1317,8 +1914,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.25
         },
         {
           "qa_id": "Solar_System__tile_0012__qa",
@@ -1327,8 +1923,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Solar_System__tile_0019__qa",
@@ -1337,8 +1932,108 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Solar_System__tile_0000__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0003__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0004__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0005__qa",
+          "rank": 5,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Solar_System__tile_0008__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0009__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0011__qa",
+          "rank": 6,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5833333333333333
+        },
+        {
+          "qa_id": "Solar_System__tile_0012__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0019__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Solar_System__tile_0021__qa",
+          "rank": 8,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.41666666666666663
+        },
+        {
+          "qa_id": "Solar_System__tile_0024__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -1348,11 +2043,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 6,
+    "n_text_chunks": 14,
     "dom_pixels_per_tile": 191296.64,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 16,
-      "grid": 20
+      "grid": 20,
+      "text": 14
     },
     "results": {
       "dom": [
@@ -1363,8 +2060,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0006__qa",
@@ -1373,8 +2069,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0007__qa",
@@ -1383,8 +2078,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0008__qa",
@@ -1393,8 +2087,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.875
         },
         {
           "qa_id": "Renaissance__tile_0012__qa",
@@ -1403,8 +2096,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0014__qa",
@@ -1413,8 +2105,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Renaissance__tile_0020__qa",
@@ -1423,8 +2114,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0022__qa",
@@ -1433,8 +2123,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.045454545454545456,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.125
         },
         {
           "qa_id": "Renaissance__tile_0023__qa",
@@ -1443,8 +2132,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.09090909090909091,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5833333333333333
         }
       ],
       "grid": [
@@ -1455,8 +2143,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0004__qa",
@@ -1465,8 +2152,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 0.19999999999999996
         },
         {
           "qa_id": "Renaissance__tile_0012__qa",
@@ -1475,8 +2161,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0020__qa",
@@ -1485,8 +2170,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Renaissance__tile_0023__qa",
@@ -1495,8 +2179,108 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 0.4
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Renaissance__tile_0001__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Renaissance__tile_0004__qa",
+          "rank": 11,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.23076923076923073
+        },
+        {
+          "qa_id": "Renaissance__tile_0006__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Renaissance__tile_0007__qa",
+          "rank": 2,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9230769230769231
+        },
+        {
+          "qa_id": "Renaissance__tile_0008__qa",
+          "rank": 5,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6923076923076923
+        },
+        {
+          "qa_id": "Renaissance__tile_0011__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Renaissance__tile_0012__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Renaissance__tile_0014__qa",
+          "rank": 2,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9230769230769231
+        },
+        {
+          "qa_id": "Renaissance__tile_0020__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Renaissance__tile_0022__qa",
+          "rank": 12,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.15384615384615385
+        },
+        {
+          "qa_id": "Renaissance__tile_0023__qa",
+          "rank": 7,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5384615384615384
         }
       ]
     }
@@ -1506,11 +2290,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 4,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 126289.6,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 16,
-      "grid": 20
+      "grid": 20,
+      "text": 14
     },
     "results": {
       "dom": [
@@ -1521,8 +2307,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.16666666666666666,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7916666666666666
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0010__qa",
@@ -1531,8 +2316,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.875
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0012__qa",
@@ -1541,8 +2325,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0014__qa",
@@ -1551,8 +2334,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0015__qa",
@@ -1561,8 +2343,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.14285714285714285,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0016__qa",
@@ -1571,8 +2352,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0017__qa",
@@ -1581,8 +2361,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0018__qa",
@@ -1591,8 +2370,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0024__qa",
@@ -1601,8 +2379,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.16666666666666666,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7916666666666666
         }
       ],
       "grid": [
@@ -1613,8 +2390,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.6666666666666667
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0010__qa",
@@ -1623,8 +2399,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.6666666666666667
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0015__qa",
@@ -1633,8 +2408,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.6666666666666667
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0018__qa",
@@ -1643,8 +2417,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Wall_of_China__tile_0024__qa",
@@ -1653,8 +2426,108 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Great_Wall_of_China__tile_0003__qa",
+          "rank": 5,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0007__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0009__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0010__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0012__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0014__qa",
+          "rank": 3,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8333333333333334
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0015__qa",
+          "rank": 3,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8333333333333334
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0016__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0017__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0018__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Wall_of_China__tile_0024__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -1664,11 +2537,13 @@
     "n_qa_pairs": 24,
     "n_dom_tiles": 25,
     "n_grid_tiles": 6,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 168981.24,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 12,
-      "grid": 18
+      "grid": 18,
+      "text": 12
     },
     "results": {
       "dom": [
@@ -1679,8 +2554,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0002__qa",
@@ -1689,8 +2563,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0003__qa",
@@ -1699,8 +2572,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0004__qa",
@@ -1709,8 +2581,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0008__qa",
@@ -1719,8 +2590,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05555555555555555,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.29166666666666663
         },
         {
           "qa_id": "Isaac_Newton__tile_0011__qa",
@@ -1729,8 +2599,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0012__qa",
@@ -1739,8 +2608,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0014__qa",
@@ -1749,8 +2617,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0015__qa",
@@ -1759,8 +2626,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0017__qa",
@@ -1769,8 +2635,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05555555555555555,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.29166666666666663
         },
         {
           "qa_id": "Isaac_Newton__tile_0018__qa",
@@ -1779,8 +2644,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.14285714285714285,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Isaac_Newton__tile_0020__qa",
@@ -1789,8 +2653,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -1801,8 +2664,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0003__qa",
@@ -1811,8 +2673,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0008__qa",
@@ -1821,8 +2682,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.16666666666666666,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 0.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0011__qa",
@@ -1831,8 +2691,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Isaac_Newton__tile_0018__qa",
@@ -1841,8 +2700,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 0.8
         },
         {
           "qa_id": "Isaac_Newton__tile_0020__qa",
@@ -1851,8 +2709,117 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.16666666666666666
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Isaac_Newton__tile_0001__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0002__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0003__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0004__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0008__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0011__qa",
+          "rank": 4,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.75
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0012__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0014__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0015__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0017__qa",
+          "rank": 9,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.33333333333333337
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0018__qa",
+          "rank": 6,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5833333333333333
+        },
+        {
+          "qa_id": "Isaac_Newton__tile_0020__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -1862,11 +2829,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 159698.08,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 13,
-      "grid": 18
+      "grid": 18,
+      "text": 11
     },
     "results": {
       "dom": [
@@ -1877,8 +2846,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Antarctica__tile_0001__qa",
@@ -1887,8 +2855,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Antarctica__tile_0003__qa",
@@ -1897,8 +2864,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0005__qa",
@@ -1907,8 +2873,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0007__qa",
@@ -1917,8 +2882,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.125,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7083333333333333
         },
         {
           "qa_id": "Antarctica__tile_0008__qa",
@@ -1927,8 +2891,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0015__qa",
@@ -1937,8 +2900,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0016__qa",
@@ -1947,8 +2909,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.058823529411764705,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Antarctica__tile_0018__qa",
@@ -1957,8 +2918,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.20833333333333337
         },
         {
           "qa_id": "Antarctica__tile_0019__qa",
@@ -1967,8 +2927,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0020__qa",
@@ -1977,8 +2936,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0021__qa",
@@ -1987,8 +2945,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.043478260869565216,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.08333333333333337
         }
       ],
       "grid": [
@@ -1999,8 +2956,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0001__qa",
@@ -2009,8 +2965,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0003__qa",
@@ -2019,8 +2974,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0007__qa",
@@ -2029,8 +2983,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Antarctica__tile_0008__qa",
@@ -2039,8 +2992,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Antarctica__tile_0018__qa",
@@ -2049,8 +3001,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.25
         },
         {
           "qa_id": "Antarctica__tile_0019__qa",
@@ -2059,8 +3010,135 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Antarctica__tile_0000__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Antarctica__tile_0001__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Antarctica__tile_0003__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Antarctica__tile_0005__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Antarctica__tile_0007__qa",
+          "rank": 4,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.75
+        },
+        {
+          "qa_id": "Antarctica__tile_0008__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Antarctica__tile_0015__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Antarctica__tile_0016__qa",
+          "rank": 8,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.41666666666666663
+        },
+        {
+          "qa_id": "Antarctica__tile_0017__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Antarctica__tile_0018__qa",
+          "rank": 10,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.25
+        },
+        {
+          "qa_id": "Antarctica__tile_0019__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Antarctica__tile_0020__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Antarctica__tile_0021__qa",
+          "rank": 11,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.16666666666666663
+        },
+        {
+          "qa_id": "Antarctica__tile_0024__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
         }
       ]
     }
@@ -2070,11 +3148,13 @@
     "n_qa_pairs": 24,
     "n_dom_tiles": 25,
     "n_grid_tiles": 4,
+    "n_text_chunks": 12,
     "dom_pixels_per_tile": 119665.84,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 8,
-      "grid": 14
+      "grid": 14,
+      "text": 8
     },
     "results": {
       "dom": [
@@ -2085,8 +3165,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.1,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.625
         },
         {
           "qa_id": "Amazon_rainforest__tile_0001__qa",
@@ -2095,8 +3174,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0002__qa",
@@ -2105,8 +3183,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0003__qa",
@@ -2115,8 +3192,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Amazon_rainforest__tile_0005__qa",
@@ -2125,8 +3201,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0006__qa",
@@ -2135,8 +3210,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.14285714285714285,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Amazon_rainforest__tile_0008__qa",
@@ -2145,8 +3219,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0013__qa",
@@ -2155,8 +3228,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0014__qa",
@@ -2165,8 +3237,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0015__qa",
@@ -2175,8 +3246,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0016__qa",
@@ -2185,8 +3255,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.058823529411764705,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Amazon_rainforest__tile_0017__qa",
@@ -2195,8 +3264,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Amazon_rainforest__tile_0020__qa",
@@ -2205,8 +3273,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0021__qa",
@@ -2215,8 +3282,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0022__qa",
@@ -2225,8 +3291,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Amazon_rainforest__tile_0023__qa",
@@ -2235,8 +3300,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -2247,8 +3311,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Amazon_rainforest__tile_0002__qa",
@@ -2257,8 +3320,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0003__qa",
@@ -2267,8 +3329,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.6666666666666667
         },
         {
           "qa_id": "Amazon_rainforest__tile_0005__qa",
@@ -2277,8 +3338,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0013__qa",
@@ -2287,8 +3347,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0014__qa",
@@ -2297,8 +3356,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0015__qa",
@@ -2307,8 +3365,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Amazon_rainforest__tile_0016__qa",
@@ -2317,8 +3374,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Amazon_rainforest__tile_0017__qa",
@@ -2327,8 +3383,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.25
+          "percentile_rank": 0.33333333333333337
         },
         {
           "qa_id": "Amazon_rainforest__tile_0021__qa",
@@ -2337,8 +3392,153 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.25
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Amazon_rainforest__tile_0000__qa",
+          "rank": 4,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.7272727272727273
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0001__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0002__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0003__qa",
+          "rank": 5,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6363636363636364
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0005__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0006__qa",
+          "rank": 3,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8181818181818181
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0008__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0013__qa",
+          "rank": 5,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6363636363636364
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0014__qa",
+          "rank": 5,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6363636363636364
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0015__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0016__qa",
+          "rank": 5,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6363636363636364
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0017__qa",
+          "rank": 2,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9090909090909091
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0020__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0021__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0022__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Amazon_rainforest__tile_0023__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -2348,11 +3548,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 14,
     "dom_pixels_per_tile": 149023.8,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 9,
-      "grid": 17
+      "grid": 17,
+      "text": 8
     },
     "results": {
       "dom": [
@@ -2363,8 +3565,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Industrial_Revolution__tile_0001__qa",
@@ -2373,8 +3574,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Industrial_Revolution__tile_0002__qa",
@@ -2383,8 +3583,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0003__qa",
@@ -2393,8 +3592,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0004__qa",
@@ -2403,8 +3601,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0006__qa",
@@ -2413,8 +3610,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0007__qa",
@@ -2423,8 +3619,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Industrial_Revolution__tile_0012__qa",
@@ -2433,8 +3628,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.125,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7083333333333333
         },
         {
           "qa_id": "Industrial_Revolution__tile_0015__qa",
@@ -2443,8 +3637,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0016__qa",
@@ -2453,8 +3646,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0017__qa",
@@ -2463,8 +3655,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0019__qa",
@@ -2473,8 +3664,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0020__qa",
@@ -2483,8 +3673,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0021__qa",
@@ -2493,8 +3682,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0022__qa",
@@ -2503,8 +3691,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0023__qa",
@@ -2513,8 +3700,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -2525,8 +3711,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0001__qa",
@@ -2535,8 +3720,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0002__qa",
@@ -2545,8 +3729,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0004__qa",
@@ -2555,8 +3738,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0006__qa",
@@ -2565,8 +3747,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0007__qa",
@@ -2575,8 +3756,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0015__qa",
@@ -2585,8 +3765,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Industrial_Revolution__tile_0021__qa",
@@ -2595,8 +3774,162 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Industrial_Revolution__tile_0000__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0001__qa",
+          "rank": 2,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9230769230769231
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0002__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0003__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0004__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0005__qa",
+          "rank": 2,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9230769230769231
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0006__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0007__qa",
+          "rank": 2,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9230769230769231
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0012__qa",
+          "rank": 7,
+          "n_items": 14,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.5384615384615384
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0015__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0016__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0017__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0019__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0020__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0021__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0022__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Industrial_Revolution__tile_0023__qa",
+          "rank": 1,
+          "n_items": 14,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -2606,11 +3939,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 12,
     "dom_pixels_per_tile": 155525.16,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 8,
-      "grid": 16
+      "grid": 16,
+      "text": 5
     },
     "results": {
       "dom": [
@@ -2621,8 +3956,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.8333333333333334
         },
         {
           "qa_id": "DNA__tile_0002__qa",
@@ -2631,8 +3965,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.08333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5416666666666667
         },
         {
           "qa_id": "DNA__tile_0003__qa",
@@ -2641,8 +3974,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "DNA__tile_0005__qa",
@@ -2651,8 +3983,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "DNA__tile_0006__qa",
@@ -2661,8 +3992,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05555555555555555,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.29166666666666663
         },
         {
           "qa_id": "DNA__tile_0007__qa",
@@ -2671,8 +4001,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "DNA__tile_0008__qa",
@@ -2681,8 +4010,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0009__qa",
@@ -2691,8 +4019,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.05,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.20833333333333337
         },
         {
           "qa_id": "DNA__tile_0012__qa",
@@ -2701,8 +4028,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.045454545454545456,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.125
         },
         {
           "qa_id": "DNA__tile_0014__qa",
@@ -2711,8 +4037,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0015__qa",
@@ -2721,8 +4046,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0017__qa",
@@ -2731,8 +4055,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0019__qa",
@@ -2741,8 +4064,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0020__qa",
@@ -2751,8 +4073,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0022__qa",
@@ -2761,8 +4082,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0023__qa",
@@ -2771,8 +4091,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0024__qa",
@@ -2781,8 +4100,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         }
       ],
       "grid": [
@@ -2793,8 +4111,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "DNA__tile_0006__qa",
@@ -2803,8 +4120,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.0
         },
         {
           "qa_id": "DNA__tile_0007__qa",
@@ -2813,8 +4129,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.25
         },
         {
           "qa_id": "DNA__tile_0008__qa",
@@ -2823,8 +4138,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0017__qa",
@@ -2833,8 +4147,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.25
         },
         {
           "qa_id": "DNA__tile_0019__qa",
@@ -2843,8 +4156,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0022__qa",
@@ -2853,8 +4165,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0023__qa",
@@ -2863,8 +4174,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "DNA__tile_0024__qa",
@@ -2873,8 +4183,189 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.75
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "DNA__tile_0000__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0002__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0003__qa",
+          "rank": 2,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9090909090909091
+        },
+        {
+          "qa_id": "DNA__tile_0005__qa",
+          "rank": 2,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9090909090909091
+        },
+        {
+          "qa_id": "DNA__tile_0006__qa",
+          "rank": 7,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.4545454545454546
+        },
+        {
+          "qa_id": "DNA__tile_0007__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0008__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0009__qa",
+          "rank": 11,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.09090909090909094
+        },
+        {
+          "qa_id": "DNA__tile_0011__qa",
+          "rank": 8,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.36363636363636365
+        },
+        {
+          "qa_id": "DNA__tile_0012__qa",
+          "rank": 12,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.0
+        },
+        {
+          "qa_id": "DNA__tile_0014__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0015__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0016__qa",
+          "rank": 7,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.4545454545454546
+        },
+        {
+          "qa_id": "DNA__tile_0017__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0019__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0020__qa",
+          "rank": 4,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.7272727272727273
+        },
+        {
+          "qa_id": "DNA__tile_0021__qa",
+          "rank": 10,
+          "n_items": 12,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.18181818181818177
+        },
+        {
+          "qa_id": "DNA__tile_0022__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0023__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "DNA__tile_0024__qa",
+          "rank": 1,
+          "n_items": 12,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }
@@ -2884,11 +4375,13 @@
     "n_qa_pairs": 24,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 207667.8,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 11,
-      "grid": 21
+      "grid": 21,
+      "text": 11
     },
     "results": {
       "dom": [
@@ -2899,8 +4392,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0001__qa",
@@ -2909,8 +4401,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0006__qa",
@@ -2919,8 +4410,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Eiffel_Tower__tile_0007__qa",
@@ -2929,8 +4419,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.1111111111111111,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.6666666666666667
         },
         {
           "qa_id": "Eiffel_Tower__tile_0008__qa",
@@ -2939,8 +4428,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.1,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.625
         },
         {
           "qa_id": "Eiffel_Tower__tile_0010__qa",
@@ -2949,8 +4437,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0015__qa",
@@ -2959,8 +4446,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0016__qa",
@@ -2969,8 +4455,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0019__qa",
@@ -2979,8 +4464,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0020__qa",
@@ -2989,8 +4473,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0021__qa",
@@ -2999,8 +4482,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0023__qa",
@@ -3009,8 +4491,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.16666666666666666,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7916666666666666
         },
         {
           "qa_id": "Eiffel_Tower__tile_0024__qa",
@@ -3019,8 +4500,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -3031,8 +4511,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0001__qa",
@@ -3041,8 +4520,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Eiffel_Tower__tile_0006__qa",
@@ -3051,8 +4529,126 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Eiffel_Tower__tile_0000__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0001__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0006__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0007__qa",
+          "rank": 4,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.75
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0008__qa",
+          "rank": 13,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0010__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0015__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0016__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0019__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0020__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0021__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0023__qa",
+          "rank": 5,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Eiffel_Tower__tile_0024__qa",
+          "rank": 4,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.75
         }
       ]
     }
@@ -3062,11 +4658,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 200266.96,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 10,
-      "grid": 21
+      "grid": 21,
+      "text": 9
     },
     "results": {
       "dom": [
@@ -3077,8 +4675,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.06666666666666667,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.41666666666666663
         },
         {
           "qa_id": "Marie_Curie__tile_0004__qa",
@@ -3087,8 +4684,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Marie_Curie__tile_0005__qa",
@@ -3097,8 +4693,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.08333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5416666666666667
         },
         {
           "qa_id": "Marie_Curie__tile_0008__qa",
@@ -3107,8 +4702,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0009__qa",
@@ -3117,8 +4711,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.125,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7083333333333333
         },
         {
           "qa_id": "Marie_Curie__tile_0010__qa",
@@ -3127,8 +4720,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0011__qa",
@@ -3137,8 +4729,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0012__qa",
@@ -3147,8 +4738,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.8333333333333334
         },
         {
           "qa_id": "Marie_Curie__tile_0014__qa",
@@ -3157,8 +4747,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Marie_Curie__tile_0015__qa",
@@ -3167,8 +4756,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0017__qa",
@@ -3177,8 +4765,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Marie_Curie__tile_0019__qa",
@@ -3187,8 +4774,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0020__qa",
@@ -3197,8 +4783,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0022__qa",
@@ -3207,8 +4792,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.047619047619047616,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.16666666666666663
         },
         {
           "qa_id": "Marie_Curie__tile_0023__qa",
@@ -3217,8 +4801,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.1,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.625
         }
       ],
       "grid": [
@@ -3229,8 +4812,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0008__qa",
@@ -3239,8 +4821,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0017__qa",
@@ -3249,8 +4830,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Marie_Curie__tile_0019__qa",
@@ -3259,8 +4839,153 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Marie_Curie__tile_0001__qa",
+          "rank": 5,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0004__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0005__qa",
+          "rank": 5,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0006__qa",
+          "rank": 3,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8333333333333334
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0008__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0009__qa",
+          "rank": 11,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.16666666666666663
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0010__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0011__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0012__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0014__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0015__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0017__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0019__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0020__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0022__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Marie_Curie__tile_0023__qa",
+          "rank": 10,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.25
         }
       ]
     }
@@ -3270,11 +4995,13 @@
     "n_qa_pairs": 25,
     "n_dom_tiles": 25,
     "n_grid_tiles": 5,
+    "n_text_chunks": 13,
     "dom_pixels_per_tile": 155834.64,
     "grid_pixels_per_tile": 2097152.0,
     "n_unattributable": {
       "dom": 10,
-      "grid": 16
+      "grid": 16,
+      "text": 10
     },
     "results": {
       "dom": [
@@ -3285,8 +5012,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Great_Depression__tile_0001__qa",
@@ -3295,8 +5021,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0003__qa",
@@ -3305,8 +5030,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0004__qa",
@@ -3315,8 +5039,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.16666666666666666,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.7916666666666666
         },
         {
           "qa_id": "Great_Depression__tile_0005__qa",
@@ -3325,8 +5048,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9166666666666666
         },
         {
           "qa_id": "Great_Depression__tile_0006__qa",
@@ -3335,8 +5057,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.2,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.8333333333333334
         },
         {
           "qa_id": "Great_Depression__tile_0007__qa",
@@ -3345,8 +5066,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0008__qa",
@@ -3355,8 +5075,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Great_Depression__tile_0015__qa",
@@ -3365,8 +5084,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.09090909090909091,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.5833333333333333
         },
         {
           "qa_id": "Great_Depression__tile_0018__qa",
@@ -3375,8 +5093,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0019__qa",
@@ -3385,8 +5102,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": true,
-          "mrr": 0.25,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.875
         },
         {
           "qa_id": "Great_Depression__tile_0020__qa",
@@ -3395,8 +5111,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0022__qa",
@@ -3405,8 +5120,7 @@
           "recall@1": false,
           "recall@3": false,
           "recall@5": false,
-          "mrr": 0.045454545454545456,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.125
         },
         {
           "qa_id": "Great_Depression__tile_0023__qa",
@@ -3415,8 +5129,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.04
+          "percentile_rank": 0.9583333333333334
         },
         {
           "qa_id": "Great_Depression__tile_0024__qa",
@@ -3425,8 +5138,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.04
+          "percentile_rank": 1.0
         }
       ],
       "grid": [
@@ -3437,8 +5149,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0001__qa",
@@ -3447,8 +5158,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0003__qa",
@@ -3457,8 +5167,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0004__qa",
@@ -3467,8 +5176,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Great_Depression__tile_0005__qa",
@@ -3477,8 +5185,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0006__qa",
@@ -3487,8 +5194,7 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
         },
         {
           "qa_id": "Great_Depression__tile_0015__qa",
@@ -3497,8 +5203,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.3333333333333333,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.5
         },
         {
           "qa_id": "Great_Depression__tile_0023__qa",
@@ -3507,8 +5212,7 @@
           "recall@1": false,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 0.5,
-          "chance_mrr": 0.2
+          "percentile_rank": 0.75
         },
         {
           "qa_id": "Great_Depression__tile_0024__qa",
@@ -3517,8 +5221,144 @@
           "recall@1": true,
           "recall@3": true,
           "recall@5": true,
-          "mrr": 1.0,
-          "chance_mrr": 0.2
+          "percentile_rank": 1.0
+        }
+      ],
+      "text": [
+        {
+          "qa_id": "Great_Depression__tile_0000__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0001__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0003__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0004__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0005__qa",
+          "rank": 3,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.8333333333333334
+        },
+        {
+          "qa_id": "Great_Depression__tile_0006__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0007__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0008__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Great_Depression__tile_0015__qa",
+          "rank": 5,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": true,
+          "percentile_rank": 0.6666666666666667
+        },
+        {
+          "qa_id": "Great_Depression__tile_0018__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0019__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0020__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
+        },
+        {
+          "qa_id": "Great_Depression__tile_0022__qa",
+          "rank": 10,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": false,
+          "recall@5": false,
+          "percentile_rank": 0.25
+        },
+        {
+          "qa_id": "Great_Depression__tile_0023__qa",
+          "rank": 2,
+          "n_items": 13,
+          "recall@1": false,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 0.9166666666666666
+        },
+        {
+          "qa_id": "Great_Depression__tile_0024__qa",
+          "rank": 1,
+          "n_items": 13,
+          "recall@1": true,
+          "recall@3": true,
+          "recall@5": true,
+          "percentile_rank": 1.0
         }
       ]
     }

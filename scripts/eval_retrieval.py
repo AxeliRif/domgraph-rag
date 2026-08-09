@@ -143,9 +143,20 @@ def main() -> None:
     from peft import PeftModel
     from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 
-    print(f"[eval_retrieval] chargement du modèle de base ({HF_MODEL})...")
+    # device_map="auto" fait passer PeftModel.from_pretrained par le chemin
+    # d'offload CPU/disque d'accelerate, qui échoue ici avec un KeyError sur
+    # un nom de sous-module (régression de compat peft/accelerate/transformers
+    # par rapport aux versions du run initial, cf. Appendix B).
+    # .from_pretrained(...).to(device) (l'autre option écartée) matérialise
+    # d'abord tout le modèle sur CPU puis le copie vers MPS -- sur une machine
+    # à mémoire unifiée, ce doublement transitoire (~15 Go bf16 x2) peut
+    # saturer la RAM et faire "stuck" le process indéfiniment (constaté
+    # empiriquement). device_map={"": device} matérialise directement sur le
+    # device cible, sans jamais dupliquer.
+    device = "mps" if torch.backends.mps.is_available() else ("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[eval_retrieval] chargement du modèle de base ({HF_MODEL}) sur {device}...")
     base_model = Qwen2VLForConditionalGeneration.from_pretrained(
-        HF_MODEL, torch_dtype=torch.bfloat16, device_map="auto"
+        HF_MODEL, torch_dtype=torch.bfloat16, device_map={"": device}
     )
     processor = AutoProcessor.from_pretrained(HF_MODEL)
 

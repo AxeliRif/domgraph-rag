@@ -1,7 +1,27 @@
 \section{Method}
 \label{sec:method}
 
-A page is rendered once with a headless browser (Appendix~\ref{sec:appendix-figures}, Figure~\ref{fig:pipeline} diagrams the flow); its DOM geometry drives an adaptive tiling step (\S\ref{sec:tiling}); tiles are organized into a two-level graph, optionally spanning several hyperlinked pages (\S\ref{sec:graph}); a VLM reader is contrastively fine-tuned to score (question, tile) pairs (\S\ref{sec:contrastive}); and, at query time, an online controller walks the graph under a budget to decide which nodes the reader actually opens (\S\ref{sec:controller}).
+A page is rendered once with a headless browser (Figure~\ref{fig:pipeline}); its DOM geometry drives an adaptive tiling step (\S\ref{sec:tiling}); tiles are organized into a two-level graph, optionally spanning several hyperlinked pages (\S\ref{sec:graph}); a VLM reader is contrastively fine-tuned to score (question, tile) pairs (\S\ref{sec:contrastive}); and, at query time, an online controller walks the graph under a budget to decide which nodes the reader actually opens (\S\ref{sec:controller}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  block/.style={draw, rounded corners, align=center, minimum height=0.7cm, minimum width=2.5cm, font=\small},
+  arr/.style={-{Stealth[length=2mm]}, thick}
+]
+\node[block] (render) {Render page\\(Playwright, DOM removed)};
+\node[block, below=0.35cm of render] (tile) {DOM-guided tiling\\\& patching (\S\ref{sec:tiling})};
+\node[block, below=0.35cm of tile] (graph) {Multigranular graph\\(page/element, \S\ref{sec:graph})};
+\node[block, below=0.35cm of graph] (reader) {Contrastively fine-tuned\\VLM reader (\S\ref{sec:contrastive})};
+\node[block, below=0.35cm of reader] (ctrl) {Evidence controller\\(budgeted, \S\ref{sec:controller})};
+\draw[arr] (render) -- (tile);
+\draw[arr] (tile) -- (graph);
+\draw[arr] (graph) -- (reader);
+\draw[arr] (reader) -- (ctrl);
+\end{tikzpicture}
+\caption{Pipeline overview. Rendering, tiling, and graph construction happen once per page; the reader is fine-tuned once, offline; the evidence controller runs once per query, deciding which graph nodes the reader opens.}
+\label{fig:pipeline}
+\end{figure}
 
 \subsection{DOM-Guided Adaptive Tiling}
 \label{sec:tiling}
@@ -26,7 +46,7 @@ Tiles are organized into a two-level directed graph (one \code{page} node, one \
 \end{itemize}
 Every element node starts with a \code{state} attribute (\state{inactive}), which the controller (\S\ref{sec:controller}) evolves at query time. Figure~\ref{fig:page-graph} (Appendix~\ref{sec:appendix-figures}) shows the resulting graph for the page of Figure~\ref{fig:tiling-overlay}.
 
-\paragraph{Oversized-page splitting.} One article's screenshot exceeded $46{,}000$\,px and produced dozens of tiles whose sequential QA generation (\S\ref{sec:contrastive}) ran for hours with no partial progress saved on failure. Rather than exclude such pages, one whose element height exceeds $10\times$ the max tile height is split into sections \emph{before} tiling, at \code{h1}/\code{h2} boundaries, with any still-oversized section further re-chunked by a height budget. Each section is tiled and graphed as a standalone page would be; the per-section graphs are merged by node-namespacing, with consecutive sections' \code{page} nodes linked by a new \textbf{\code{continues}} relation -- distinct from \code{links\_to}: sequential parts of the same document, not a hyperlink elsewhere. Every page's graph, split or not, exposes an \emph{entry point} for the corpus graph below to rewire onto; the controller does not yet cross \code{continues} edges automatically (\S\ref{sec:limitations}). Figure~\ref{fig:section-split} (Appendix~\ref{sec:appendix-figures}) shows an example split into 16 sections.
+\paragraph{Oversized-page splitting.} One article's screenshot exceeded $46{,}000$\,px, producing dozens of tiles whose sequential QA generation (\S\ref{sec:contrastive}) ran for hours with no partial progress saved on failure. Rather than exclude such pages, one whose element height exceeds $10\times$ the max tile height is split into sections \emph{before} tiling, at \code{h1}/\code{h2} boundaries, with any still-oversized section further re-chunked by a height budget. Each section is tiled and graphed as a standalone page would be; the per-section graphs are merged by node-namespacing, with consecutive sections' \code{page} nodes linked by a new \textbf{\code{continues}} relation -- sequential parts of the same document, distinct from the hyperlink relation \code{links\_to}. Every page's graph, split or not, exposes an \emph{entry point} for the corpus graph below to rewire onto. Figure~\ref{fig:section-split} (Appendix~\ref{sec:appendix-figures}) shows an example split into 16 sections.
 
 \paragraph{Corpus graph.} From a seed page we crawl up to $m$ pages reachable via its \code{links\_to} edges (one hop, non-recursive), build each linked page's graph independently, and merge by namespacing every node with a URL-derived slug, rewiring each placeholder external-page node onto the crawled page's entry point. \code{links\_to} is the only cross-document connective tissue, \code{continues} the only cross-section one -- the substrate the evidence controller (\S\ref{sec:controller}) operates over.
 
@@ -48,31 +68,11 @@ To turn a general-purpose VLM into a tile-level reader that also scores how well
 \subsection{Online Evidence Controller}
 \label{sec:controller}
 
-Given a query, the controller decides which element nodes the reader actually reads, rather than the whole page or a static top-$k$. It evolves each node's \code{state} through the four-state machine of Figure~\ref{fig:states}, generalizing MAGE-RAG's Algorithm~1.
-
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[
-  scale=0.8, transform shape,
-  node distance=1.1cm and 1.6cm,
-  st/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.65cm, align=center, font=\small},
-  arr/.style={-{Stealth[length=2mm]}, thick}
-]
-\node[st] (inactive) {\state{inactive}};
-\node[st, right=of inactive] (active) {\state{active}};
-\node[st, above right=0.5cm and 1.5cm of active] (opened) {\state{opened}};
-\node[st, below right=0.5cm and 1.5cm of active] (pruned) {\state{pruned}};
-\draw[arr] (inactive) -- node[above, font=\scriptsize]{activate} (active);
-\draw[arr] (active) -- node[above, sloped, font=\scriptsize]{open (budget --1)} (opened);
-\draw[arr] (active) -- node[below, sloped, font=\scriptsize]{prune (free)} (pruned);
-\end{tikzpicture}
-\caption{The controller's state machine. Opening a node consumes budget and may activate inactive \code{reading\_order} neighbors; pruning is free, applied to any node still \state{active} once budget is exhausted.}
-\label{fig:states}
-\end{figure}
+Given a query, the controller decides which element nodes the reader actually reads, rather than the whole page or a static top-$k$. It evolves each node's \code{state} through a four-state machine (\state{inactive}$\to$\state{active}$\to$\state{opened}/\state{pruned}, Appendix~\ref{sec:appendix-figures}, Figure~\ref{fig:states}), generalizing MAGE-RAG's Algorithm~1.
 
 \paragraph{Relevance scoring.} Every element node is scored against the query by TF-IDF cosine similarity (same mechanism as hard-negative mining), a deliberate placeholder for the fine-tuned reader's own learned similarity (\S\ref{sec:limitations}).
 
-\paragraph{Policy.} Algorithm~\ref{alg:controller}: (1) seed the frontier with the $k$ highest-scoring inactive nodes; (2) repeatedly take the highest-scoring \emph{active} node, pruning it for free below an opening threshold or opening it (one unit of budget $B$) and activating still-inactive \code{reading\_order} neighbors that clear an activation threshold; (3) once budget is exhausted or no active node remains, prune whatever is left active. Neighbors are only considered \emph{after} their node is opened, so the frontier grows along reading order conditioned on what has already proven relevant, rather than a fixed global ranking -- what distinguishes it from static top-$k$ retrieval over the same scores (ablation (d) in \S\ref{sec:experiments}).
+\paragraph{Policy.} Algorithm~\ref{alg:controller}: (1) seed the frontier with the $k$ highest-scoring inactive nodes; (2) repeatedly take the highest-scoring \emph{active} node, pruning it for free below an opening threshold or opening it (one unit of budget $B$) and activating still-inactive neighbors that clear an activation threshold; (3) once budget is exhausted or no active node remains, prune whatever is left active. Neighbors are only considered \emph{after} their node is opened, conditioning the frontier on what has already proven relevant rather than a fixed global ranking -- what distinguishes the controller from static top-$k$ retrieval over the same scores (ablation (c)). ``Neighbor'' includes \code{links\_to}/\code{continues} targets, not just same-page \code{reading\_order}: the fix that lets the frontier reach a second document at all, instead of only through the initial seed (\S\ref{sec:experiments}).
 
 \begin{algorithm}[t]
 \caption{Budgeted best-first evidence control}
@@ -88,7 +88,7 @@ Given a query, the controller decides which element nodes the reader actually re
     \State $n \gets$ \state{pruned} \Comment{free}
   \Else
     \State $n \gets$ \state{opened}; $b \gets b + 1$; record its text as evidence
-    \For{each inactive \code{reading\_order} neighbor $n'$ of $n$}
+    \For{each inactive neighbor $n'$ of $n$ via \code{reading\_order}, \code{links\_to}, or \code{continues}}
       \If{$\mathrm{score}(n') \geq \theta_{\text{act}}$}
         \State $n' \gets$ \state{active}
       \EndIf

@@ -1,9 +1,18 @@
 """
-Ablation (a) du papier (§5, "Planned ablations") : tuilage guidé par le DOM
-vs. une grille pixel de hauteur fixe (à la PixelRAG), au même scorer non
+Ablation (a) du papier (§5) : tuilage guidé par le DOM vs. deux baselines --
+une grille pixel de hauteur fixe (à la PixelRAG) et un chunking de texte plat
+(à la RAG standard, cf. §2 "Text-based document RAG") -- au même scorer non
 appris (TF-IDF + cosinus, identique à hard_negative_mining.py /
 evidence_controller.py) -- pour isoler l'effet des limites de tuiles
 alignées sur le contenu, indépendamment de tout modèle lecteur.
+
+La baseline "text" existe parce que le papier argumente contre l'extraction
+de texte (§1, §2) sans jamais la mesurer directement : elle concatène le
+texte de tous les éléments DOM de la même région de page que les tuiles
+DOM/grille, puis le découpe en fenêtres de taille fixe (chunking RAG
+standard, sans notion de limite d'élément) -- le strict pendant textuel de
+la grille pixel, mêmes questions, même scorer, seule la représentation
+(image vs. texte brut) diffère de la tuile DOM.
 
 Réutilise le jeu de QA déjà construit (data/qa_dataset/qa_pairs.jsonl)
 plutôt que d'en générer un nouveau, restreint aux pages tuilées comme une
@@ -11,12 +20,21 @@ seule unité de travail (pas de découpage en sections, cf. sectioning.py) --
 un rendu frais reproduit alors directement toute la page.
 
 Pour chaque page : un seul rendu Playwright frais, tuilé une fois par DOM
-(src/tiling.py) et une fois par grille fixe (scripts/grid_baseline.py). Pour
-chaque paire (question, réponse) existante, la réponse attendue est
-recherchée telle quelle (sous-chaîne, insensible à la casse) dans le texte
-de chaque tuile -- une paire dont la réponse n'apparaît littéralement dans
-aucune tuile d'une condition donnée est exclue de cette condition (taux de
-rattachement rapporté), plutôt que comptée comme un échec de rang.
+(src/tiling.py), une fois par grille fixe (scripts/grid_baseline.py), une
+fois par chunks de texte plat. Pour chaque paire (question, réponse)
+existante, la réponse attendue est recherchée telle quelle (sous-chaîne,
+insensible à la casse) dans le texte de chaque tuile/chunk -- une paire dont
+la réponse n'apparaît littéralement dans aucune unité d'une condition donnée
+est exclue de cette condition (taux de rattachement rapporté), plutôt que
+comptée comme un échec de rang.
+
+Métrique de comparaison : rang percentile, $1 - (\\text{rang}-1)/(n_\\text{items}-1)$
+(1.0 = meilleur, 0.0 = pire, 0.5 en espérance sous un classement aléatoire
+quel que soit $n_\\text{items}$) -- invariant à la taille du pool par
+construction, contrairement à MRR/chance (une correction par $H_n/n$ reste
+une comparaison de ratios, sensible à la formulation) ou à Recall@k/MRR bruts
+(mécaniquement gonflés par un pool plus petit, cf. la grille ~5x plus petite
+que le DOM, ~40x plus petite que le texte plat).
 
 Usage :
     python3 -m scripts.dom_vs_grid_experiment [--max-pages N]
@@ -44,17 +62,25 @@ RESULTS_PATH = Path("data/dom_vs_grid_results.json")
 # premières tuiles DOM (ordre natif de build_tiles, pas compute_reading_order)
 # de chaque page ont jamais été montrées au VLM générateur de QA. Un
 # rattachement de réponse sur une tuile au-delà de ce plafond serait donc une
-# fuite -- on restreint aussi la grille à la même portion verticale de page,
-# pour comparer les deux tuilages sur exactement le même contenu couvert.
+# fuite -- on restreint aussi la grille et les chunks de texte à la même
+# portion verticale de page, pour comparer les trois conditions sur
+# exactement le même contenu couvert.
 MAX_DOM_TILES_PER_PAGE = 25
+
+# Taille de chunk pour la baseline texte plat, en caractères -- même ordre de
+# grandeur que la longueur de texte typique d'une tuile DOM (comparaison
+# équitable de granularité), sans notion de limite d'élément : un chunk peut
+# couper un paragraphe ou une ligne de tableau en plein milieu, exactement ce
+# qu'un pipeline RAG texte standard fait (§2).
+TEXT_CHUNK_CHARS = 400
 
 
 @dataclass
 class RankedItem:
     id: str
     text: str
-    width: int
-    height: int
+    width: int = 0
+    height: int = 0
 
 
 def _rank(question: str, items: list[RankedItem]) -> list[int]:
@@ -74,26 +100,54 @@ def _contains_answer(answer: str, text: str) -> bool:
     return bool(needle) and needle in (text or "").lower()
 
 
+def _percentile_rank(rank: int, n_items: int) -> float:
+    """1.0 si `rank`=1 (meilleur), 0.0 si `rank`=n_items (pire), 0.5 en
+    espérance sous un classement uniforme au hasard -- quel que soit
+    n_items, contrairement à Recall@k/MRR bruts ou à un ratio MRR/hasard."""
+    if n_items <= 1:
+        return 1.0
+    return 1.0 - (rank - 1) / (n_items - 1)
+
+
+def _build_text_chunks(elements, y_cutoff: float | None, chunk_size: int = TEXT_CHUNK_CHARS) -> list[RankedItem]:
+    """Concatène le texte de tous les éléments DOM sous `y_cutoff` (même
+    région que les tuiles DOM/grille) en un seul flux, puis le découpe en
+    fenêtres de taille fixe -- le chunking RAG texte standard (§2), sans
+    connaissance des limites d'éléments."""
+    kept = [e for e in elements if y_cutoff is None or e.y < y_cutoff]
+    full_text = " ".join(e.text_preview for e in kept if e.text_preview)
+    if not full_text.strip():
+        return []
+    return [
+        RankedItem(id=f"text_chunk_{i:04d}", text=full_text[i : i + chunk_size])
+        for i in range(0, len(full_text), chunk_size)
+    ]
+
+
 async def evaluate_page(url: str, qa_pairs: list[dict]) -> dict:
     elements, screenshot = await extract_dom_elements_async(url, wait_until="load")
 
     dom_tiles = build_tiles(elements, screenshot)[:MAX_DOM_TILES_PER_PAGE]
     dom_items = [RankedItem(t.id, t.text_preview, t.width, t.height) for t in dom_tiles]
 
+    y_cutoff = max((t.y + t.height for t in dom_tiles), default=None)
+
     all_grid_tiles = build_grid_tiles(elements, screenshot)
-    if dom_tiles:
-        y_cutoff = max(t.y + t.height for t in dom_tiles)
-        grid_tiles = [t for t in all_grid_tiles if t.y < y_cutoff]
-    else:
-        grid_tiles = all_grid_tiles
+    grid_tiles = [t for t in all_grid_tiles if y_cutoff is None or t.y < y_cutoff]
     grid_items = [RankedItem(t.id, t.text_preview, t.width, t.height) for t in grid_tiles]
 
-    per_condition: dict[str, list[dict]] = {"dom": [], "grid": []}
-    n_unattributable: dict[str, int] = {"dom": 0, "grid": 0}
+    text_items = _build_text_chunks(elements, y_cutoff)
+
+    conditions = {"dom": dom_items, "grid": grid_items, "text": text_items}
+    per_condition: dict[str, list[dict]] = {c: [] for c in conditions}
+    n_unattributable: dict[str, int] = {c: 0 for c in conditions}
 
     for qa in qa_pairs:
         question, answer = qa["question"], qa["answer"]
-        for cond, items in (("dom", dom_items), ("grid", grid_items)):
+        for cond, items in conditions.items():
+            if not items:
+                n_unattributable[cond] += 1
+                continue
             order = _rank(question, items)
             correct_ranks = [
                 rank for rank, idx in enumerate(order, start=1)
@@ -110,8 +164,7 @@ async def evaluate_page(url: str, qa_pairs: list[dict]) -> dict:
                 "recall@1": best_rank <= 1,
                 "recall@3": best_rank <= 3,
                 "recall@5": best_rank <= 5,
-                "mrr": 1.0 / best_rank,
-                "chance_mrr": 1.0 / len(items),  # baseline attendu d'un classement aléatoire, même pool
+                "percentile_rank": _percentile_rank(best_rank, len(items)),
             })
 
     return {
@@ -119,6 +172,7 @@ async def evaluate_page(url: str, qa_pairs: list[dict]) -> dict:
         "n_qa_pairs": len(qa_pairs),
         "n_dom_tiles": len(dom_items),
         "n_grid_tiles": len(grid_items),
+        "n_text_chunks": len(text_items),
         "dom_pixels_per_tile": (sum(t.width * t.height for t in dom_items) / len(dom_items)) if dom_items else 0.0,
         "grid_pixels_per_tile": (sum(t.width * t.height for t in grid_items) / len(grid_items)) if grid_items else 0.0,
         "n_unattributable": n_unattributable,
@@ -130,18 +184,12 @@ def _aggregate(rows: list[dict]) -> dict:
     n = len(rows)
     if n == 0:
         return {"n": 0}
-    mean_chance_recall1 = sum(r["chance_mrr"] for r in rows) / n  # E[1/n_items] = P(hit@1 au hasard)
-    mean_mrr = sum(r["mrr"] for r in rows) / n
-    mean_chance_mrr = sum(r["chance_mrr"] for r in rows) / n
     return {
         "n": n,
         "recall@1": sum(r["recall@1"] for r in rows) / n,
         "recall@3": sum(r["recall@3"] for r in rows) / n,
         "recall@5": sum(r["recall@5"] for r in rows) / n,
-        "mrr": mean_mrr,
-        "chance_recall@1": mean_chance_recall1,
-        "chance_mrr": mean_chance_mrr,
-        "mrr_lift_over_chance": (mean_mrr / mean_chance_mrr) if mean_chance_mrr else float("nan"),
+        "percentile_rank": sum(r["percentile_rank"] for r in rows) / n,
     }
 
 
@@ -169,8 +217,9 @@ async def main_async(max_pages: int | None) -> None:
         all_page_results.append(page_result)
         print(
             f"  {page_result['n_dom_tiles']} tuiles DOM, {page_result['n_grid_tiles']} tuiles grille, "
+            f"{page_result['n_text_chunks']} chunks texte, "
             f"non-rattachables: dom={page_result['n_unattributable']['dom']} "
-            f"grid={page_result['n_unattributable']['grid']}",
+            f"grid={page_result['n_unattributable']['grid']} text={page_result['n_unattributable']['text']}",
             flush=True,
         )
 
@@ -180,12 +229,12 @@ async def main_async(max_pages: int | None) -> None:
 
     print(f"\n{'='*60}\nRésultats agrégés ({len(all_page_results)} pages) -- toutes paires rattachables\n{'='*60}")
     print(
-        "ATTENTION : la grille a un pool de candidats ~5x plus petit (voir avg tiles/page\n"
-        "ci-dessous) -- Recall@k et MRR bruts ne sont PAS directement comparables entre\n"
-        "conditions sans corriger de cet effet de taille de pool (cf. mrr_lift_over_chance,\n"
-        "et la comparaison appariée sur l'intersection ci-dessous)."
+        "ATTENTION : les pools ont des tailles très différentes (dom < grid < text,\n"
+        "voir avg tiles/page ci-dessous) -- Recall@k brut n'est PAS directement comparable\n"
+        "entre conditions sans corriger de cet effet (cf. percentile_rank, invariant à la\n"
+        "taille du pool, et la comparaison appariée sur l'intersection ci-dessous)."
     )
-    for cond in ("dom", "grid"):
+    for cond in ("dom", "grid", "text"):
         rows = [r for pr in all_page_results for r in pr["results"][cond]]
         agg = _aggregate(rows)
         if agg["n"] == 0:
@@ -194,36 +243,36 @@ async def main_async(max_pages: int | None) -> None:
         print(
             f"{cond.upper():5s} n={agg['n']:4d}  "
             f"Recall@1={agg['recall@1']:.3f}  Recall@3={agg['recall@3']:.3f}  "
-            f"Recall@5={agg['recall@5']:.3f}  MRR={agg['mrr']:.3f}  "
-            f"| hasard: Recall@1={agg['chance_recall@1']:.3f} MRR={agg['chance_mrr']:.3f}  "
-            f"-> MRR / hasard = {agg['mrr_lift_over_chance']:.2f}x"
+            f"Recall@5={agg['recall@5']:.3f}  Percentile rank={agg['percentile_rank']:.3f}"
         )
 
-    print(f"\n{'='*60}\nComparaison appariée -- paires rattachables dans LES DEUX conditions\n{'='*60}")
-    dom_by_id = {r["qa_id"]: r for pr in all_page_results for r in pr["results"]["dom"]}
-    grid_by_id = {r["qa_id"]: r for pr in all_page_results for r in pr["results"]["grid"]}
-    common_ids = sorted(set(dom_by_id) & set(grid_by_id))
-    print(f"paires rattachables dans les deux conditions : {len(common_ids)} "
-          f"(sur {len(dom_by_id)} dom / {len(grid_by_id)} grid rattachables au total)")
-    for cond, by_id in (("dom", dom_by_id), ("grid", grid_by_id)):
-        rows = [by_id[qid] for qid in common_ids]
+    print(f"\n{'='*60}\nComparaison appariée -- paires rattachables dans LES TROIS conditions\n{'='*60}")
+    by_id = {
+        cond: {r["qa_id"]: r for pr in all_page_results for r in pr["results"][cond]}
+        for cond in ("dom", "grid", "text")
+    }
+    common_ids = sorted(set(by_id["dom"]) & set(by_id["grid"]) & set(by_id["text"]))
+    print(f"paires rattachables dans les trois conditions : {len(common_ids)} "
+          f"(sur {len(by_id['dom'])} dom / {len(by_id['grid'])} grid / {len(by_id['text'])} text rattachables au total)")
+    for cond in ("dom", "grid", "text"):
+        rows = [by_id[cond][qid] for qid in common_ids]
         agg = _aggregate(rows)
         if agg["n"] == 0:
             continue
         print(
             f"{cond.upper():5s} n={agg['n']:4d}  "
             f"Recall@1={agg['recall@1']:.3f}  Recall@3={agg['recall@3']:.3f}  "
-            f"Recall@5={agg['recall@5']:.3f}  MRR={agg['mrr']:.3f}  "
-            f"| MRR / hasard = {agg['mrr_lift_over_chance']:.2f}x"
+            f"Recall@5={agg['recall@5']:.3f}  Percentile rank={agg['percentile_rank']:.3f}"
         )
 
     if all_page_results:
         avg_dom_tiles = sum(pr["n_dom_tiles"] for pr in all_page_results) / len(all_page_results)
         avg_grid_tiles = sum(pr["n_grid_tiles"] for pr in all_page_results) / len(all_page_results)
+        avg_text_chunks = sum(pr["n_text_chunks"] for pr in all_page_results) / len(all_page_results)
         avg_dom_px = sum(pr["dom_pixels_per_tile"] for pr in all_page_results) / len(all_page_results)
         avg_grid_px = sum(pr["grid_pixels_per_tile"] for pr in all_page_results) / len(all_page_results)
         total_dom_qa = sum(pr["n_qa_pairs"] for pr in all_page_results)
-        print(f"\navg tiles/page   : DOM={avg_dom_tiles:.1f}   grid={avg_grid_tiles:.1f}")
+        print(f"\navg units/page   : DOM={avg_dom_tiles:.1f}   grid={avg_grid_tiles:.1f}   text={avg_text_chunks:.1f}")
         print(f"avg pixels/tile  : DOM={avg_dom_px:,.0f}   grid={avg_grid_px:,.0f}")
         print(f"total QA pairs considered: {total_dom_qa}")
 

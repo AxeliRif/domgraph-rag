@@ -226,6 +226,26 @@ def embed_tiles(model, processor, images: list, batched: bool = True):
     return fn(model, processor, images=images)
 
 
+def reader_relevance_scores(
+    model, processor, query: str, node_ids: list[str], images: list, batched: bool = True,
+) -> dict[str, float]:
+    """Similarité cosinus lecteur (question, tuile) pour chaque `node_ids[i]`/`images[i]`
+    -- même mécanisme que `scripts/eval_retrieval.py`, exposé ici pour être
+    branché comme `precomputed_scores` de `evidence_controller.run_evidence_controller`
+    à la place du scorer TF-IDF (cf. Limitations du papier). Ne fait aucune
+    hypothèse sur le graphe : appelant responsable de fournir les images des
+    noeuds à scorer et de charger le modèle (base + adaptateur LoRA)."""
+    import torch
+
+    if not node_ids:
+        return {}
+
+    question_embed = embed_questions(model, processor, [query], batched=batched)
+    tile_embeds = embed_tiles(model, processor, images, batched=batched)
+    similarities = torch.nn.functional.cosine_similarity(question_embed, tile_embeds)
+    return dict(zip(node_ids, (float(s) for s in similarities)))
+
+
 def info_nce_loss(question_embeds, tile_embeds, positive_indices: list[int], temperature: float = CONTRASTIVE_TEMPERATURE):
     """Loss InfoNCE standard : pour chaque question, softmax sur sa similarité
     avec TOUTES les tuiles du batch (sa positive + ses négatifs difficiles +,

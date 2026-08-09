@@ -5,46 +5,27 @@
 \small\textit{The pipeline of \S\ref{sec:method} runs end-to-end on live pages and the trained reader is now evaluated held-out, but the full benchmark suite against MAGE-RAG's own baselines is not yet in place. We report three preliminary ablations below.}
 \end{quote}
 
-\paragraph{Benchmarks.} MAGE-RAG's protocol evaluates on LongDocURL~\citep{longdocurl2024} and MMLongBench-Doc~\citep{mmlongbenchdoc2024} (Table~\ref{tab:baselines}), but both are PDF benchmarks, and every input our method needs (DOM bounding boxes, CSS-selector chrome removal, \code{h1}/\code{h2} splitting) presupposes a renderable DOM a PDF does not have. We instead plan an HTML-native source: WebSRC~\citep{websrc2021} or HotpotQA~\citep{hotpotqa2018}, whose \code{supporting\_facts} name the exact sentences, in two articles, needed per question -- multi-hop by construction and the most direct fix for our own synthetic QA's single-hop bias (\S\ref{sec:limitations}). We have implemented and scaled the HotpotQA path (\code{src/multihop\_qa.py}, \S\ref{sec:limitations}): 91/150 sampled questions (61\%) yielded a complete cross-page example, used directly in ablation (d) below. We do not evaluate on SimpleQA: with no supplied document, it cannot exercise tiling, the graph, or the controller.
+\paragraph{Benchmarks.} MAGE-RAG's protocol evaluates on LongDocURL~\citep{longdocurl2024} and MMLongBench-Doc~\citep{mmlongbenchdoc2024}, but both are PDF benchmarks, and every input our method needs (DOM bounding boxes, CSS-selector chrome removal, \code{h1}/\code{h2} splitting) presupposes a renderable DOM a PDF does not have. We instead plan an HTML-native source: WebSRC~\citep{websrc2021} or HotpotQA~\citep{hotpotqa2018}, whose \code{supporting\_facts} name the exact sentences, in two articles, needed per question -- multi-hop by construction and the most direct fix for our own synthetic QA's single-hop bias (\S\ref{sec:limitations}). We have implemented and scaled the HotpotQA path (\code{src/multihop\_qa.py}, \S\ref{sec:limitations}): 91/150 sampled questions (61\%) yielded a complete cross-page example, used directly in ablation (c) below.
 
-\begin{table}[t]
-\centering
-\small
-\begin{tabular}{@{}lcc@{}}
-\toprule
-Benchmark & Metric & MAGE-RAG \\
-\midrule
-LongDocURL & Accuracy & 52.75 \\
-MMLongBench-Doc & Acc.\ / F1 & 53.26 / 51.19 \\
-\bottomrule
-\end{tabular}
-\caption{Published MAGE-RAG~\citep{magerag2026} numbers, the reference our controller (\S\ref{sec:controller}) generalizes. Our results on the same benchmarks are ongoing work.}
-\label{tab:baselines}
-\end{table}
-
-\paragraph{Ablation (a): DOM-guided tiling vs.\ a blind fixed-height grid.} The lexical scorer already used for hard-negative mining and controller relevance (\S\ref{sec:contrastive}, \S\ref{sec:controller}) lets us run this ablation without waiting on the trained reader. \code{scripts/grid\_baseline.py} reimplements a PixelRAG-style blind grid (1{,}024\,px bands, PixelRAG's own reported tile height, at our render width); \code{scripts/dom\_vs\_grid\_experiment.py} re-renders 18 single-unit pages, tiles each both ways, and ranks every existing \code{qa\_pairs.jsonl} question against both tile sets by TF-IDF cosine -- same scorer, only the tiling differs. A question is scored in a condition only if its answer string occurs in one of that condition's tiles, else dropped from that condition rather than counted as a miss.
+\paragraph{Ablation (a): DOM-guided tiling vs.\ a blind fixed-height grid vs.\ flat text chunks.} The lexical scorer already used for hard-negative mining and controller relevance (\S\ref{sec:contrastive}, \S\ref{sec:controller}) lets us run this ablation without waiting on the trained reader. \code{scripts/grid\_baseline.py} reimplements a PixelRAG-style blind grid (1{,}024\,px bands, PixelRAG's own reported tile height, at our render width); a third condition chunks the same page region's extracted text into flat 400-character windows, the standard RAG baseline our introduction argues against but had not, until this revision, measured directly. \code{scripts/dom\_vs\_grid\_experiment.py} re-renders 18 single-unit pages, builds all three, and ranks every existing \code{qa\_pairs.jsonl} question against each by TF-IDF cosine, same scorer throughout. A question is scored in a condition only if its answer string occurs in one of that condition's units, else dropped from that condition rather than counted as a miss.
 
 \begin{table}[t]
 \centering
 \small
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
- & $n$ & R@1 & MRR & MRR/chance \\
+ & $n$ & R@1 & Attach & Pctl.\ rank \\
 \midrule
-\multicolumn{5}{@{}l}{\emph{All attributable pairs}} \\
-DOM  & 212 & 0.547 & 0.663 & 15.8$\times$ \\
-Grid & 108 & 0.713 & 0.811 & 3.9$\times$ \\
-\midrule
-\multicolumn{5}{@{}l}{\emph{Paired (107 pairs attributable in both)}} \\
-DOM  & 107 & 0.505 & 0.659 & 15.7$\times$ \\
-Grid & 107 & 0.720 & 0.817 & 3.9$\times$ \\
+DOM  & 213 & 0.540 & 52.1\% & 0.868 \\
+Grid & 109 & 0.716 & 26.7\% & 0.833 \\
+Text & 232 & 0.612 & 56.7\% & 0.867 \\
 \bottomrule
 \end{tabular}
-\caption{DOM-guided vs.\ blind grid, same TF-IDF scorer, 18 pages / 409 questions. MRR/chance = MRR $\div$ mean chance-level MRR ($1/n_\text{items}$) of that row's own pool, since grid's pool is $\sim$5$\times$ smaller (Appendix~\ref{sec:appendix-tiling-cost}) and inflates raw Recall/MRR mechanically.}
+\caption{DOM tiling vs.\ blind grid vs.\ flat text chunks, same TF-IDF scorer, 18 pages / 409 questions. Attach = share of the 409 questions whose answer string survives that condition's units at all (denominator for $n$ and R@1). Percentile rank $= 1 - (\text{rank}-1)/(n_\text{items}-1)$ of the answer-bearing unit (1 = best, 0.5 in expectation under random ranking, regardless of pool size) -- unlike raw Recall/MRR, not mechanically inflated by grid's $\sim$5$\times$ smaller pool (Appendix~\ref{sec:appendix-tiling-cost}).}
 \label{tab:tiling-ablation}
 \end{table}
 
-Raw numbers say grid is more accurate -- the opposite of this paper's claim -- but are confounded: grid's pool is $\sim$5$\times$ smaller (Appendix~\ref{sec:appendix-tiling-cost}), which improves Recall/MRR mechanically regardless of ranking quality. Normalizing by each row's own chance-level MRR reverses the conclusion: DOM-guided tiling is \textbf{15.7--15.8$\times$} better than chance on its own pool, against grid's \textbf{3.9$\times$} on its own -- a gap that survives on the paired subset too, so it is not an artifact of differing question sets. We read this as a real retrieval advantage from content-aligned boundaries, though a preliminary signal (single lexical scorer, self-generated single-hop questions, \S\ref{sec:limitations}) rather than a final result.
+Two findings, not one. DOM tiling clearly beats the blind grid it targets: a higher attach rate (52.1\% vs.\ 26.7\%) at a \textbf{2.7$\times$ smaller total pixel budget per page} (Appendix~\ref{sec:appendix-tiling-cost}) -- more of a page's content survives into a retrievable unit, more cheaply, once boundaries follow the DOM instead of a fixed height. But once pool size is corrected for (percentile rank), flat text chunking is lexically \emph{competitive} with DOM tiling under this same scorer (0.867 vs.\ 0.868) and has the highest attach rate of the three. This is expected, not damaging: the ablation only ever scores extracted text, so it cannot show what a VLM gains from reading a content-aligned \emph{image} tile over a same-size crop of raw text -- that is what the fine-tuned reader of ablation (b) is for. What it does establish is pixel efficiency: DOM tiling reaches a page's content on a smaller image budget than a blind grid, without the retrieval cost a naive un-normalized comparison would suggest.
 
 \paragraph{Ablation (b): fine-tuned reader vs.\ base model, held-out retrieval.} We added an article-level train/val split (\code{split\_examples\_by\_article}, 80/20, disjoint articles in each split so no tile or near-duplicate question leaks across) and retrained LoRA on the train split only, on rented GPU compute (3 epochs, batch size 4, gradient checkpointing). \code{scripts/eval\_retrieval.py} then scores every val-split question against \emph{every} tile of its own page (a realistic retrieval pool, not the small mined positive/negatives set the training loss sees), with and without the adapter loaded on the same base model (\code{peft}'s \code{disable\_adapter()}, so both passes share one model in memory).
 
@@ -65,7 +46,7 @@ LoRA fine-tuned & 0.785 & 0.915 & 0.952 & 0.856 \\
 
 Recall@1 nearly doubles (0.433 $\to$ 0.785) and MRR rises from 0.578 to 0.856 -- a clean, held-out signal that the contrastive objective transfers to realistic per-page retrieval, not just the small mined pool it was trained against. This motivates wiring this reader into the controller's relevance scoring in place of TF-IDF (\S\ref{sec:limitations}), left as the next step.
 
-\paragraph{Ablation (d): evidence controller vs.\ static top-$k$, cross-page multi-hop retrieval.} Method (\S\ref{sec:controller}) motivates the controller against the static top-$k$ baseline it generalizes -- untestable on single-hop synthetic QA, where one tile always suffices, so we use the 91 HotpotQA-derived multi-hop questions of \S\ref{sec:limitations} instead. For each, we build the combined two-page graph of both cited articles, run the controller and, on the identical TF-IDF scores, a static top-$k$ baseline, and check whether the evidence covers a positive tile on \emph{each} page.
+\paragraph{Ablation (c): evidence controller vs.\ static top-$k$, cross-page multi-hop retrieval.} Method (\S\ref{sec:controller}) motivates the controller against the static top-$k$ baseline it generalizes -- untestable on single-hop synthetic QA, where one tile always suffices, so we use the 91 HotpotQA-derived multi-hop questions of \S\ref{sec:limitations} instead. For each, we build the combined two-page graph of both cited articles, rewiring any \code{links\_to} edge whose target is the other cited article onto its real entry point (as a genuine corpus crawl would, \S\ref{sec:graph}); run the controller and, on the identical TF-IDF scores, a static top-$k$ baseline; and check whether the evidence covers a positive tile on \emph{each} page. An earlier version of the controller activated neighbors only along \code{reading\_order}, which never crosses a page boundary, reaching a second document only through its literal seed -- exactly what static top-$k$ already does, and worse whenever the seed alone missed one article; \S\ref{sec:controller}'s policy now also activates neighbors via \code{links\_to} and \code{continues}, closing that gap architecturally.
 
 \begin{table}[t]
 \centering
@@ -74,17 +55,17 @@ Recall@1 nearly doubles (0.433 $\to$ 0.785) and MRR rises from 0.578 to 0.856 --
 \toprule
 Seed width $k_{\text{seed}}$ & Controller & Static top-$k$ \\
 \midrule
-3 (default; budget 5) & 29.7\% (27/91) & 40.7\% (37/91) \\
+3 (default; budget 5) & 39.6\% (36/91) & 40.7\% (37/91) \\
 5 (= budget) & 40.7\% (37/91) & 40.7\% (37/91) \\
 \bottomrule
 \end{tabular}
-\caption{Fraction of 91 cross-page multi-hop questions (\S\ref{sec:limitations}) where the selected evidence covers both cited articles' positive tiles. Same TF-IDF scores in every cell; only the selection policy differs, and, between rows, whether any budget remains for propagation past the seed.}
+\caption{Fraction of 91 cross-page multi-hop questions (\S\ref{sec:limitations}) where the selected evidence covers both cited articles' positive tiles, controller with cross-document expansion (\code{links\_to}/\code{continues}, \S\ref{sec:controller}) vs.\ a static top-$k$ baseline on the same TF-IDF scores. Before this expansion (\code{reading\_order} only), the same protocol gave 29.7\% at $k_{\text{seed}}{=}3$ -- the gap this table shows closed.}
 \label{tab:controller-ablation}
 \end{table}
 
-At the controller's default $k_{\text{seed}}{=}3$ it is \emph{worse} than the baseline; at $k_{\text{seed}}{=}5{=}$budget the two are exactly equal, since the controller then opens its seed outright with no budget left to propagate. Both rows share one cause: \code{reading\_order} never crosses a page boundary, so the controller can only reach a second page via its literal top-$k_{\text{seed}}$ seed, exactly what static top-$k$ already does. This is a negative result for the current controller, not graph-guided retrieval in general: it turns \S\ref{sec:limitations}'s qualitative claim into a measured one, and marks type-aware expansion as necessary, not merely desirable, for multi-hop tasks.
+Cross-document expansion closes almost all of the gap at the controller's default $k_{\text{seed}}{=}3$ (29.7\%~$\to$~39.6\%) and the two are exactly tied at $k_{\text{seed}}{=}5{=}$budget. The controller still does not strictly beat the static baseline: once a second page is reachable at all, both policies tend to open the same highest-scoring candidates on it, so parity rather than a win is the expected outcome on this coverage metric -- the controller's advantage over static top-$k$ is that it spends budget adaptively (pruning low-scoring seeds for free, propagating further where the page is more clearly relevant), not that it reaches structurally more content once both can reach it. We read this as a genuine fix to a real limitation (the graph's relations are now actually consumed, not just built and visualized, \S\ref{sec:limitations}), not yet a positive result for the controller over the simpler baseline on this specific metric.
 
-\paragraph{Status.} All stages (\S\ref{sec:method}) are implemented, tested, and demonstrated end-to-end on live pages (\S\ref{sec:implementation}). QA-pair generation has scaled to the multi-page corpus of Table~\ref{tab:dataset-stats}. Scaling surfaced one cost worth flagging: $\sim$2 minutes/tile for local QA generation, now partly mitigated by concurrent VLM calls (\S\ref{sec:implementation}); Appendix~\ref{sec:appendix-gpu} turns this into a compute-budget estimate for fine-tuning itself. Ablation (c) (resolution) still requires a further training run on compressed tiles.
+\paragraph{Status.} All stages (\S\ref{sec:method}) are implemented, tested, and demonstrated end-to-end on live pages (\S\ref{sec:implementation}). QA-pair generation has scaled to the multi-page corpus of Table~\ref{tab:dataset-stats}. Scaling surfaced one cost worth flagging: $\sim$2 minutes/tile for local QA generation, now partly mitigated by concurrent VLM calls (\S\ref{sec:implementation}); Appendix~\ref{sec:appendix-gpu} turns this into a compute-budget estimate for fine-tuning itself. A resolution ablation (reduced-scale tiles, \S\ref{sec:contrastive}) still requires a further training run on compressed tiles and is left as future work.
 
 \begin{table}[t]
 \centering

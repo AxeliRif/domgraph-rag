@@ -16,6 +16,8 @@ The pipeline is Python, one module per stage of \S\ref{sec:method}: rendering/ex
 \section{Hyperparameters}
 \label{sec:appendix-hyperparams}
 
+Every hyperparameter referenced in \S\ref{sec:tiling}--\S\ref{sec:contrastive}, in one place.
+
 \begin{table}[h]
 \centering
 \small
@@ -46,12 +48,12 @@ InfoNCE temperature $\tau$ & 0.05 \\
 \section{Compute budget for contrastive fine-tuning}
 \label{sec:appendix-gpu}
 
-\code{lora\_finetune.py} embeds each batch's questions and tile images via \code{embed\_questions}/\code{embed\_tiles}, which support two paths: a padded, batched forward pass (\code{batched\_embeddings=True}, the default) or one forward call per question/image (\code{-{}-no-batched-embeddings}, a fallback if \code{scripts/verify\_batching.py} -- which cross-checks the batched path against a per-item reference before any real run -- fails on a given environment). At batch size 4, $n{=}2$ hard negatives, 3 epochs over the 1{,}339 examples of Table~\ref{tab:dataset-stats}, one optimizer step embeds 4 questions and 12 tile images; the unbatched fallback costs 16 sequential forward passes per step ($1{,}005$ steps $\times$ 16 $=$ 16{,}080 total), all contributing to one shared backward. At an assumed 150--400\,ms per forward call, that is 40--107 minutes of forward compute alone, plausibly an hour to several hours wall-clock once backward and per-call overhead are included -- an estimate, not a measurement, for a path we did not end up using.
-
-The batched default instead issues one forward call for all 4 questions and one for all 12 tile images per step -- far fewer Python-level calls, but each now holds every image's activations in memory jointly rather than releasing them between items, and the vision encoder can still emit a large token count for our largest tiles ($2048\times2048$\,px). This traded fewer calls for a much larger peak footprint than the unbatched estimate above implied: a first attempt at the run reported in \S\ref{sec:experiments} (ablation (b)) hit \texttt{torch.OutOfMemoryError} on a routine \code{dropout} call, with \emph{79.16 of 79.25}\,GiB already in use on an 80\,GB A100/H100-class card -- not fragmentation, genuine peak usage near the card's full capacity. \code{-{}-gradient-checkpointing} (recomputing activations on the backward pass instead of retaining them, at a $\sim$20--30\% slowdown) resolved it; with it, training completed 3 epochs without further incident. The practical takeaway: the batched path is faster per call but not simply "cheaper" in memory than the unbatched one, and \code{-{}-gradient-checkpointing} should be treated as the default starting point on an 80\,GB card at this tile resolution, not a fallback for smaller GPUs only. Wall-clock time for the completed run was not logged precisely enough to report a measured figure here.
+Training (ablation (b)) ran on a rented 80\,GB A100/H100-class card, batch size 4, $n{=}2$ hard negatives, 3 epochs over the 1{,}339 examples of Table~\ref{tab:dataset-stats}. The batched embedding path (\code{lora\_finetune.py}, default) first hit \texttt{torch.OutOfMemoryError} on a routine \code{dropout} call with 79.16 of 79.25\,GiB already in use -- genuine peak usage, not fragmentation, since our largest tiles ($2048\times2048$\,px) push a large vision-token count through the batch jointly. \code{-{}-gradient-checkpointing} (recomputing activations on the backward pass, $\sim$20--30\% slower) resolved it and should be treated as the default starting point at this tile resolution on an 80\,GB card, not a fallback for smaller ones only.
 
 \section{Tiling ablation: cost detail}
 \label{sec:appendix-tiling-cost}
+
+Per-tile breakdown behind the pixel-budget figure reported in \S\ref{sec:experiments} (ablation (a)).
 
 \begin{table}[h]
 \centering
@@ -60,15 +62,13 @@ The batched default instead issues one forward call for all 4 questions and one 
 \toprule
  & Tiles/page & Px/tile & Total px/page \\
 \midrule
-DOM  & 24.0 & 157{,}170 & 3{,}772{,}076 \\
-Grid & 4.9  & 2{,}057{,}956 & 10{,}061{,}116 \\
+DOM  & 24.0 & 153{,}510 & 3{,}684{,}240 \\
+Grid & 4.8  & 2{,}057{,}956 & 9{,}946{,}785 \\
 \bottomrule
 \end{tabular}
 \caption{Tiling cost, same 18 pages as Table~\ref{tab:tiling-ablation}. DOM-guided tiling produces more, smaller tiles, yet a smaller \emph{total} pixel budget per page (2.7$\times$ less) -- a direct consequence of the text-flow bounding-box measurement of \S\ref{sec:tiling}, which crops text tiles to the width their content actually occupies instead of the full page width every grid band uses regardless of content. If image tokens scale with pixel area, as they do for \texttt{Qwen2-VL}'s vision encoder, DOM-guided tiling need not trade accuracy for token cost against a blind grid.}
 \label{tab:appendix-tiling-cost}
 \end{table}
-
-Attach rate (the fraction of questions whose answer string survives a tiling's 200-character text preview) is 51.8\% for DOM (212/409) against 26.4\% for grid (108/409) -- consistent with grid bands aggregating far more raw content into the same fixed text budget, diluting the specific snippet a lexical scorer needs to surface.
 
 \section{Additional figures}
 \label{sec:appendix-figures}
@@ -76,21 +76,21 @@ Attach rate (the fraction of questions whose answer string survives a tiling's 2
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[
-  block/.style={draw, rounded corners, align=center, minimum height=0.7cm, minimum width=2.5cm, font=\small},
+  scale=0.8, transform shape,
+  node distance=1.1cm and 1.6cm,
+  st/.style={draw, rounded corners, minimum width=1.9cm, minimum height=0.65cm, align=center, font=\small},
   arr/.style={-{Stealth[length=2mm]}, thick}
 ]
-\node[block] (render) {Render page\\(Playwright, DOM removed)};
-\node[block, below=0.35cm of render] (tile) {DOM-guided tiling\\\& patching (\S\ref{sec:tiling})};
-\node[block, below=0.35cm of tile] (graph) {Multigranular graph\\(page/element, \S\ref{sec:graph})};
-\node[block, below=0.35cm of graph] (ctrl) {Evidence controller\\(budgeted, \S\ref{sec:controller})};
-\node[block, below=0.35cm of ctrl] (reader) {Contrastively fine-tuned\\VLM reader (\S\ref{sec:contrastive})};
-\draw[arr] (render) -- (tile);
-\draw[arr] (tile) -- (graph);
-\draw[arr] (graph) -- (ctrl);
-\draw[arr] (ctrl) -- (reader);
+\node[st] (inactive) {\state{inactive}};
+\node[st, right=of inactive] (active) {\state{active}};
+\node[st, above right=0.5cm and 1.5cm of active] (opened) {\state{opened}};
+\node[st, below right=0.5cm and 1.5cm of active] (pruned) {\state{pruned}};
+\draw[arr] (inactive) -- node[above, font=\scriptsize]{activate} (active);
+\draw[arr] (active) -- node[above, sloped, font=\scriptsize]{open (budget --1)} (opened);
+\draw[arr] (active) -- node[below, sloped, font=\scriptsize]{prune (free)} (pruned);
 \end{tikzpicture}
-\caption{Pipeline overview. Rendering and tiling happen once per page; the evidence controller runs once per query, deciding which graph nodes the reader opens.}
-\label{fig:pipeline}
+\caption{The controller's state machine (\S\ref{sec:controller}). Opening a node consumes budget and may activate inactive neighbors (\code{reading\_order}, or across a document boundary via \code{links\_to}/\code{continues}); pruning is free, applied to any node still \state{active} once budget is exhausted.}
+\label{fig:states}
 \end{figure}
 
 \begin{figure*}[h]
