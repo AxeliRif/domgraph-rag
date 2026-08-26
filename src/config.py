@@ -11,6 +11,12 @@ from pathlib import Path
 
 # --- Rendu de page (Phase 1b) ---
 RENDER_WIDTH = 2048        # largeur du viewport Playwright, en pixels
+# Ratio pixels-device / pixels-CSS de la capture Playwright. 1 = un pixel de la
+# capture vaut un pixel CSS (ce qu'on veut pour que les coordonnées mesurées
+# par dom_extraction.py restent en correspondance directe avec les pixels de
+# la capture) ; l'augmenter suréchantillonnerait la capture (plus de pixels
+# physiques par pixel CSS) sans changer RENDER_WIDTH ni les coordonnées DOM.
+DEVICE_SCALE_FACTOR = 1
 MAX_TILE_HEIGHT = 2048    # hauteur max d'une tuile avant découpe forcée ("patching")
 MIN_TILE_HEIGHT = 80        # en dessous, l'élément est fusionné avec ses voisins verticaux
 

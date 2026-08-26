@@ -14,7 +14,13 @@ from dataclasses import dataclass, field
 
 from playwright.async_api import async_playwright
 
-from .config import ELEMENT_TAGS, NOISE_SELECTORS, RENDER_WIDTH, TEXT_FLOW_TAGS
+from .config import (
+    DEVICE_SCALE_FACTOR,
+    ELEMENT_TAGS,
+    NOISE_SELECTORS,
+    RENDER_WIDTH,
+    TEXT_FLOW_TAGS,
+)
 
 
 @dataclass
@@ -45,6 +51,7 @@ async def extract_dom_elements_async(
     noise_selectors: list[str] | None = None,
     text_flow_tags: set[str] | None = None,
     wait_until: str = "networkidle",
+    device_scale_factor: float = DEVICE_SCALE_FACTOR,
 ) -> tuple[list[DOMElement], bytes]:
     """
     Charge `url` dans Chromium headless, retire le bruit d'interface, puis extrait
@@ -60,7 +67,10 @@ async def extract_dom_elements_async(
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         try:
-            page = await browser.new_page(viewport={"width": render_width, "height": 1000})
+            page = await browser.new_page(
+                viewport={"width": render_width, "height": 1000},
+                device_scale_factor=device_scale_factor,
+            )
             await page.goto(url, wait_until=wait_until)
 
             # Retrait des éléments d'interface inutiles avant capture (cf. slide PixelRAG)
@@ -72,6 +82,16 @@ async def extract_dom_elements_async(
                 }""",
                 noise_selectors,
             )
+
+            # La capture pleine page fait défiler tout le document -- ce qui peut
+            # déclencher du lazy-loading (images/infobox chargées via
+            # IntersectionObserver) et donc décaler la mise en page. On capture
+            # donc AVANT de mesurer, puis on laisse le réseau se stabiliser une
+            # seconde fois : mesurer avant la capture risquerait de renvoyer des
+            # coordonnées qui ne correspondent plus à l'image une fois ce
+            # chargement déclenché.
+            screenshot = await page.screenshot(full_page=True)
+            await page.wait_for_load_state("networkidle")
 
             # Extraction géométrique pure : bounding boxes absolues (page complète, pas juste le viewport)
             raw_elements = await page.evaluate(
@@ -167,8 +187,6 @@ async def extract_dom_elements_async(
                 }""",
                 {"tags": element_tags, "textFlowTags": list(text_flow_tags)},
             )
-
-            screenshot = await page.screenshot(full_page=True)
         finally:
             await browser.close()
 

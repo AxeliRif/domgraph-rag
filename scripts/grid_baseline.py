@@ -38,15 +38,26 @@ class GridTile:
 
 def build_grid_tiles(
     elements: list[DOMElement], screenshot_bytes: bytes, tile_height: int = GRID_TILE_HEIGHT,
+    band_width: int | None = None,
 ) -> list[GridTile]:
     """Découpe la capture en bandes horizontales de hauteur fixe, sans
     connaissance du DOM. Le texte associé à chaque bande (pour un scorer
     lexical comparable à celui du tuilage DOM) est l'agrégat des éléments
     dont la plage verticale chevauche la bande -- un élément qui chevauche
     deux bandes contribue son texte aux deux, comme il apparaîtrait
-    visuellement coupé dans les deux crops."""
+    visuellement coupé dans les deux crops.
+
+    `band_width` (None par défaut = pleine largeur de rendu) : PixelRAG
+    documente 1024px de haut à 875px de large (contre notre largeur de rendu
+    de 2048px, cf. GRID_TILE_HEIGHT) -- passer 875 ici reproduit sa largeur
+    de bande, plutôt que sa hauteur seule, pour un budget de pixels
+    réellement comparable. La bande reste centrée horizontalement sur le
+    rendu (le contenu utile n'occupe souvent qu'une portion centrale de la
+    largeur, une fois le bruit de mise en page retiré, cf. NOISE_SELECTORS)."""
     page_image = Image.open(io.BytesIO(screenshot_bytes)).convert("RGB")
     page_width, page_height = page_image.size
+    width = band_width if band_width is not None else page_width
+    x0 = max(0, (page_width - width) // 2)
 
     tiles: list[GridTile] = []
     n_bands = max(1, math.ceil(page_height / tile_height))
@@ -60,7 +71,7 @@ def build_grid_tiles(
             if e.text_preview and e.y < y1 and (e.y + e.height) > y0
         ]
         tiles.append(GridTile(
-            id=f"grid_{i:04d}", x=0, y=y0, width=page_width, height=y1 - y0,
+            id=f"grid_{i:04d}", x=x0, y=y0, width=width, height=y1 - y0,
             text_preview=" ".join(band_texts)[:_TEXT_PREVIEW_CHARS],
         ))
     return tiles

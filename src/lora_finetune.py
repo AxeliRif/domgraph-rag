@@ -309,7 +309,12 @@ def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
     import torch
     from torch.utils.data import DataLoader
 
-    from .contrastive_dataset import ContrastiveTileDataset, contrastive_collate_fn, split_examples_by_article
+    from .contrastive_dataset import (
+        ContrastiveTileDataset,
+        _article_root,
+        contrastive_collate_fn,
+        split_examples_by_article,
+    )
     from .hard_negative_mining import load_contrastive_examples
 
     model, processor = load_reader_model(gradient_checkpointing=train_config.gradient_checkpointing)
@@ -320,6 +325,12 @@ def train_lora(train_config: TrainConfig = TrainConfig()) -> None:
         all_examples = load_contrastive_examples(CONTRASTIVE_EXAMPLES_PATH)
         train_examples, val_examples = split_examples_by_article(
             all_examples, val_fraction=train_config.val_fraction, seed=train_config.seed
+        )
+        train_articles = {_article_root(ex.page_slug) for ex in train_examples}
+        val_articles = {_article_root(ex.page_slug) for ex in val_examples}
+        assert not (train_articles & val_articles), (
+            "fuite train/val : un article apparaît dans les deux splits "
+            f"({sorted(train_articles & val_articles)[:5]}...)"
         )
         print(
             f"[lora_finetune] split train/val par article : {len(train_examples)} train / "

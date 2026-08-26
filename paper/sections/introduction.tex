@@ -5,7 +5,7 @@ Retrieval-augmented generation (RAG) over visually rich documents -- web pages, 
 
 On the web, that reconstruction is unnecessary. For a rendered page, the browser's own layout engine already knows every element's exact bounding box before a single pixel is cropped -- the segmentation a blind grid discards is sitting in the DOM, free. \textbf{DOM-Graph RAG} tiles pages along this structure instead, and organizes the resulting tiles into a multigranular evidence graph in the style of MAGE-RAG~\citep{magerag2026} (\S\ref{sec:related_work}), which reads an already-segmented long document under a budgeted controller but never has to obtain content-aligned tiles from a rendered page in the first place.
 
-\paragraph{Contributions.} We introduce an open-source pipeline\footnote{Anonymized for review: \todo{paste anonymous.4open.science link here before submitting}} (\S\ref{sec:method}):
+\paragraph{Contributions.} We introduce an open-source pipeline\footnote{https://anonymous.4open.science/r/domgraph-rag-5886}(\S\ref{sec:method}):
 \begin{enumerate}
 \item \emph{DOM-guided adaptive tiling}, replacing a blind pixel grid: elements cropped along their own bounding boxes, undersized ones merged, oversized ones split, headings paired with their content (\S\ref{sec:tiling}). Ablation (a) (\S\ref{sec:experiments}) shows it reaches a page's content at a substantially smaller pixel budget than a blind grid, at a higher answer-attachment rate.
 \item a \emph{multigranular graph} in the style of MAGE-RAG, instantiating all five of its relations plus a cross-page hyperlink relation and a \code{continues} relation for oversized pages split into sections (\S\ref{sec:graph}).
@@ -17,6 +17,6 @@ The full pipeline is implemented and exercised end-to-end on live Wikipedia page
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/dom_vs_grid_comparison.pdf}
-\caption{Same page (\texttt{en.wikipedia.org/wiki/George\_P.\_Gunn}), tiled two ways. \textbf{Left, DOM-guided (ours):} boundaries follow the page's own elements -- the infobox is one tile, body paragraphs and the reference list are separate, headings pair with their content. \textbf{Right, blind fixed-height grid (PixelRAG-style):} bands are cut by pixel height alone, with no notion of what they contain -- here nearly the entire page collapses into a single undifferentiated tile, infobox and body text alike. Ablation (a) (\S\ref{sec:experiments}) quantifies the consequence: DOM tiling reaches this content at a $2.7\times$ smaller total pixel budget and a substantially higher answer-attachment rate.}
+\caption{Same page (\texttt{en.wikipedia.org/wiki/George\_P.\_Gunn}), tiled two ways. \textbf{Left, DOM-guided (ours):} boundaries follow the page's own elements -- the infobox is one tile, body paragraphs and the reference list are separate, headings pair with their content. \textbf{Right, blind fixed-height grid (PixelRAG-style):} bands are cut by pixel height alone, with no notion of what they contain -- here nearly the entire page collapses into a single undifferentiated tile, infobox and body text alike. Ablation (a) (\S\ref{sec:experiments}) quantifies the consequence: DOM tiling reaches this content at a $2.7\times$ smaller total pixel budget.}
 \label{fig:dom-vs-grid}
 \end{figure*}

@@ -15,10 +15,20 @@ from __future__ import annotations
 
 import hashlib
 import io
+import logging
 
 from PIL import Image
 
-from .config import CACHE_DIR, HF_MODEL, OLLAMA_MODEL, OLLAMA_NUM_CTX, OLLAMA_TEMPERATURE, VLM_BACKEND
+from .config import (
+    CACHE_DIR,
+    HF_MODEL,
+    OLLAMA_MODEL,
+    OLLAMA_NUM_CTX,
+    OLLAMA_TEMPERATURE,
+    VLM_BACKEND,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def _cache_key(*parts: str) -> str:
@@ -37,9 +47,21 @@ def _cache_key(*parts: str) -> str:
 
 def _image_digest(image: Image.Image) -> str:
     hasher = hashlib.sha256()
-    hasher.update(f"{image.size}{image.mode}".encode("utf-8"))
+    hasher.update(f"{image.size}{image.mode}".encode())
     hasher.update(image.tobytes())
     return hasher.hexdigest()
+
+
+def _visual_token_count(processor, inputs) -> int:
+    """Nombre de tokens visuels qu'un `image_grid_thw` (renvoyé par le
+    processeur Qwen2-VL pour chaque image) occupera dans la séquence, après
+    fusion de patches -- cf. `merge_size` du processeur d'image. 0 si
+    `inputs` ne contient aucune image (ex. `ask_text`)."""
+    grid_thw = inputs.get("image_grid_thw") if hasattr(inputs, "get") else None
+    if grid_thw is None:
+        return 0
+    merge_size = getattr(getattr(processor, "image_processor", processor), "merge_size", 2)
+    return int((grid_thw.prod(dim=-1) // (merge_size**2)).sum())
 
 
 def _cache_get(key: str) -> str | None:
@@ -117,6 +139,10 @@ class VLMClient:
             options={"num_ctx": OLLAMA_NUM_CTX, "temperature": OLLAMA_TEMPERATURE},
             messages=[{"role": "user", "content": question, "images": [buf.getvalue()]}],
         )
+        logger.info(
+            "prompt=%s tokens, réponse=%s tokens, fenêtre=%d",
+            response.get("prompt_eval_count"), response.get("eval_count"), OLLAMA_NUM_CTX,
+        )
         return response["message"]["content"]
 
     def _ask_text_ollama(self, question: str) -> str:
@@ -126,6 +152,10 @@ class VLMClient:
             model=OLLAMA_MODEL,
             options={"num_ctx": OLLAMA_NUM_CTX, "temperature": OLLAMA_TEMPERATURE},
             messages=[{"role": "user", "content": question}],
+        )
+        logger.info(
+            "prompt=%s tokens, réponse=%s tokens, fenêtre=%d",
+            response.get("prompt_eval_count"), response.get("eval_count"), OLLAMA_NUM_CTX,
         )
         return response["message"]["content"]
 
@@ -147,8 +177,15 @@ class VLMClient:
             messages, tokenize=False, add_generation_prompt=True
         )
         inputs = self._processor(text=[chat_text], images=[image], return_tensors="pt").to(self._model.device)
+        n_prompt = inputs["input_ids"].shape[1]
+        n_visual = _visual_token_count(self._processor, inputs)
         output_ids = self._model.generate(**inputs, max_new_tokens=256)
         trimmed = output_ids[:, inputs["input_ids"].shape[1]:]
+        logger.info(
+            "prompt=%d tokens (dont %d visuels), réponse=%d, fenêtre=%s",
+            n_prompt, n_visual, trimmed.shape[1],
+            getattr(self._model.config, "max_position_embeddings", "?"),
+        )
         return self._processor.batch_decode(trimmed, skip_special_tokens=True)[0]
 
     def _ask_text_transformers(self, question: str) -> str:
@@ -160,8 +197,14 @@ class VLMClient:
             messages, tokenize=False, add_generation_prompt=True
         )
         inputs = self._processor(text=[chat_text], return_tensors="pt").to(self._model.device)
+        n_prompt = inputs["input_ids"].shape[1]
         output_ids = self._model.generate(**inputs, max_new_tokens=256)
         trimmed = output_ids[:, inputs["input_ids"].shape[1]:]
+        logger.info(
+            "prompt=%d tokens (dont 0 visuels), réponse=%d, fenêtre=%s",
+            n_prompt, trimmed.shape[1],
+            getattr(self._model.config, "max_position_embeddings", "?"),
+        )
         return self._processor.batch_decode(trimmed, skip_special_tokens=True)[0]
 
     def _load_transformers_model(self) -> None:

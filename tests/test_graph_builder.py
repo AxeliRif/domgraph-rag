@@ -15,12 +15,40 @@ from PIL import Image
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.graph_builder import build_graph, compute_semantic_neighbor_edges  # noqa: E402
-from src.tiling import Tile  # noqa: E402
+from src.graph_builder import (
+    build_graph,
+    compute_section_hierarchy,
+    compute_semantic_neighbor_edges,
+)
+from src.tiling import Tile
 
 
-def _make_tile(tile_id: str, y: int, text: str) -> Tile:
-    return Tile(id=tile_id, x=0, y=y, width=100, height=50, image=Image.new("RGB", (10, 10)), dom_tag="p", text_preview=text)
+def _make_tile(tile_id: str, y: int, text: str, dom_tag: str = "p") -> Tile:
+    return Tile(
+        id=tile_id, x=0, y=y, width=100, height=50,
+        image=Image.new("RGB", (10, 10)), dom_tag=dom_tag, text_preview=text,
+    )
+
+
+def test_section_hierarchy_composed_heading_tags():
+    # h1, h2+p (titre fusionné avec son premier paragraphe), p, h3+p, p --
+    # une tuile composée "h2+p" doit s'empiler comme titre de niveau 2 ET
+    # compter comme le contenu de sa propre section (pas d'arête vers
+    # elle-même), cf. tiling.py (pending_heading) et _heading_level.
+    h1 = _make_tile("t_h1", 0, "Section 1", dom_tag="h1")
+    h2p = _make_tile("t_h2p", 50, "Section 1.1 intro", dom_tag="h2+p")
+    p1 = _make_tile("t_p1", 100, "more text", dom_tag="p")
+    h3p = _make_tile("t_h3p", 150, "Section 1.1.1 intro", dom_tag="h3+p")
+    p2 = _make_tile("t_p2", 200, "even more text", dom_tag="p")
+
+    edges = compute_section_hierarchy([h1, h2p, p1, h3p, p2])
+
+    assert edges == [
+        ("t_h1", "t_h2p"),
+        ("t_h2p", "t_p1"),
+        ("t_h2p", "t_h3p"),
+        ("t_h3p", "t_p2"),
+    ]
 
 
 # tile_0000 et tile_0002 parlent d'éléphants, tile_0001 et tile_0003 de tomates
