@@ -51,11 +51,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from scripts.grid_baseline import build_grid_tiles
-from src.config import QA_PAIRS_PATH
+from src.config import MAX_TILE_HEIGHT, QA_PAIRS_PATH
 from src.dom_extraction import extract_dom_elements_async
+from src.sectioning import is_oversized_page
 from src.tiling import build_tiles
 
 RESULTS_PATH = Path("data/dom_vs_grid_results.json")
+SNAPSHOT_PATH = Path("data/wikipedia_snapshot.json")
+
+# Les articles Wikipedia grossissent au fil du temps (cf. §5 du papier) ; le
+# seuil global config.MAX_PAGE_HEIGHT_BEFORE_SPLIT (10x MAX_TILE_HEIGHT)
+# protège le pipeline PRINCIPAL de génération QA contre des heures de
+# génération VLM séquentielle sans reprise partielle (cf. config.py) -- un
+# risque qui ne s'applique pas ici, cette évaluation ne fait aucun appel VLM
+# (seulement rendu + TF-IDF, tout en CPU). On utilise donc un plafond propre
+# à cette évaluation, nettement plus permissif, plutôt que de relever le
+# seuil global et réintroduire ce risque dans build_dataset.py. Fixé à 25x
+# (52 224px) pour couvrir la page la plus haute observée au pinning du
+# snapshot (~48 300px, cf. scripts/pin_wikipedia_snapshot.py) avec marge.
+EVAL_A_MAX_PAGE_HEIGHT = 25 * MAX_TILE_HEIGHT
 
 # qa_pairs.jsonl a été construit avec ce plafond (cf. scripts/build_dataset.py,
 # --max-tiles-per-page par défaut) : seules les MAX_DOM_TILES_PER_PAGE
@@ -124,15 +138,29 @@ def _build_text_chunks(elements, y_cutoff: float | None, chunk_size: int = TEXT_
     ]
 
 
-async def evaluate_page(url: str, qa_pairs: list[dict]) -> dict:
-    elements, screenshot = await extract_dom_elements_async(url, wait_until="load")
+async def evaluate_page(
+    url: str, qa_pairs: list[dict], grid_band_width: int | None = None, render_url: str | None = None
+) -> dict:
+    elements, screenshot = await extract_dom_elements_async(render_url or url, wait_until="load")
+
+    # L'évaluation A compare DOM/grille/texte sur une seule unité de rendu par
+    # page (cf. docstring du module) : une page qui aurait été découpée en
+    # sections par le pipeline principal (sectioning.py) ne peut pas être
+    # comparée telle quelle -- ce rendu frais couvrirait alors plus de contenu
+    # que celui effectivement montré au VLM qui a généré ces qa_pairs. Seuil
+    # local, plus permissif que celui du pipeline principal (cf.
+    # EVAL_A_MAX_PAGE_HEIGHT ci-dessus).
+    assert not is_oversized_page(elements, max_height=EVAL_A_MAX_PAGE_HEIGHT), (
+        f"{url}: page surdimensionnée même pour le seuil élargi de l'évaluation A "
+        f"({EVAL_A_MAX_PAGE_HEIGHT}px) -- l'évaluation A exige une seule unité de travail par page"
+    )
 
     dom_tiles = build_tiles(elements, screenshot)[:MAX_DOM_TILES_PER_PAGE]
     dom_items = [RankedItem(t.id, t.text_preview, t.width, t.height) for t in dom_tiles]
 
     y_cutoff = max((t.y + t.height for t in dom_tiles), default=None)
 
-    all_grid_tiles = build_grid_tiles(elements, screenshot)
+    all_grid_tiles = build_grid_tiles(elements, screenshot, band_width=grid_band_width)
     grid_tiles = [t for t in all_grid_tiles if y_cutoff is None or t.y < y_cutoff]
     grid_items = [RankedItem(t.id, t.text_preview, t.width, t.height) for t in grid_tiles]
 
@@ -193,8 +221,23 @@ def _aggregate(rows: list[dict]) -> dict:
     }
 
 
-async def main_async(max_pages: int | None) -> None:
+def _load_snapshot() -> dict[str, dict]:
+    """Mapping url -> {revid, pinned_url} produit par pin_wikipedia_snapshot.py.
+    Absent (ou une URL non couverte) -> retombe sur un rendu live de cette URL,
+    donc le script reste utilisable sans snapshot, juste non reproductible."""
+    if not SNAPSHOT_PATH.exists():
+        return {}
+    return json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
+
+
+async def main_async(max_pages: int | None, grid_band_width: int | None = None) -> None:
     qa_pairs = [json.loads(line) for line in QA_PAIRS_PATH.open(encoding="utf-8") if line.strip()]
+    snapshot = _load_snapshot()
+    if snapshot:
+        print(f"snapshot chargé ({SNAPSHOT_PATH}) : {len(snapshot)} révisions pinnées\n", flush=True)
+    else:
+        print(f"pas de snapshot ({SNAPSHOT_PATH} absent) : rendu live, non reproductible "
+              "(cf. scripts/pin_wikipedia_snapshot.py)\n", flush=True)
 
     by_url: dict[str, list[dict]] = {}
     for qa in qa_pairs:
@@ -208,9 +251,11 @@ async def main_async(max_pages: int | None) -> None:
 
     all_page_results: list[dict] = []
     for i, (url, pairs) in enumerate(urls, 1):
-        print(f"[{i}/{len(urls)}] {url} ({len(pairs)} paires QA)...", flush=True)
+        render_url = snapshot.get(url, {}).get("pinned_url")
+        label = f"{url} (oldid={snapshot[url]['revid']})" if render_url else f"{url} (live)"
+        print(f"[{i}/{len(urls)}] {label} ({len(pairs)} paires QA)...", flush=True)
         try:
-            page_result = await evaluate_page(url, pairs)
+            page_result = await evaluate_page(url, pairs, grid_band_width=grid_band_width, render_url=render_url)
         except Exception as exc:  # noqa: BLE001 - une page individuelle : on continue sur les suivantes
             print(f"  ÉCHEC ({exc!r}), page ignorée", flush=True)
             continue
@@ -282,8 +327,17 @@ async def main_async(max_pages: int | None) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--max-pages", type=int, default=None)
+    parser.add_argument(
+        "--grid-band-width", type=int, default=None,
+        help=(
+            "Largeur de bande de la baseline grille, en pixels (défaut : pleine largeur "
+            "de rendu, cf. RENDER_WIDTH). Passer 875 pour reproduire la largeur de bande "
+            "de PixelRAG (contre notre RENDER_WIDTH=2048) et vérifier si le facteur de "
+            "budget de pixels DOM-vs-grille dépend de cette largeur."
+        ),
+    )
     args = parser.parse_args()
-    asyncio.run(main_async(args.max_pages))
+    asyncio.run(main_async(args.max_pages, grid_band_width=args.grid_band_width))
 
 
 if __name__ == "__main__":

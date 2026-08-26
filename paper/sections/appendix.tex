@@ -9,7 +9,7 @@ The pipeline is Python, one module per stage of \S\ref{sec:method}: rendering/ex
 
 \paragraph{Batch construction and resolution ablation.} \code{scripts/build\_dataset.py} drives the pipeline over a page list with retrying fetches; its unit of work is a \emph{page unit} (a page, or one split section), checkpointed independently to \code{contrastive\_examples.jsonl} -- a failure partway through an oversized page costs only the section in flight, motivated by an early run that lost hours of work when the whole page was the retry unit. \code{image\_compression.py} mirrors tile images at a reduced scale under a separate root with identical filenames and relative paths, so switching a training run between resolutions (\S\ref{sec:contrastive}) is a single \code{-{}-images-root} flag.
 
-\paragraph{Tiling ablation and multi-hop data.} \code{scripts/grid\_baseline.py} reimplements the blind grid as a module independent of \code{tiling.py}; \code{scripts/dom\_vs\_grid\_experiment.py} re-renders each page, builds both tilings, and ranks existing questions against both by TF-IDF (\S\ref{sec:experiments}). \code{src/multihop\_qa.py} builds cross-page examples from HotpotQA~\citep{hotpotqa2018} records streamed via the \code{datasets} library; \code{scripts/build\_multihop\_dataset.py} reports unreachable-article vs.\ unmatched-sentence drops separately. Positive-tile attribution uses stopword-filtered token overlap rather than exact substring matching, since the latter rarely survives a decade of article edits since HotpotQA's 2017 source dump.
+\paragraph{Tiling ablation and multi-hop data.} \code{scripts/grid\_baseline.py} reimplements the blind grid as a module independent of \code{tiling.py}; \code{scripts/dom\_vs\_grid\_experiment.py} re-renders each page, builds both tilings, and ranks existing questions against both by TF-IDF (\S\ref{sec:experiments}). Its oversized-page check uses a threshold local to the ablation (25$\times$ \code{MAX\_TILE\_HEIGHT}, vs.\ 10$\times$ for \code{build\_dataset.py}'s own split decision) since, unlike corpus construction, this ablation never calls the VLM and so does not carry the same runaway-generation-time risk that motivates the tighter default; \code{scripts/pin\_wikipedia\_snapshot.py} freezes each page's Wikipedia revision beforehand so the ablation is reproducible across runs despite live articles growing over time. \code{src/multihop\_qa.py} builds cross-page examples from HotpotQA~\citep{hotpotqa2018} records streamed via the \code{datasets} library; \code{scripts/build\_multihop\_dataset.py} reports unreachable-article vs.\ unmatched-sentence drops separately. Positive-tile attribution uses stopword-filtered token overlap rather than exact substring matching, since the latter rarely survives a decade of article edits since HotpotQA's 2017 source dump.
 
 \paragraph{Demonstration and tests.} A notebook runs every stage end-to-end with interactive \code{pyvis} graph visualizations. Dependency-light unit tests cover the geometric pipeline, graph construction and splitting, hard-negative mining (lexical and VLM-judge, stub client), the VLM cache and call concurrency, and resolution compression, all on synthetic fixtures needing no network, VLM, or GPU. Playwright-backed tests check the text-flow bounding-box measurement (floated-sidebar fixture) and the full geometric pipeline end-to-end (DOM extraction through XML export) against a bundled local HTML fixture.
 
@@ -27,6 +27,7 @@ Parameter & Value \\
 \midrule
 Viewport / max tile width & 2048\,px \\
 Max tile height (patching) & 2048\,px \\
+VLM \code{max\_pixels} (unmodified default) & $28{\times}28{\times}1280 \approx 1.00$M px \\
 Min tile height (merging) & 80\,px \\
 Row-grouping tolerance & 20\,px \\
 Nesting tolerance & 1\,px \\
@@ -62,13 +63,15 @@ Per-tile breakdown behind the pixel-budget figure reported in \S\ref{sec:experim
 \toprule
  & Tiles/page & Px/tile & Total px/page \\
 \midrule
-DOM  & 24.0 & 153{,}510 & 3{,}684{,}240 \\
-Grid & 4.8  & 2{,}057{,}956 & 9{,}946{,}785 \\
+DOM  & 24.0 & 159{,}558 & 3{,}829{,}395 \\
+Grid & 4.9  & 2{,}065{,}749 & 10{,}213{,}983 \\
 \bottomrule
 \end{tabular}
-\caption{Tiling cost, same 18 pages as Table~\ref{tab:tiling-ablation}. DOM-guided tiling produces more, smaller tiles, yet a smaller \emph{total} pixel budget per page (2.7$\times$ less) -- a direct consequence of the text-flow bounding-box measurement of \S\ref{sec:tiling}, which crops text tiles to the width their content actually occupies instead of the full page width every grid band uses regardless of content. If image tokens scale with pixel area, as they do for \texttt{Qwen2-VL}'s vision encoder, DOM-guided tiling need not trade accuracy for token cost against a blind grid.}
+\caption{Tiling cost, same 18 pages as Table~\ref{tab:tiling-ablation}. DOM-guided tiling produces more, smaller tiles, yet a smaller \emph{total} pixel budget per page (2.7$\times$ less) -- a direct consequence of the text-flow bounding-box measurement of \S\ref{sec:tiling}, which crops text tiles to the width their content actually occupies instead of the full page width every grid band uses regardless of content.}
 \label{tab:appendix-tiling-cost}
 \end{table}
+
+\paragraph{From pixels to tokens.} The 2.7$\times$ figure above is a pixel ratio, not a token ratio, and image tokens track pixel area only below \texttt{Qwen2-VL}'s preprocessor cap. \code{AutoProcessor.from\_pretrained} is called with no \code{max\_pixels} override (\code{vlm\_client.py}, \code{lora\_finetune.py}), so the shipped default applies: $28\times28\times1280\approx1.00$M px per tile (Appendix~\ref{sec:appendix-hyperparams}), above which the processor downscales a tile before encoding rather than tokenizing its raw area. Our DOM tiles (159{,}558\,px average) sit comfortably under this cap throughout, so their token cost tracks their pixel area; our grid bands (2{,}065{,}749\,px average) sit roughly $2\times$ over it, so each is downscaled to the cap and contributes a near-constant $\sim$1{,}280 tokens regardless of its raw size, rather than the $\sim$2{,}635 tokens its uncapped area would imply. Propagating both tile counts through this cap gives an estimated mean of $\sim$4{,}910 tokens/page for DOM tiling against $\sim$6{,}330 for the grid, across the same 18 pages -- roughly $1.3\times$, not $2.7\times$. The direction of the result is unaffected; the pixel-budget figure above should be read as a pixel claim only, since we did not instrument the processor to confirm these token counts directly.
 
 \section{Additional figures}
 \label{sec:appendix-figures}
