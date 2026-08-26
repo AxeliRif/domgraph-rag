@@ -26,15 +26,26 @@ en local documenté dans le papier, Appendix/Status) -- lance d'abord un petit
 échantillon (--max-questions 5) pour mesurer le débit réel sur cette machine
 avant de lancer sur l'ensemble des questions.
 
+Échantillonnage : --max-questions N tire N exemples au hasard (pas les N
+premiers du fichier) parmi ceux disponibles, via random.Random(--seed)
+(défaut 0) pour un tirage reproductible d'un run à l'autre. Le fichier
+multihop_examples.jsonl lui-même hérite de l'ordre de streaming HotpotQA
+(scripts/build_multihop_dataset.py, non mélangé) ; un simple `[:N]` prendrait
+donc un préfixe de cet ordre plutôt qu'un échantillon, avec un risque de
+sur-représenter les articles-pont qui reviennent sur des questions
+consécutives (cf. le cache par slug ci-dessous).
+
 Usage :
     python3 -m scripts.eval_multihop_e2e --max-questions 5
     python3 -m scripts.eval_multihop_e2e --budget 5 --seed-k 3
+    python3 -m scripts.eval_multihop_e2e --max-questions 20 --seed 0
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
 import json
+import random
 import re
 import string
 import time
@@ -152,13 +163,25 @@ async def evaluate_example(
     }
 
 
-async def main_async(budget: int, seed_k: int, max_questions: int | None) -> None:
+async def main_async(
+    budget: int, seed_k: int, max_questions: int | None, seed: int, ids: list[str] | None = None
+) -> None:
     if not MULTIHOP_EXAMPLES_PATH.exists():
         raise SystemExit(f"{MULTIHOP_EXAMPLES_PATH} introuvable -- lance d'abord scripts/build_multihop_dataset.py")
 
     examples = [json.loads(line) for line in MULTIHOP_EXAMPLES_PATH.open(encoding="utf-8") if line.strip()]
-    if max_questions is not None:
-        examples = examples[:max_questions]
+    if ids is not None:
+        by_id = {ex["id"]: ex for ex in examples}
+        missing = [i for i in ids if i not in by_id]
+        if missing:
+            raise SystemExit(f"id(s) introuvable(s) dans {MULTIHOP_EXAMPLES_PATH} : {missing}")
+        examples = [by_id[i] for i in ids]
+        print(f"relance ciblée de {len(examples)} question(s) : {ids}\n", flush=True)
+    elif max_questions is not None and max_questions < len(examples):
+        n_total = len(examples)
+        examples = random.Random(seed).sample(examples, k=max_questions)
+        print(f"tirage aléatoire de {max_questions}/{n_total} -- seed={seed} : "
+              f"{[ex['id'] for ex in examples]}\n", flush=True)
 
     page_cache: dict = {}
     vlm = VLMClient()
@@ -182,19 +205,41 @@ async def main_async(budget: int, seed_k: int, max_questions: int | None) -> Non
         )
 
     n = len(results)
+    elapsed = time.time() - t0
+    run_log = {
+        "budget": budget, "seed_k": seed_k, "max_questions": max_questions, "seed": seed,
+        "ids": ids, "n_evaluated": n, "elapsed_s": round(elapsed),
+    }
+
     if n == 0:
         print("Aucun résultat exploitable.")
-        return
+    else:
+        em = sum(r["em"] for r in results) / n
+        f1 = sum(r["f1"] for r in results) / n
+        print(f"\n{'=' * 60}\n{n} questions évaluées (budget={budget}, seed_k={seed_k})\n{'=' * 60}")
+        print(f"EM = {em:.3f}   F1 = {f1:.3f}")
+        print(f"Temps total : {elapsed:.0f}s ({elapsed / n:.0f}s/question en moyenne)")
 
-    em = sum(r["em"] for r in results) / n
-    f1 = sum(r["f1"] for r in results) / n
-    elapsed = time.time() - t0
-    print(f"\n{'=' * 60}\n{n} questions évaluées (budget={budget}, seed_k={seed_k})\n{'=' * 60}")
-    print(f"EM = {em:.3f}   F1 = {f1:.3f}")
-    print(f"Temps total : {elapsed:.0f}s ({elapsed / n:.0f}s/question en moyenne)")
+    # Fusionne avec un run précédent plutôt que d'écraser -- une relance ciblée
+    # (--ids) sur les questions tombées en échec réseau doit compléter le
+    # fichier existant, pas repartir de zéro et perdre les questions déjà
+    # évaluées avec succès.
+    prior = json.loads(E2E_EVAL_PATH.read_text(encoding="utf-8")) if E2E_EVAL_PATH.exists() else None
+    merged_results = {r["id"]: r for r in (prior["results"] if prior else [])}
+    merged_results.update({r["id"]: r for r in results})
+    sampled_ids = sorted(set((prior["sampled_ids"] if prior else [])) | {ex["id"] for ex in examples})
+    runs = (prior["runs"] if prior and "runs" in prior else []) + [run_log]
 
-    E2E_EVAL_PATH.write_text(json.dumps(results, indent=2))
-    print(f"\nRésultats détaillés écrits dans {E2E_EVAL_PATH}")
+    output = {"runs": runs, "sampled_ids": sampled_ids, "results": list(merged_results.values())}
+    E2E_EVAL_PATH.write_text(json.dumps(output, indent=2))
+
+    n_merged = len(merged_results)
+    n_expected = len(sampled_ids)
+    print(f"\nRésultats fusionnés écrits dans {E2E_EVAL_PATH} "
+          f"({n_merged}/{n_expected} question(s) échantillonnée(s) au total ont un résultat)")
+    if n_merged < n_expected:
+        still_missing = sorted(set(sampled_ids) - set(merged_results))
+        print(f"encore manquant(es) : {still_missing}")
 
 
 def main() -> None:
@@ -202,8 +247,16 @@ def main() -> None:
     parser.add_argument("--budget", type=int, default=5)
     parser.add_argument("--seed-k", type=int, default=3)
     parser.add_argument("--max-questions", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=0, help="Seed du tirage aléatoire pour --max-questions.")
+    parser.add_argument(
+        "--ids", type=str, default=None,
+        help="IDs séparés par des virgules à (re)évaluer, en ignorant --max-questions/--seed -- "
+             "pour relancer juste les questions tombées en échec (ex. déconnexion réseau) sans "
+             "reperdre les résultats déjà obtenus (fusionnés dans multihop_e2e_eval.json).",
+    )
     args = parser.parse_args()
-    asyncio.run(main_async(args.budget, args.seed_k, args.max_questions))
+    ids = args.ids.split(",") if args.ids else None
+    asyncio.run(main_async(args.budget, args.seed_k, args.max_questions, args.seed, ids))
 
 
 if __name__ == "__main__":
