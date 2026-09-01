@@ -1,0 +1,241 @@
+% =====================================================================
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+\markboth{Introduction}{Introduction}
+\label{chap-introduction}
+% =====================================================================
+
+\section*{Contexte}
+\addcontentsline{toc}{section}{Contexte}
+
+Les grands modèles de langue ont une mémoire figée à la date de leur
+entraînement et une propension bien documentée à produire des affirmations
+plausibles mais fausses lorsqu'on les interroge sur des faits qu'ils n'ont pas
+mémorisés. La génération augmentée par récupération~\citep{rag2020} répond à ces
+deux limites par la même mécanique~: avant de répondre, le système va chercher
+dans une base documentaire les passages pertinents pour la question, puis les
+fournit au modèle génératif comme contexte. Le modèle n'a plus à savoir,
+il a à lire. Cette architecture est devenue le mode de déploiement
+dominant des modèles de langue en environnement professionnel, et une
+littérature abondante en a exploré les variantes~\citep{ragsurvey2023}.
+
+Le maillon faible de cette chaîne est rarement le générateur. C'est le
+prétraitement documentaire. Un pipeline RAG classique commence par convertir
+chaque document en texte brut~: analyse syntaxique, extraction du flux
+textuel, reconnaissance optique de caractères sur un document
+numérisé. Cette conversion est une projection destructive. Un tableau devient
+une suite de mots dont on ne sait plus quelle cellule appartenait à quelle
+ligne. Une légende se retrouve orpheline de sa figure. Un encadré latéral
+s'intercale au milieu d'un paragraphe qu'il ne concernait pas. Cette perte d'information n'est pas marginale sur des
+documents que l'on qualifie de visuellement riches comme des pages web,
+des rapports financiers, des notices techniques ou des articles encyclopédiques. La perte d'information porte précisément sur ce que la mise en page encodait.
+
+Deux réponses distinctes coexistent dans la littérature récente, et ce
+travail ci se situe exactement à leur intersection. La première rend
+l'extraction inutile~: puisque les modèles vision-langage savent lire une
+image de document, autant leur donner l'image, une page rendue, découpée en
+imagettes indexées par un encodeur multimodal, la récupération s'opérant
+directement dans l'espace visuel des pixels~\citep{dse2024, colpali2024}.
+PixelRAG~\citep{pixelrag2026} porte cette idée à l'échelle du web et rapporte
+qu'elle égale ou dépasse la récupération textuelle sur les documents longs et
+fortement mis en page~; mais elle découpe la page rendue sur une grille de
+hauteur fixe, indifférente à ce qu'elle traverse. La seconde structure les
+preuves plutôt que de les traiter comme un sac plat d'unités indépendantes~:
+MAGE-RAG~\citep{magerag2026} organise un document déjà segmenté en un graphe
+multigranulaire qu'un contrôleur budgété parcourt à la requête, plutôt que de présenter au modèle lecteur la totalité du document ou une sélection figée.
+
+Ces deux travaux sont complémentaires et laissent la même
+pièce sur la table. PixelRAG établit que des tuiles de pixels lues par un
+modèle vision-langage constituent une unité de récupération viable, mais les
+découpe à l'aveugle. MAGE-RAG établit qu'un contrôleur de graphe budgété
+surpasse une sélection top-$k$ statique, mais suppose les éléments du document
+déjà constitués, en amont de son propre pipeline. Ce travail assemble les deux
+par l'artefact que PixelRAG jette et que MAGE-RAG n'a jamais eu à construire~:
+le DOM de la page rendue.
+
+\section*{Le problème}
+\addcontentsline{toc}{section}{Le problème}
+
+Ce changement de représentation laisse intacte une décision de conception
+sur la manière dont on doit découper la page. Un modèle vision-langage
+ne peut pas ingérer une capture d'écran pleine page d'un article
+encyclopédique de \num{46000} pixels de hauteur, et de toute façon une unité de
+récupération doit être suffisamment fine pour qu'un score de pertinence
+signifie quelque chose. Il faut donc découper la page en plusieurs captures. PixelRAG découpe sur une
+grille de hauteur fixe, sans aucune notion de ce que la découpe
+traverse. Chaque bande a la même hauteur, qu'elle contienne un paragraphe
+entier, la moitié d'un tableau, ou le bas d'une image et le haut de la section
+suivante.
+
+La conséquence est mécanique. Une réponse courte noyée dans une bande de \num{1024} pixels qui agrège trois
+sections hétérogènes devient très difficile à retrouver. De ce fait, le signal utile
+représente quelques mots sur plusieurs centaines. Symétriquement, un tableau
+coupé au milieu produit deux unités dont aucune ne porte l'information
+complète. Le système de récupération se voit alors confier une tâche
+supplémentaire qui n'était pas la sienne~: reconstruire, à partir des pixels,
+les frontières sémantiques du document.
+
+L'observation qui fonde ce travail est que cette reconstruction est inutile pour une page web. Le moteur de mise en page du navigateur a déjà
+calculé la boîte englobante exacte de chaque élément avant qu'un seul pixel ne
+soit peint. La segmentation que le RAG visuel dépense de l'effort à
+reconstruire est disponible, exacte, et gratuite, dans le DOM de la page
+rendue. Il ne s'agit ni d'un modèle à entraîner, ni d'une heuristique de
+segmentation visuelle à calibrer, ni d'un détecteur de frontières appris~: il
+s'agit d'une information que le navigateur expose par une simple requête.
+La \cref{fig-intro_teaser} montre directement ce que cela change sur une page
+réelle.
+
+\begin{figure}[t]
+\centering
+\begin{subfigure}[b]{0.545\textwidth}
+  \centering
+  \includegraphics[trim=0 0 0 22pt, clip, width=\linewidth]{tiling_overlay.pdf}
+  \caption{Tuilage guidé par le DOM}
+  \label{fig-intro_teaser_dom}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.425\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{grid_overlay_illustrative.pdf}
+  \caption{Grille de hauteur fixe}
+  \label{fig-intro_teaser_grid}
+\end{subfigure}
+\caption[La même page rendue, tuilée de deux manières]{La même page Wikipédia
+rendue (\code{en.wikipedia.org/wiki/George\_P.\_Gunn}), découpée de deux
+manières. \textbf{(a)}~Tuilage guidé par le DOM (\cref{sec-tuilage})~:
+\textbf{(b)}~Grille aveugle de hauteur fixe selon PixelRAG}
+\label{fig-intro_teaser}
+\end{figure}
+
+\section*{Contribution personnelle}
+\addcontentsline{toc}{section}{Contribution personnelle}
+
+L'intégralité du système décrit dans ce rapport, avec la conception du tuilage,
+la construction du graphe, l'entraînement contrastif du lecteur, le contrôleur
+budgété, ainsi que le code, les jeux de données synthétiques et les
+évaluations qui les accompagnent ont été conçues et implémentées par l'auteur
+dans le cadre de ce projet de master. Les deux seuls emprunts à des travaux
+tiers, explicitement identifiés comme tels tout au long du rapport, sont
+l'architecture de graphe et de contrôleur de MAGE-RAG~\citep{magerag2026},
+dont ce travail généralise le contrôleur à des frontières inter-documents
+qu'il ne traite pas, et le protocole de grille de PixelRAG~\citep{pixelrag2026},
+reproduit à l'identique dans un module indépendant pour servir de condition de
+référence à l'\cref{sec-res_ablation_a}. Tout le reste est une contribution
+originale de ce projet.
+
+Une version antérieure et condensée des \cref{chap-methodologie,chap-resultats}
+a été soumise en double aveugle, sous le titre \emph{\og DOM-Graph RAG:
+DOM-Guided Adaptive Tiling and Budgeted Online Evidence Control for
+Multimodal Web-Page RAG\fg{}}~\citep{domgraphrag2026}, à l'atelier
+\emph{DocInsights 2026}, associé à EMNLP~2026. Le présent rapport en constitue
+la version longue~: il ajoute le contexte scientifique complet
+(\cref{chap-etat_de_lart}), le détail d'implémentation et d'ingénierie
+nécessaire à la reproduction, et l'analyse critique
+des quatre évaluations du \cref{chap-resultats}, dont la version courte ne
+pouvait rapporter que les résultats les plus saillants.
+
+\section*{Objectifs et contributions}
+\addcontentsline{toc}{section}{Objectifs et contributions}
+
+L'objectif de ce projet de master est de transformer l'observation ci-dessus en
+un système complet et de mesurer ce qu'elle apporte réellement. Cela suppose de construire quatre composants et de
+les évaluer séparément puis ensemble. Les contributions de ce travail sont les
+suivantes.
+
+\begin{enumerate}
+\item \textbf{Un tuilage adaptatif guidé par le DOM} (\cref{sec-tuilage}) qui
+remplace la grille de pixels aveugle de PixelRAG~: chaque élément est recadré
+sur sa propre boîte englobante, les éléments trop petits sont fusionnés avec
+leurs voisins, ceux trop grands sont subdivisés, et les titres sont
+systématiquement appariés avec leur contenu. Le point technique le plus
+délicat est la mesure de la boîte englobante des balises de
+texte coulant, dont la boîte CSS s'étend sur toute la largeur du conteneur
+même lorsque le texte s'enroule autour d'un élément flottant. C'est cette
+étape, formalisée en détail au \cref{chap-methodologie}, qui porte
+la recherche centrale de ce travail~: aligner la grille de \anglais{patches}
+que consomme le modèle vision-langage sur les frontières sémantiques du DOM
+plutôt que sur une géométrie arbitraire, de sorte que chaque unité visuelle
+soumise à l'encodeur porte un contenu homogène et complet.
+
+\item \textbf{Un graphe de preuves multigranulaire} (\cref{sec-graphe})
+organisant les tuiles en deux niveaux (page et élément) et instanciant les cinq
+relations du graphe de MAGE-RAG~\citep{magerag2026}, augmentées de deux
+relations propres à notre contexte~: \code{links\_to}, qui suit les liens
+hypertextes pour relier plusieurs pages, et \code{continues}, qui chaîne les
+sections d'une page trop longue pour être traitée d'un bloc.
+
+\item \textbf{Un lecteur vision-langage entraîné par contraste}
+(\cref{sec-contrastif}) sur des paires (question, tuile) générées
+synthétiquement avec négatifs difficiles minés, adapté par LoRA sur le décodeur
+et la tour de vision, via une tête d'encodage de type
+PromptEOL~\citep{prompteol2024}.
+
+\item \textbf{Un contrôleur de preuves en ligne budgété} (\cref{sec-controleur})
+qui fait évoluer l'état de chaque nœud du graphe selon une politique
+best-first sous budget, généralisant l'algorithme de contrôle de MAGE-RAG à des
+frontières qui franchissent les limites de document.
+\end{enumerate}
+
+À ces contributions logicielles s'ajoute une contribution expérimentale~:
+\textbf{quatre évaluations} (\cref{chap-resultats}) qui isolent chaque
+composant puis mesurent le système assemblé, avec une attention particulière
+portée à la comparabilité des métriques. Nous montrons notamment que le
+Recall@$k$ brut n'est pas comparable entre conditions de tuilage, puisqu'un
+vivier de candidats plus petit le gonfle mécaniquement, et nous utilisons à la
+place un rang percentile invariant à la taille du vivier.
+
+\section*{Résultats principaux}
+\addcontentsline{toc}{section}{Résultats principaux}
+
+Deux résultats sont nets. Le tuilage guidé par le DOM double presque la
+proportion de questions dont la réponse survit dans une unité récupérable
+(\SI{51.8}{\percent} contre \SI{26.4}{\percent} pour la grille de PixelRAG),
+tout en consommant \num{2.7} fois moins de pixels par page~; ces deux effets
+vont dans le même sens, ce qui est contre-intuitif puisque notre tuilage
+produit cinq fois plus de tuiles. L'entraînement contrastif du lecteur fait
+presque doubler le Recall@1 sur un partitionnement par article strictement
+disjoint ($\num{0.433} \rightarrow \num{0.785}$).
+
+Les composants en aval donnent des résultats plus nuancés, que nous analysons
+en détail plutôt que de les minimiser. L'avantage de classement du tuilage DOM
+sur la grille est réel mais modeste, et il s'inverse face à un découpage
+textuel plat sur le sous-ensemble strictement apparié~: nous montrons que ce
+résultat est cohérent avec le scoreur lexical employé, qui n'exploite aucune
+information spatiale, et non avec un défaut du tuilage lui-même. Le contrôleur
+budgété n'établit pas encore de supériorité sur une sélection top-$k$
+statique~; nous en diagnostiquons une cause architecturale identifiable, la
+corrigeons, mesurons le gain, et documentons ce qui reste à faire. Enfin,
+l'évaluation bout-en-bout montre que le système assemblé échoue par
+abstention plutôt que par fabulation, ce qui désigne le sous-rappel de
+preuves comme le verrou restant et pointe vers un correctif précis et
+déjà instrumenté dans le code.
+
+\section*{Organisation du rapport}
+\addcontentsline{toc}{section}{Organisation du rapport}
+
+Le rapport suit une progression en trois chapitres.
+
+Le \textbf{\cref{chap-etat_de_lart}} situe brièvement DOM-Graph RAG dans son
+contexte scientifique avec la formulation du problème de récupération et de ses
+métriques, le prétraitement des documents visuellement riches, les modèles
+vision-langage et la famille du RAG visuel, le RAG structuré par graphe, et
+les techniques d'apprentissage contrastif mobilisées ensuite. Il reste volontairement
+concis et se clôt sur l'identification précise du
+verrou et le positionnement de ce travail face à PixelRAG et MAGE-RAG.
+
+Le \textbf{\cref{chap-methodologie}} constitue le cœur de ce rapport. Il ouvre
+sur ce que le navigateur expose réellement de la géométrie d'une page rendue puis
+suit l'ordre du pipeline~: rendu et extraction géométrique, tuilage adaptatif
+formalisé en détail, construction du graphe, entraînement contrastif du
+lecteur et contrôleur en ligne. Chaque étape est explicitée par ses choix de
+conception, sa formalisation mathématique, les cas limites rencontrés sur des
+pages réelles, et les décisions d'ingénierie qui rendent le pipeline exécutable
+sur du matériel modeste.
+
+Le \textbf{\cref{chap-resultats}} présente les quatre évaluations, leur
+analyse critique, les coûts de calcul observés, et une discussion structurée des
+limites du travail et des directions qu'elles ouvrent.
+
+Un chapitre de conclusion synthétise l'apport et les enseignements du projet,
+et les annexes rassemblent les hyperparamètres, l'organisation du dépôt, les
+invites utilisées et les protocoles de reproduction.

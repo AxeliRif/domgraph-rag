@@ -1,0 +1,124 @@
+% =====================================================================
+%  Résumé (français) et Abstract (anglais)
+% =====================================================================
+\cleardoublepage
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+\markboth{Résumé}{Résumé}
+
+Les systèmes de génération augmentée par récupération (\anglais{retrieval-augmented
+generation}, RAG) appliqués aux documents visuellement riches ont récemment
+opéré un changement de paradigme~: plutôt que d'extraire le texte d'une page
+par analyse syntaxique ou reconnaissance optique de caractères, ils rendent la
+page en pixels et laissent un modèle vision-langage la lire directement. Ce
+détour par l'image préserve la mise en page --- quelle cellule appartient à
+quelle ligne de tableau, quelle légende à quelle figure --- que la chaîne
+d'extraction textuelle détruit. Mais il déplace le problème sans le résoudre~:
+il faut toujours décider comment découper une page en unités récupérables, et
+les approches existantes le font \emph{à l'aveugle}, sur une grille de hauteur
+fixe indifférente au contenu. Un tableau peut être coupé en deux, un paragraphe
+scindé au milieu d'une phrase, et le système de récupération doit alors
+reconstruire depuis les pixels une segmentation que le moteur de rendu avait
+calculée gratuitement quelques millisecondes plus tôt.
+
+Ce travail part d'une observation simple~: pour une page web, cette
+segmentation est déjà disponible. Le moteur de mise en page du navigateur
+connaît la boîte englobante exacte de chaque élément du DOM avant qu'un seul
+pixel ne soit recadré. Nous construisons \textbf{DOM-Graph RAG}, un pipeline
+complet qui exploite cette information~: il tuile la page rendue le long des
+frontières de ses propres éléments, organise les tuiles obtenues en un graphe
+de preuves multigranulaire s'étendant sur plusieurs pages via les liens
+hypertextes, entraîne par contraste un modèle vision-langage à évaluer la
+pertinence d'une tuile pour une question, et parcourt le graphe sous budget au
+moment de la requête pour ne lire que les tuiles utiles.
+
+Le système est implémenté de bout en bout et évalué composant par composant sur
+des pages web réelles. Deux résultats sont sans ambiguïté. D'abord, le tuilage
+guidé par le DOM améliore radicalement la \emph{trouvabilité} du contenu~: la
+proportion de questions dont la réponse survit dans une unité récupérable
+passe de \SI{26}{\percent} avec une grille aveugle à \SI{52}{\percent} avec nos
+tuiles, et ce à un coût de représentation \emph{inférieur} --- \num{2.7} fois
+moins de pixels par page, parce que recadrer un paragraphe sur la largeur
+réellement occupée par son texte économise davantage que multiplier les tuiles
+ne coûte. Ensuite, l'entraînement contrastif du lecteur fonctionne nettement~:
+sur un partitionnement par article strictement disjoint, le Recall@1 passe de
+\num{0.433} à \num{0.785} et le MRR de \num{0.578} à \num{0.856}.
+
+Les résultats des étapes en aval sont plus nuancés et nous les analysons en
+détail. L'avantage de classement du tuilage DOM sur une grille aveugle est réel
+mais modeste une fois corrigé le biais de taille de vivier, et il ne se
+maintient pas face à un découpage textuel plat sur le sous-ensemble apparié~;
+nous montrons que ce résultat s'explique par le scoreur lexical employé, qui
+n'exploite aucune information spatiale. Le contrôleur de preuves budgété
+n'établit pas encore de supériorité sur une sélection top-$k$ statique~: nous
+diagnostiquons une cause architecturale précise --- la frontière d'exploration
+ne franchissait jamais les frontières de document --- implémentons le correctif,
+et mesurons une progression de \SI{29.7}{\percent} à \SI{39.6}{\percent} de
+couverture inter-pages, contre \SI{40.7}{\percent} pour la référence. Enfin,
+l'évaluation bout-en-bout sur des questions multi-sauts humaines révèle que le
+mode de défaillance dominant du système assemblé est l'abstention explicite
+plutôt que la fabulation, ce qui identifie sans ambiguïté le sous-rappel de
+preuves --- et donc le scoreur de pertinence --- comme le verrou restant.
+
+\vspace{0.6em}
+\noindent\textbf{Mots-clés} --- génération augmentée par récupération, RAG
+visuel, modèles vision-langage, segmentation de pages web, DOM, graphes de
+preuves, apprentissage contrastif, LoRA, questions-réponses multi-sauts.
+
+% ---------------------------------------------------------------------
+\cleardoublepage
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\markboth{Abstract}{Abstract}
+
+Retrieval-augmented generation (RAG) over visually rich documents has recently
+shifted paradigm: instead of extracting a page's text through parsing or
+optical character recognition, systems render the page as pixels and let a
+vision-language model read it directly. This detour through the image preserves
+the layout information --- which cell belongs to which table row, which caption
+to which figure --- that the text-extraction pipeline destroys. But it relocates
+the problem rather than solving it: one still has to decide how to cut a page
+into retrievable units, and existing approaches do so \emph{blindly}, on a
+fixed-height pixel grid indifferent to content. A table can be cut in half, a
+paragraph split mid-sentence, and the retriever must then reconstruct from
+pixels a segmentation the rendering engine had computed for free milliseconds
+earlier.
+
+This work starts from a simple observation: for a web page, that segmentation
+already exists. The browser's layout engine knows every DOM element's exact
+bounding box before a single pixel is cropped. We build \textbf{DOM-Graph RAG},
+a complete pipeline that exploits this: it tiles the rendered page along its own
+element boundaries, organizes the resulting tiles into a multigranular evidence
+graph spanning several pages via hyperlinks, contrastively trains a
+vision-language model to score a tile's relevance to a question, and walks the
+graph under a budget at query time so that only useful tiles are read.
+
+The system is implemented end to end and evaluated component by component on
+live web pages. Two results are unambiguous. First, DOM-guided tiling
+dramatically improves content \emph{findability}: the share of questions whose
+answer survives into a retrievable unit rises from \SI{26}{\percent} under a
+blind grid to \SI{52}{\percent} with our tiles, and it does so at a
+\emph{lower} representation cost --- \num{2.7}$\times$ fewer pixels per page,
+because cropping a paragraph to the width its text actually occupies saves more
+than multiplying tiles costs. Second, contrastive fine-tuning of the reader
+clearly works: on a strictly disjoint article-level split, Recall@1 rises from
+\num{0.433} to \num{0.785} and MRR from \num{0.578} to \num{0.856}.
+
+Downstream results are more nuanced and we analyse them in detail. DOM tiling's
+ranking advantage over a blind grid is real but modest once pool-size bias is
+corrected, and it does not hold against flat text chunking on the paired subset;
+we show this follows from the lexical scorer used, which exploits no spatial
+information. The budgeted evidence controller does not yet establish
+superiority over static top-$k$ selection: we diagnose a precise architectural
+cause --- the exploration frontier never crossed document boundaries ---
+implement the fix, and measure cross-page coverage rising from \SI{29.7}{\percent}
+to \SI{39.6}{\percent} against \SI{40.7}{\percent} for the baseline. Finally,
+end-to-end evaluation on human-written multi-hop questions reveals that the
+assembled system's dominant failure mode is explicit abstention rather than
+confabulation, which unambiguously identifies evidence under-recall --- and
+therefore the relevance scorer --- as the remaining bottleneck.
+
+\vspace{0.6em}
+\noindent\textbf{Keywords} --- retrieval-augmented generation, visual RAG,
+vision-language models, web page segmentation, DOM, evidence graphs,
+contrastive learning, LoRA, multi-hop question answering.

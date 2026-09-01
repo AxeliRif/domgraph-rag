@@ -1,0 +1,1468 @@
+% =====================================================================
+\chapter{Méthodologie}
+\label{chap-methodologie}
+% =====================================================================
+
+Ce chapitre décrit le système construit pour mettre à l'épreuve la thèse formulée
+au chapitre précédent, et en détaille la formalisation mathématique. Il commence
+par établir ce qu'un navigateur expose réellement de la géométrie d'une page
+rendue (\cref{sec-rendu_dom}) représentant le préalable technique dont dépendent tous les
+choix qui suivent, puis suit l'ordre de la chaîne de traitement~: une page est
+rendue une fois par un navigateur sans interface graphique et sa géométrie est
+mesurée (\cref{sec-rendu})~; cette géométrie pilote un tuilage adaptatif, dont
+la \cref{sec-tuilage} formalise les règles et le modèle de coût
+(\cref{sec-tuilage})~; les tuiles sont organisées en un graphe à deux niveaux,
+éventuellement étendu à plusieurs pages liées (\cref{sec-graphe})~; un lecteur
+vision-langage est entraîné par contraste, hors ligne, à évaluer la pertinence
+d'une paire (question, tuile) (\cref{sec-contrastif})~; enfin, à la requête, un
+contrôleur en ligne parcourt le graphe sous budget pour décider quels nœuds le
+lecteur ouvre réellement (\cref{sec-controleur}). La \cref{sec-implementation}
+détaille les choix d'ingénierie qui rendent l'ensemble exécutable, et la
+\cref{sec-protocole} la construction des jeux de données évalués au
+\cref{chap-resultats}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.62cm,
+  every node/.style={font=\small},
+  stage/.style={draw, rounded corners=2pt, minimum width=7.2cm, minimum height=0.86cm,
+                align=center, fill=codebg, draw=rulegray, line width=0.7pt},
+  online/.style={stage, fill=accent!6, draw=accent, line width=0.9pt},
+  offline/.style={stage},
+  arr/.style={-{Stealth[length=2.2mm]}, thick, draw=black!55},
+  tag/.style={font=\scriptsize\itshape, text=black!55, align=left}
+]
+\node[offline] (render) {Rendu de page et extraction géométrique\\[-2pt]
+  {\scriptsize Playwright, retrait du bruit d'interface, boîtes englobantes}};
+\node[offline, below=of render] (tiling) {Tuilage adaptatif et découpe\\[-2pt]
+  {\scriptsize appariement des titres, fusion, chevauchements}};
+\node[offline, below=of tiling] (graph) {Graphe multigranulaire\\[-2pt]
+  {\scriptsize 1 nœud page $+$ $N$ nœuds élément, 7 relations, corpus multi-pages}};
+\node[offline, below=of graph] (train) {Lecteur entraîné par contraste\\[-2pt]
+  {\scriptsize QA synthétique, négatifs difficiles, LoRA sur ViT $+$ décodeur}};
+\node[online, below=of train] (ctrl) {Contrôleur de preuves budgété\\[-2pt]
+  {\scriptsize \anglais{best-first} sous budget, machine à quatre états}};
+\node[online, below=of ctrl] (answer) {Synthèse de la réponse\\[-2pt]
+  {\scriptsize lecture des tuiles ouvertes, puis génération}};
+
+\draw[arr] (render) -- (tiling);
+\draw[arr] (tiling) -- (graph);
+\draw[arr] (graph) -- (train);
+\draw[arr] (train) -- (ctrl);
+\draw[arr] (ctrl) -- (answer);
+
+\node[tag, right=0.3cm of render.east, anchor=west] {\cref{sec-rendu}};
+\node[tag, right=0.3cm of tiling.east, anchor=west] {\cref{sec-tuilage}};
+\node[tag, right=0.3cm of graph.east, anchor=west] {\cref{sec-graphe}};
+\node[tag, right=0.3cm of train.east, anchor=west] {\cref{sec-contrastif}};
+\node[tag, right=0.3cm of ctrl.east, anchor=west] {\cref{sec-controleur}};
+
+\node[rotate=90, anchor=south, font=\scriptsize\bfseries, text=black!55]
+  at ([xshift=-0.55cm]$(render.west)!0.5!(train.west)$)
+  {hors ligne, une fois par page};
+\node[rotate=90, anchor=south, font=\scriptsize\bfseries, text=accent]
+  at ([xshift=-0.55cm]$(ctrl.west)!0.5!(answer.west)$)
+  {en ligne, par requête};
+\end{tikzpicture}
+\caption[Vue d'ensemble de la chaîne de traitement]{Vue d'ensemble de la chaîne
+DOM-Graph RAG}
+\label{fig-pipeline}
+\end{figure}
+
+% =====================================================================
+\section{Préliminaires géométriques : le DOM et le moteur de rendu}
+\label{sec-rendu_dom}
+% =====================================================================
+
+L'hypothèse centrale de ce travail est que la segmentation nécessaire au RAG
+visuel est déjà présente dans le DOM d'une page rendue. Cette section établit
+quelle information le navigateur expose, où se situent les pièges, et pose la
+notation reprise par le reste du chapitre.
+
+\subsection{Du balisage à la mise en page, et le modèle de boîtes}
+\label{sec-rendu_boites}
+
+Le traitement d'une page par un navigateur enchaîne quatre étapes. L'analyse du
+HTML produit le DOM, un arbre $T = (V, E)$ dont chaque nœud $v \in V$
+correspond à un élément ou à un nœud texte. La cascade attribue ensuite à chaque
+élément ses valeurs de propriétés calculées. La mise en forme (\anglais{reflow})
+détermine la position et les dimensions exactes de chaque boîte dans un repère
+absolu. La peinture produit enfin les pixels.
+
+La mise en forme se termine intégralement avant que le premier pixel ne soit
+peint, si bien que la géométrie de tout élément est déjà connue au moment de la
+peinture. Un système qui recadre des régions
+dans l'image peinte travaille donc en aval d'une source de vérité géométrique
+qu'il n'a jamais consultée.
+
+La fonction $\mathcal{B} : V \to \mathbb{R}_{\geq 0}^4$ associe à un élément
+rendu sa boîte $\mathcal{B}(v) = (x_v, y_v, w_v, h_v)$ dans le repère absolu du
+document, où $(x_v, y_v)$ est le coin supérieur gauche et $(w_v, h_v)$ la
+largeur et la hauteur. C'est elle qu'exploite le tuilage de la
+\cref{sec-tuilage}, aucune partie de la chaîne ne redérivant une géométrie que
+le navigateur a déjà calculée.
+
+Une boîte est faite de quatre régions concentriques, contenu,
+\anglais{padding}, bordure et marge. Les API de géométrie rapportent par défaut
+celle qui correspond visuellement à l'élément, et $\mathcal{B}$ désigne
+implicitement cette région.
+
+Le type d'affichage détermine le comportement de $\mathcal{B}$. Un élément de
+type \textbf{bloc} (\code{<p>}, \code{<div>}, \code{<h1>}--\code{<h6>},
+\code{<ul>}) a par défaut \code{width: auto}, donc $w_v = w_{\op{parent}(v)}$
+quel que soit son contenu. Un titre de trois mots dans une colonne de
+\SI{1200}{\pixel} a ainsi une boîte de \SI{1200}{\pixel} de large. Un élément de
+type \textbf{en ligne} (\code{<span>}, \code{<a>}, \code{<em>}) ne forme pas une
+boîte unique mais autant de rectangles que de fragments de ligne. Un
+\code{<table>}, enfin, s'ajuste à son contenu au lieu de remplir son conteneur.
+La difficulté décrite ci-dessous ne frappe donc que les blocs de texte.
+
+\subsection{Éléments flottants : l'écart entre boîte de bloc et lignes réelles}
+\label{sec-eda_dom_float}
+
+Le cas déterminant pour la mesure des tuiles est celui des éléments flottants.
+Un élément déclaré \code{float: right} est retiré du flux normal et poussé sur
+le bord droit de son conteneur, et le contenu en ligne des blocs qui le suivent
+s'enroule autour de lui. L'effet est asymétrique. Pour un bloc $v$ qui suit un
+flottant, $\mathcal{B}(v)$ n'est pas réduite et continue de s'étendre sur
+$w_{\op{parent}(v)}$ en passant sous le flottant, alors que seules les lignes de
+texte à l'intérieur de $v$ sont raccourcies. La \cref{fig-eda_float} met les
+deux géométries en regard.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[b]{0.50\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.88, every node/.style={font=\scriptsize}]
+\draw[draw=rulegray, line width=0.8pt, fill=codebg] (0,0) rectangle (7.0,4.9);
+\node[anchor=north west, text=black!55] at (0.08,4.84) {conteneur};
+\draw[draw=black!45, fill=black!12, line width=0.7pt] (4.75,2.30) rectangle (6.85,4.50);
+\node[align=center, text=black!60] at (5.80,3.40) {élément\\flottant};
+\draw[draw=accent, dashed, line width=1.0pt] (0.18,0.52) rectangle (6.85,4.16);
+\foreach \y in {3.94,3.60,3.26,2.92,2.58}{
+  \draw[draw=codestr, line width=0.8pt, fill=codestr!12] (0.32,\y-0.12) rectangle (4.55,\y+0.12);
+}
+\foreach \y in {2.10,1.76,1.42,1.08}{
+  \draw[draw=codestr, line width=0.8pt, fill=codestr!12] (0.32,\y-0.12) rectangle (6.68,\y+0.12);
+}
+\draw[draw=codestr, line width=0.8pt, fill=codestr!12] (0.32,0.62) rectangle (2.60,0.86);
+\draw[draw=accent, dashed, line width=1.0pt] (0.20,-0.65) -- (0.95,-0.65);
+\node[anchor=west, text=black!65] at (1.05,-0.65) {\code{getBoundingClientRect}};
+\draw[draw=codestr, line width=0.8pt, fill=codestr!12] (0.20,-1.32) rectangle (0.95,-1.10);
+\node[anchor=west, text=black!65] at (1.05,-1.21) {\code{getClientRects}, nœuds texte};
+\end{tikzpicture}
+\caption{Les deux géométries d'un même bloc}
+\label{fig-eda_float_schema}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.455\textwidth}
+\centering
+\begin{tikzpicture}
+\node[anchor=south west, inner sep=0] (img)
+  {\includegraphics[height=6.0cm, trim=179 38 180 2, clip]{extracted-000.png}};
+\begin{scope}[x={(img.south east)}, y={(img.north west)}]
+  \draw[draw=accent, dashed, line width=0.9pt] (0.024,0.102) rectangle (0.982,0.239);
+  \draw[draw=codestr, line width=0.9pt] (0.038,0.105) rectangle (0.655,0.236);
+\end{scope}
+\end{tikzpicture}
+\caption{La liste de références d'une page réelle}
+\label{fig-eda_float_reel}
+\end{subfigure}
+\caption[Boîte de bloc et rectangles de lignes]{\textbf{(a)}~Un élément flottant à droite raccourcit les
+lignes des blocs qui le suivent sans réduire leur boîte de bloc, laquelle
+continue de passer sous lui. \textbf{(b)}~La boîte de bloc de la liste de références, en tirets,
+s'étend sous l'infoboîte, alors que l'union de ses rectangles de lignes s'arrête à son bord}
+\label{fig-eda_float}
+\end{figure}
+
+La correction employée en \cref{sec-rendu_textflow} se formalise ainsi. Soit $v$
+un élément de texte coulant et $N_1, \dots, N_k$ ses nœuds texte descendants.
+\code{getClientRects}, appliqué à un objet \code{Range} construit sur chaque
+$N_i$, retourne les rectangles de ligne effectivement rendus
+$\{r_{i,1}, \dots, r_{i,m_i}\}$. Chaque $r$ est un quadruplet
+$(x^{(0)}, y^{(0)}, x^{(1)}, y^{(1)})$ de coordonnées de coins. La boîte serrée
+est l'enveloppe rectangulaire de leur union.
+\begin{equation}
+\mathcal{B}_{\text{serré}}(v) = \Big[
+  \min_{i,j} x^{(0)}_{i,j},\;
+  \min_{i,j} y^{(0)}_{i,j},\;
+  \max_{i,j} x^{(1)}_{i,j} - \min_{i,j} x^{(0)}_{i,j},\;
+  \max_{i,j} y^{(1)}_{i,j} - \min_{i,j} y^{(0)}_{i,j}
+\Big].
+\label{eq-boite_serree}
+\end{equation}
+Le \code{Range} doit être construit sur les nœuds texte et non sur
+l'élément lui-même. Un \code{Range} englobant tout $v$ retournerait en plus le
+rectangle de sa boîte pleine largeur, ce qui ramènerait l'union à
+$\mathcal{B}(v)$. Un nœud texte n'a par construction aucune boîte propre, et ses
+rectangles ne peuvent donc être que des lignes réellement rendues.
+
+En l'absence de flottant, $\mathcal{B}_{\text{serré}}(v) = \mathcal{B}(v)$, les
+lignes remplissant la largeur du bloc. En présence d'un flottant qui intersecte
+les rangées de $v$, la boîte serrée est strictement plus étroite, et l'écart
+d'aire
+\begin{equation}
+\Delta A(v) = \op{aire}\big(\mathcal{B}(v)\big) - \op{aire}\big(\mathcal{B}_{\text{serré}}(v)\big) \;\geq\; 0
+\label{eq-aire_perdue}
+\end{equation}
+mesure le fond blanc qu'un recadrage sur $\mathcal{B}(v)$ soumettrait en pure
+perte à l'encodeur visuel. C'est ce terme, sommé sur toutes les balises de texte
+coulant d'une page, que la mesure serrée de la \cref{sec-rendu_textflow}
+élimine, et dont la \cref{sec-res_a_pixels} rapporte l'effet agrégé sur le
+pixels par page.
+
+Pour un \code{<table>}, un \code{<figure>} ou un \code{<img>}, en revanche,
+bordure, fond et marge intérieure font partie du contenu visuel. La boîte brute
+$\mathcal{B}(v)$ y reste la mesure correcte, et $\Delta A(v) = 0$ par
+convention.
+
+\subsection{Les deux API de géométrie et le repère absolu}
+\label{sec-eda_dom_api}
+
+Le navigateur expose deux méthodes de mesure. \code{getBoundingClientRect}
+retourne $\mathcal{B}(v)$, et \code{getClientRects} la liste des rectangles
+effectivement occupés, base de $\mathcal{B}_{\text{serré}}$ ci-dessus. Toutes
+deux sont relatives au \anglais{viewport} et non au document, alors que le
+recadrage d'une capture pleine page exige le repère absolu. Le décalage de
+défilement courant $(s_x, s_y)$ leur est donc ajouté.
+\begin{equation}
+\mathcal{B}_{\text{abs}}(v) = \mathcal{B}_{\text{viewport}}(v) + (s_x, s_y, 0, 0).
+\label{eq-repere_absolu}
+\end{equation}
+Cette conversion est appliquée systématiquement à l'extraction
+(\cref{sec-rendu}). La profondeur d'un nœud dans $T$ fournit par ailleurs un
+ordre de traitement commode pour résoudre l'imbrication
+(\cref{sec-tuilage_elagage}), un parent étant toujours à une profondeur
+strictement inférieure à celle de ses descendants.
+
+\subsection{Ordre du DOM et ordre visuel}
+\label{sec-eda_dom_ordre}
+
+L'ordre des nœuds dans $T$ est celui dans lequel l'auteur a écrit le balisage,
+et non l'ordre de lecture visuel, le positionnement CSS pouvant faire diverger
+les deux arbitrairement. Le déduire du parcours de $T$ produirait, sur une mise
+en page non triviale, une séquence qui ne correspond pas à ce qu'un lecteur
+humain suit. La relation d'ordre de lecture
+(\cref{sec-graphe_ordre}) est donc calculée par une heuristique spatiale sur les
+coordonnées $\mathcal{B}_{\text{abs}}$ plutôt que par un parcours de $T$. Le DOM
+fournit $\mathcal{B}$ et les types d'éléments, pas un ordre de lecture total.
+
+% =====================================================================
+\section{Rendu de page et extraction géométrique}
+\label{sec-rendu}
+% =====================================================================
+
+\subsection{Rendu sans interface graphique}
+
+La page est chargée sans interface graphique, via Playwright, avec une largeur
+de fenêtre d'affichage de \SI{2048}{\pixel} et un facteur d'échelle de
+périphérique de \num{1}. La hauteur de la fenêtre, fixée à \SI{1000}{\pixel},
+est sans effet, la capture pleine page produisant une image de la hauteur totale
+du document rendu, soit plusieurs dizaines de milliers de pixels sur les
+articles les plus longs (\cref{sec-tuilage_sections}).
+
+La largeur de \SI{2048}{\pixel} égale la hauteur maximale de tuile
+(\cref{sec-tuilage_regles}), de sorte que la plus grande unité produite est un
+carré de \num{2048} pixels de côté et qu'un seul paramètre borne l'aire maximale
+soumise à l'encodeur. Elle n'améliore en revanche pas la résolution du texte, la
+taille en pixels d'un caractère ne dépendant pas de la largeur de fenêtre à
+facteur d'échelle constant. Élargir le rendu ajoute de la marge, non de la
+définition.
+
+Cette marge n'est pas neutre pour le \cref{chap-resultats}. La colonne de
+contenu occupe environ \SI{40}{\percent} de la largeur de rendu
+(\cref{fig-tuiles_reelles}), si bien qu'une bande de grille est majoritairement
+du fond blanc là où une tuile mesurée serrée (\cref{sec-rendu_textflow}) ne
+l'est pas. Le rapport de budget de pixels de la \cref{sec-res_a_pixels} est
+mesuré à cette largeur et décroît avec elle.
+
+\paragraph{Ordre des opérations.} Le chargement attend la condition
+\code{networkidle}, et l'extraction géométrique est évaluée après la capture
+pleine page, la condition d'attente étant réévaluée entre les deux. La capture
+fait en effet défiler le document et déclenche le chargement différé des images,
+qui modifie la hauteur des blocs qui les contiennent. Une mesure prise avant ce
+défilement décrirait une mise en page antérieure au chargement, et les
+recadrages seraient décalés d'autant sans qu'aucune métrique ne le signale.
+
+\subsection{Retrait du bruit d'interface}
+
+Avant la capture, un ensemble de sélecteurs CSS retire du document le bruit
+d'interface, c'est-à-dire les barres de navigation, pieds de page, panneaux
+latéraux du logiciel de wiki, bandeaux d'avertissement, liens d'édition de
+section et boîtes de navigation. Ces éléments ne portent aucune information sur
+le sujet de la page et produiraient des tuiles coûteuses en pixels et
+systématiquement non pertinentes.
+
+{\sloppy
+La liste combine des sélecteurs génériques (\code{nav}, \code{footer},
+\code{header}, \code{script}, \code{style}) et des sélecteurs propres à MediaWiki
+(\code{\#mw-navigation}, \code{.vector-header}, \code{.navbox},
+\code{.mw-editsection}, \code{.noprint}). Cette seconde catégorie est une
+dépendance explicite au type de site et constitue la principale limite de portée
+des résultats quantitatifs (\cref{sec-res_limites}). Elle porte sur le nettoyage
+et non sur la logique de tuilage.
+\par}
+
+\subsection{Extraction des boîtes englobantes}
+
+L'extraction est un unique appel de fonction JavaScript évalué dans le contexte
+de la page. Pour un ensemble configurable de balises (\code{h1} à \code{h4},
+\code{p}, \code{table}, \code{figure}, \code{img}, \code{ul}, \code{ol},
+\code{blockquote}, \code{pre}), le script relève, pour chaque élément
+correspondant, sa position absolue au sens de l'\cref{eq-repere_absolu}, ses
+dimensions, un aperçu de son texte, sa profondeur dans l'arbre DOM et, le cas
+échéant, les liens hypertextes qu'il contient.
+
+\paragraph{Extraction sélective des liens.} Les liens ne sont relevés que pour
+les éléments \code{p}. Une page encyclopédique porte quelques dizaines de liens
+dans son texte et plusieurs centaines dans ses tableaux, boîtes de navigation et
+listes de références, dont le suivi ferait croître le coût du parcours de corpus
+(\cref{sec-graphe_corpus}) sans apporter de contenu pertinent. Les liens
+conservés sont résolus en URL absolue via \code{document.baseURI}, les ancres
+internes et les schémas non HTTP étant écartés.
+
+\subsection{Mesure serrée des balises de texte coulant}
+\label{sec-rendu_textflow}
+
+Recadrer sur $\mathcal{B}$ plutôt que sur $\mathcal{B}_{\text{serré}}$ produit
+deux défauts mesurables, l'un et l'autre conséquences de l'asymétrie formalisée
+en \cref{sec-eda_dom_float}.
+
+Le premier est un double comptage. Recadrer sur $\mathcal{B}(v)$ capture les
+pixels de l'élément flottant voisin en plus du contenu visé, et ces pixels
+apparaissent alors dans deux unités de récupération, celle du bloc et celle de
+l'infoboîte. Le budget est payé deux fois, et les scores de pertinence de deux
+tuiles sont alimentés par le même contenu.
+
+Le second est un coût. Une tuile de texte recadrée sur $\mathcal{B}(v)$ consomme
+la même surface qu'une bande de grille quel que soit son contenu réel, soit
+\num{2058000} pixels en moyenne contre \num{157170} pour une tuile recadrée sur
+$\mathcal{B}_{\text{serré}}(v)$ (\cref{sec-res_a_pixels}). Le cas dominant est
+la liste de références en fin d'article, rendue en \code{<ol>}, dont la boîte
+traverse toute la largeur du conteneur alors que ses lignes occupent une colonne
+étroite (\cref{fig-eda_float_reel}).
+
+Le tuilage recadre donc sur $\mathcal{B}_{\text{serré}}(v)$ pour les balises
+dont la boîte de bloc est structurellement plus large que leur contenu
+(\code{h1} à \code{h4}, \code{p}, \code{blockquote}, \code{ul}, \code{ol}),
+désignées balises de texte coulant et configurables. Un \code{TreeWalker}
+parcourt les nœuds texte non vides de $v$, un \code{Range} est construit sur le
+contenu de chacun, et l'\cref{eq-boite_serree} est évaluée sur l'union des
+rectangles retournés par \code{getClientRects}. La granularité du \code{Range}
+est imposée par la contrainte établie en \cref{sec-eda_dom_float}. Les autres
+balises conservent $\mathcal{B}(v)$, avec $\Delta A(v) = 0$.
+
+% =====================================================================
+\section{Tuilage adaptatif guidé par le DOM}
+\label{sec-tuilage}
+% =====================================================================
+
+Le tuilage instancie pour le cas web le découpeur
+$C : \mathcal{D} \mapsto \mathcal{U}$ de la \cref{sec-eda_rag}. La fonction
+$C_{\text{DOM}}$ définie ci-dessous, construite à partir de $\mathcal{B}$ et
+$\mathcal{B}_{\text{serré}}$ (\cref{sec-rendu_dom}), remplace la grille de
+hauteur fixe de PixelRAG. Elle transforme une liste d'éléments géolocalisés $E$
+et une capture pleine page $I$ en une liste de tuiles
+$T = C_{\text{DOM}}(E, I)$, chacune formée d'un recadrage d'image accompagné de
+ses coordonnées, de la balise DOM d'origine, d'un aperçu textuel, des
+identifiants des éléments sources et des liens agrégés.
+
+Le nombre de tuiles retenues par unité de page est borné à \num{25}. Cette
+borne est héritée du coût de génération des paires question-réponse
+(\cref{sec-protocole}) et restreint la portée de l'évaluation~A
+(\cref{sec-res_limites_plafond}). Trois traitements préparatoires précèdent le
+tuilage proprement dit.
+
+\subsection{Élagage des éléments imbriqués}
+\label{sec-tuilage_elagage}
+
+Les balises retenues s'imbriquent, un \code{<img>} dans un \code{<figure>}, un
+\code{<p>} dans une cellule de \code{<table>}, une liste \code{<ul>} dans un
+\code{<blockquote>}. Sans traitement, chaque niveau produirait sa propre tuile
+et le contenu de l'enfant apparaîtrait deux fois.
+
+L'élagage traite les éléments par profondeur DOM croissante et ne compare
+chaque candidat qu'aux éléments déjà retenus. Le candidat est écarté si sa
+boîte est entièrement contenue dans celle d'un élément retenu, à une tolérance
+d'un pixel près qui absorbe les arrondis de rendu. L'ordre par profondeur
+croissante garantit qu'un parent est examiné avant ses descendants, donc qu'un
+enfant n'est jamais comparé à un autre enfant lui-même susceptible d'être
+élagué.
+
+\subsection{Résolution des chevauchements partiels}
+\label{sec-tuilage_chevauchement}
+
+L'élagage ne traite que les inclusions complètes. Deux éléments indépendants
+peuvent se chevaucher sans que l'un contienne l'autre, même après la mesure
+serrée de la \cref{sec-rendu_textflow}. Une infoboîte flottante et le bloc qui
+partage sa rangée s'intersectent ainsi sur quelques lignes, là où le texte
+reprend la pleine largeur sous l'élément flottant. Les deux sont conservés,
+mais les tuiler séparément dupliquerait la région commune. Ils sont donc réunis
+en un seul recadrage couvrant leur union. Le critère de regroupement est le
+rapport de l'aire d'intersection à l'aire du plus petit des deux éléments,
+
+\begin{equation}
+\rho(a, b) = \frac{\op{aire}(B_a \cap B_b)}
+                  {\min\!\big(\op{aire}(B_a),\, \op{aire}(B_b)\big)},
+\label{eq-overlap}
+\end{equation}
+
+deux éléments étant regroupés dès que $\rho(a,b) \geq \num{0.15}$. Le seuil
+strictement positif absorbe les recouvrements de quelques pixels dus aux marges
+et aux bordures.
+
+Le regroupement s'effectue par composantes connexes sur cette relation, au
+moyen d'une structure \anglais{union-find}. La transitivité est nécessaire. Si
+$a$ chevauche $b$ et $b$ chevauche $c$ sans que $a$ et $c$ ne se chevauchent,
+les trois doivent finir dans le même groupe, faute de quoi la tuile de
+$\{a,b\}$ et celle de $\{b,c\}$ partageraient les pixels de $b$.
+
+Les titres sont exclus du regroupement, la règle d'appariement de la
+\cref{sec-tuilage_regles} exigeant qu'ils restent des éléments isolés en
+attente.
+
+\subsection{Les trois règles de tuilage}
+\label{sec-tuilage_regles}
+
+Les groupes sont triés de haut en bas puis de gauche à droite et traités
+séquentiellement selon trois règles.
+
+\paragraph{Appariement des titres.} Un titre n'est pas une tuile autonome.
+Celle d'un \code{<h2>} seul ne contiendrait que quelques mots sur un fond
+blanc, coûteuse en unité de récupération et sémantiquement vide, puisqu'un
+titre sans son contenu ne répond à aucune question. Un titre rencontré est donc
+mis en attente, et le groupe suivant est fusionné avec lui dans une tuile
+unique dont la balise composée (\code{h2+p}) enregistre la fusion, réutilisée
+en \cref{sec-graphe_hierarchie}. Deux cas font exception et émettent un titre
+seul, deux titres consécutifs et un titre en fin d'unité de page.
+
+\paragraph{Fusion des éléments courts.} Un élément non titre dont la hauteur
+est inférieure à \SI{80}{\pixel} est mis en tampon. Le tampon s'accumule
+jusqu'à ce que l'étendue verticale de son union franchisse ce minimum, puis est
+vidé en une tuile unique de balise \code{merged}. Sans cette règle, une
+succession de courtes lignes de catégories en bas de page produirait une
+avalanche de micro-tuiles quasi vides, consommant chacune une entrée d'index et
+un appel de génération. La tuile~7 de la \cref{fig-tuiles_reelles} en donne le
+résultat. Un groupe issu d'un chevauchement
+(\cref{sec-tuilage_chevauchement}) échappe à cette règle et n'est jamais mis en
+tampon, la non-duplication de pixels primant sur l'heuristique de fusion.
+
+\paragraph{Découpe des éléments démesurés.} Un élément dont la hauteur dépasse
+\SI{2048}{\pixel}, un très long tableau ou une liste de références étendue, est
+tranché en $\lceil h / h_{\max} \rceil$ sous-tuiles de hauteur égale. C'est le
+seul endroit où le tuilage recourt à une découpe indifférente au contenu, à
+l'intérieur d'un unique élément DOM devenu trop grand pour l'encodeur. Cette
+découpe est une version strictement plus étroite du mode de défaillance de la
+grille aveugle, signalée comme telle en \cref{sec-res_limites}.
+
+L'\cref{alg-tuilage} donne la procédure complète.
+
+\begin{algorithm}[t]
+\caption{Tuilage adaptatif guidé par le DOM}
+\label{alg-tuilage}
+\DontPrintSemicolon
+\KwData{éléments $E$ avec boîtes englobantes, capture pleine page $I$,
+        hauteurs $h_{\max}$ et $h_{\min}$, seuil $\rho_{\min}$}
+\KwResult{liste de tuiles $T$}
+$E \leftarrow \proc{ÉlaguerImbriqués}(E)$ \tcp*{profondeur DOM croissante}
+$G \leftarrow \proc{GrouperChevauchements}(E, \rho_{\min})$ \tcp*{\anglais{union-find}}
+trier $G$ par $(y, x)$ du premier membre\;
+$T \leftarrow \varnothing$~; $\textit{tampon} \leftarrow \varnothing$~; $\textit{titre} \leftarrow \bot$\;
+\ForEach{$g \in G$}{
+  \If{$|g| = 1$ \textbf{et} $g_1$ est un titre}{
+    \textsc{ViderTampon}()~; \textsc{ViderTitre}()\;
+    $\textit{titre} \leftarrow g_1$
+    \textbf{continuer}\;
+  }
+  \If{$\textit{titre} \neq \bot$}{
+    $T \leftarrow T \cup \proc{RecadrerDécouper}(\{\textit{titre}\} \cup g)$\;
+    $\textit{titre} \leftarrow \bot$~; \textbf{continuer}\;
+  }
+  \If{$|g| > 1$}{
+    \textsc{ViderTampon}()\;
+    $T \leftarrow T \cup \proc{RecadrerDécouper}(g)$
+    \textbf{continuer}\;
+  }
+  \If{$\op{hauteur}(g_1) < h_{\min}$}{
+    $\textit{tampon} \leftarrow \textit{tampon} \cup \{g_1\}$\;
+    \If{$\op{étendue}(\textit{tampon}) \geq h_{\min}$}{\textsc{ViderTampon}()}
+  }
+  \Else{
+    \textsc{ViderTampon}()\;
+    $T \leftarrow T \cup \proc{RecadrerDécouper}(\{g_1\})$\;
+  }
+}
+\textsc{ViderTampon}()~; \textsc{ViderTitre}()\;
+\Return{$T$}\;
+\end{algorithm}
+
+\noindent
+\textsc{RecadrerDécouper}$(S)$ recadre $I$ sur l'union des boîtes de $S$, puis
+lui applique la découpe ci-dessus si la hauteur obtenue dépasse $h_{\max}$.
+\textsc{ViderTampon} et \textsc{ViderTitre} émettent respectivement une tuile
+fusionnée pour le tampon accumulé et, dans les deux cas d'exception ci-dessus,
+une tuile pour un titre resté sans contenu suivant.
+
+\paragraph{Complexité et comptages.} L'élagage compare chaque candidat aux
+éléments déjà retenus et le regroupement examine toutes les paires, ce qui
+place les deux étapes en $O(n^2)$ dans le pire cas, où $n$ est le nombre
+d'éléments extraits. La page la plus dense du corpus en compte \num{278} avant
+élagage. La chaîne des comptages médians par unité de page s'établit à
+9 éléments extraits, 7 après
+élagage, 7 groupes, pour 6 tuiles. Ces deux
+étapes restent négligeables devant le rendu de page et, à plus forte raison,
+devant les appels au modèle vision-langage (\cref{sec-res_couts}). Une
+structure d'indexation spatiale serait l'optimisation naturelle sur des
+documents d'un ordre de grandeur plus denses.
+
+\subsection{Modèle de coût : tokenisation visuelle et effet du tuilage}
+\label{sec-eda_cout_visuel}
+ 
+Le tuilage guidé par le DOM produit davantage d'unités que la grille aveugle
+(\cref{sec-res_a_pixels}), et rien ne garantit d'avance que cela coûte moins
+cher à l'encodeur qui les consomme. Le modèle de coût qui suit tranche la
+question.
+ 
+Un modèle vision-langage à tour de vision de type \anglais{Vision
+Transformer}~\citep{vit2021} découpe une image en \anglais{patches} carrés de
+côté fixe $p$ et les traite comme une séquence de tokens par
+auto-attention~\citep{transformer2017}. Pour une image de dimensions
+$w \times h$, le nombre de tokens visuels produits est, à un facteur de
+regroupement près,
+\begin{equation}
+n_{\text{tokens}}(w, h) \;\approx\; \frac{w \cdot h}{p^2} \;=\; \frac{\op{aire}(\mathcal{B})}{p^2},
+\label{eq-tokens}
+\end{equation}
+soit une quantité proportionnelle à l'aire de la boîte recadrée et indifférente
+à sa forme. Un recadrage deux fois plus étroit à hauteur égale coûte donc deux
+fois moins de tokens. Chaque pixel de $\Delta A(v)$ épargné par la mesure serrée
+est ainsi un token visuel que l'encodeur n'a jamais à calculer, sans perte
+d'information puisque ce pixel était du fond blanc.
+ 
+Cette proportionnalité n'est pas illimitée, le processeur d'image bornant
+l'aire encodée entre un plancher $A_{\min}$ et un plafond $A_{\max}$. Le coût
+réel suit donc une fonction d'écrêtage.
+\begin{equation}
+\begin{split}
+    n_{\text{tokens}}^{\text{écrêté}}(\mathcal{B}) = \frac{\op{clamp}\big(\op{aire}(\mathcal{B});\, A_{\min},\, A_{\max}\big)}{p^2},\\
+    \quad
+    \op{clamp}(a; a_{\min}, a_{\max}) = \min\big(\max(a, a_{\min}), a_{\max}\big)
+\end{split}
+\label{eq-tokens_clamp}
+\end{equation}
+Comparer deux stratégies de découpage sur leur aire totale de pixels ne revient
+à les comparer sur leur coût en tokens qu'à la condition que leurs unités
+respectent $A_{\min} \leq \op{aire}(\mathcal{B}) \leq A_{\max}$. C'est une
+condition à vérifier plutôt qu'une propriété acquise.
+ 
+Pour une page découpée en tuiles $T = \{t_1, \dots, t_M\}$, le coût total
+d'encodage vaut
+$\mathcal{N}(T) = \sum_{i=1}^{M} n_{\text{tokens}}^{\text{écrêté}}(t_i)$. Deux
+propriétés de cette somme rendent un découpage plus fin favorable sur cette
+famille de modèles.
+ 
+Tant qu'aucune unité n'atteint $A_{\max}$, $\mathcal{N}$ ne dépend que de
+l'aire totale occupée, et non du nombre d'unités qui la composent. Produire
+davantage d'unités plus petites ne coûte alors pas plus cher tant que l'aire
+totale utile ne croît pas.
+ 
+Tant qu'aucune unité ne descend sous $A_{\min}$, aucune ne paie de coût
+plancher. Cette seconde propriété tient à la résolution dynamique de
+Qwen2-VL~\citep{qwen2vl2024}, employé ici. Sous la résolution canonique fixe
+des générations antérieures, chaque unité payait le même coût quelle que soit
+sa taille réelle, si bien que le mécanisme exploité ici y serait inopérant.
+ 
+Pour Qwen2-VL, le côté effectif de \anglais{patch} après regroupement vaut
+\SI{28}{\pixel}, et le plafond a été porté à
+$A_{\max} = \SI{12845056}{\pixel}$, douze fois le défaut de la bibliothèque
+(\cref{annexe-hyperparams}). La plus grande unité que la chaîne puisse produire
+est une tuile carrée de \num{2048} pixels de côté, soit \SI{4194304}{\pixel},
+et la bande de grille en fait \SI{2097152}{\pixel}. Aucune n'atteint le
+plafond, donc aucune n'est écrêtée et la condition ci-dessus est vérifiée. Le
+\cref{tab-cout_tokens} applique les \cref{eq-tokens,eq-tokens_clamp} aux unités
+des deux conditions.
+ 
+\begin{table}[H]
+\centering
+\small
+\caption[Aire et tokens visuels par unité]{Aire et nombre de tokens visuels des
+unités produites par les deux conditions de l'évaluation~A}
+\label{tab-cout_tokens}
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+ & & \multicolumn{2}{c}{Tokens visuels} \\
+\cmidrule(l){3-4}
+Unité & Aire (px) & sans écrêtage & sous \SI{1.00}{\mega\pixel} \\
+\midrule
+Tuile DOM, moyenne & \num{157170} & \num{200} & \num{200} \\
+Bande de grille, $2048 \times 1024$ & \num{2097152} & \num{2675} & \num{1280} \\
+Tuile DOM maximale, $2048^2$ & \num{4194304} & \num{5350} & \num{1280} \\
+\midrule
+Par page, tuilage DOM (\num{24.0} unités) & \num{3.79}\,M & \num{4810} & \num{4810} \\
+Par page, grille (\num{4.9} unités) & \num{10.17}\,M & \num{13100} & \num{6270} \\
+\midrule
+\textbf{Rapport grille / DOM} & \textbf{\num{2.7}} & \textbf{\num{2.7}} & \textbf{\num{1.3}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+ 
+Le facteur \num{2.7} de la \cref{sec-res_a_pixels} est donc un rapport de
+tokens autant que de pixels. La dernière colonne montre ce qu'il deviendrait au
+plafond par défaut, où la bande de grille serait écrêtée quand la tuile DOM ne
+le serait pas, ce qui ramènerait le gain à \num{1.3}. L'amplitude du gain dépend donc d'un paramètre de
+configuration, ce dont une reproduction doit tenir compte.
+
+\subsection{Découpage en sections des pages démesurées}
+\label{sec-tuilage_sections}
+
+Une capture pleine page peut atteindre plusieurs dizaines de milliers de pixels
+de hauteur, \num{46000} pour l'article consacré aux Beatles, dont la
+discographie et la liste de récompenses dominent la page. À cette échelle, la
+génération séquentielle de questions dépasse plusieurs heures par page, sans
+point de reprise intermédiaire.
+
+Exclure ces pages serait contraire à l'objectif du projet, qui vise les
+documents longs. Elles sont donc découpées en amont du tuilage. Une page dont
+la hauteur dépasse dix fois la hauteur maximale de tuile, soit
+\SI{20480}{\pixel}, est scindée aux frontières de titres \code{h1} et
+\code{h2}. Le contenu précédant le premier titre forme une section
+\og préambule\fg{} sans titre. Une section restant trop haute à elle seule, un
+\code{h2} suivi d'un tableau de discographie géant, est retranchée par un
+budget de hauteur fixe de \SI{20480}{\pixel}. C'est le compromis de
+la \cref{sec-tuilage_regles} appliqué un cran au-dessus, entre éléments plutôt
+qu'à l'intérieur d'un seul.
+
+Chaque section est ensuite traitée par le reste de la chaîne comme une page à
+part entière, avec son propre nœud page et sa propre unité de travail
+sauvegardée indépendamment. Le seuil est franchi par \num{12} des \num{19}
+articles du corpus, qui produisent \num{185} unités de page
+(\cref{tab-res_dataset}). Le découpage est donc le régime courant sur ce
+corpus, non un filet de sécurité. L'évaluation~A le désactive et rend chaque
+article comme une unité unique, faute de quoi les conditions comparées ne
+porteraient pas sur la même étendue de document (\cref{sec-protocole_grille}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{tiling_preview.png}
+\caption[Tuiles et ordre de lecture sur une page réelle]{Tuiles produites sur
+\code{en.wikipedia.org/wiki/George\_P.\_Gunn}, colorées par catégorie de contenu
+et numérotées dans l'ordre de lecture calculé}
+\label{fig-tuiles_reelles}
+\end{figure}
+
+% =====================================================================
+\section{Construction du graphe multigranulaire}
+\label{sec-graphe}
+% =====================================================================
+ 
+Les tuiles sont organisées en un graphe orienté multi-arêtes $G = (V, E)$, avec
+$V = V_{\text{page}} \cup V_{\text{élém}}$ un nœud \code{page} et un nœud
+\code{element} par tuile, et $E = \bigcup_{r \in \mathcal{R}} E_r$ l'union de
+sept relations typées, $E_r \subseteq V \times V$. Cinq d'entre elles,
+$\mathcal{R}_{\text{MAGE}} \subset \mathcal{R}$, reprennent le graphe de
+MAGE-RAG~\citep{magerag2026}. Les deux autres,
+$\{\code{links\_to}, \code{continues}\} = \mathcal{R} \setminus \mathcal{R}_{\text{MAGE}}$,
+répondent à un besoin propre au contexte web (\cref{sec-graphe_interdoc}).
+Le \cref{tab-graphe_relations} les récapitule.
+{\sloppy
+Le contrôleur ne propage que le long de trois d'entre
+elles, $\mathcal{R}_{\text{parcourue}} = \{\code{reading\_order},
+\code{links\_to}, \code{continues}\}$, ce que discutent la
+\cref{sec-res_synthese} et la \cref{sec-res_limites}.
+\par}
+
+\begin{table}[t]
+\centering
+\small
+\caption[Les sept relations du graphe]{Les sept relations du graphe
+multigranulaire et leur densité mesurée \textit{(la dernière colonne donne la médiane des arêtes par unité de page)}}
+\label{tab-graphe_relations}
+\begin{tabularx}{\textwidth}{@{}l l X r@{}}
+\toprule
+\textbf{Relation} & \textbf{Domaine} & \textbf{Définition} & \textbf{Arêtes} \\
+\midrule
+\code{contains} & page $\to$ élém. & rattachement plat de chaque tuile à sa page & 6 \\
+\code{reading\_order} & élém. $\to$ élém. & successeur dans l'ordre de lecture spatial & 5 \\
+\code{layout\_adjacency} & élém. $\leftrightarrow$ élém. & voisinage 2D (gauche, droite, dessus, dessous) & 8\\
+\code{section\_hierarchy} & titre $\to$ contenu & arbre des sections respectant l'imbrication \code{h1}--\code{h4} & 4\\
+\code{semantic\_neighbor} & élém. $\leftrightarrow$ élém. & proximité lexicale TF-IDF au-delà d'un seuil \textit{(désactivée par défaut)} & \num{0} \\
+\midrule
+\code{links\_to} & élém. $\to$ page & lien hypertexte vers un autre document & 8 \\
+\code{continues} & page $\to$ page & section suivante d'une page découpée & 1 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Ordre de lecture spatial}
+\label{sec-graphe_ordre}
+ 
+L'ordre de lecture n'est pas l'ordre du DOM, pour la raison établie en
+\cref{sec-eda_dom_ordre}. Il est calculé par une heuristique spatiale sur les
+coordonnées mesurées, dans la lignée des travaux d'analyse de mise en page qui
+traitent l'ordre de lecture comme une prédiction plutôt que comme une lecture de
+l'arbre~\citep{layoutreader2021}. Les tuiles sont d'abord regroupées en rangées.
+Partant de la tuile la plus haute non encore assignée, toutes les tuiles dont
+l'ordonnée est à moins de \SI{20}{\pixel} de la sienne forment une rangée.
+Chaque rangée est ensuite triée de gauche à droite, et les rangées sont
+concaténées de haut en bas.
+ 
+La tolérance de \SI{20}{\pixel} est le seul paramètre libre de l'heuristique.
+Elle absorbe les décalages de ligne de base entre un titre et un élément
+flottant voisin sans fusionner deux rangées distinctes.
+
+\subsection{Voisinage de mise en page}
+\label{sec-graphe_adjacence}
+ 
+L'ordre de lecture aplatit la structure 2D en une chaîne, ce qui rend deux
+tuiles côte à côte indiscernables de deux tuiles empilées. La relation
+\code{layout\_adjacency} restitue ce voisinage en réutilisant le même
+regroupement en rangées. Elle produit deux types d'arêtes.
+ 
+\begin{itemize}
+\item Les voisins gauche et droite, entre tuiles consécutives d'une même rangée.
+\item Les voisins dessus et dessous, entre une tuile et la tuile de la rangée
+suivante qui la recouvre horizontalement. En cas de plusieurs candidates, celle
+dont le centre horizontal est le plus proche est retenue.
+\end{itemize}
+ 
+Chaque arête est insérée dans les deux sens, car la règle du centre le plus
+proche appliquée en sens inverse ne désignerait pas nécessairement la même
+voisine. La symétrie est une décision de construction et pas une propriété de la
+règle.
+ 
+Le second type capture les voisinages que l'ordre linéaire fait diverger. Le bas
+d'une colonne de gauche et le haut de la colonne de droite sont consécutifs dans
+l'ordre de lecture mais visuellement éloignés, et inversement.
+
+\subsection{Arbre des sections}
+\label{sec-graphe_hierarchie}
+
+La relation \code{section\_hierarchy} construit un arbre de sections, distinct du
+rattachement plat de \code{contains}. Un parcours de l'ordre de lecture maintient
+une pile de titres ouverts, chacun associé à son niveau. À la rencontre d'un titre
+de niveau $\ell$, la pile est dépilée jusqu'à ce que son sommet ait un niveau
+strictement inférieur à $\ell$~; une arête est créée depuis ce sommet vers le
+nouveau titre, qui est empilé. Une tuile de contenu est rattachée au sommet
+courant. Un \code{h3} est ainsi rattaché au dernier \code{h2} ouvert, non au
+dernier \code{h1}, et le contenu précédant le premier titre ne produit aucune
+arête.
+
+L'appariement de la \cref{sec-tuilage_regles} interagit avec ce parcours. Une tuile
+de balise composée \code{h2+p} est traitée comme un titre de niveau~2 --- c'est le
+premier composant qui porte le niveau --- et comme le contenu de cette même
+section, qui n'engendre donc pas d'arête vers elle-même. En pratique l'arbre est
+moins dense qu'avec des titres isolés~: la relation n'apparaît qu'entre titres, et
+vers les tuiles de contenu qui suivent une section déjà ouverte sans porter
+elles-mêmes de titre. La densité mesurée figure au
+\cref{tab-graphe_relations}~; la \cref{sec-res_limites} discute ce que le
+contrôleur en tire.
+
+\subsection{Voisinage sémantique}
+\label{sec-graphe_semantique}
+ 
+La cinquième relation de MAGE-RAG relie des éléments proches sémantiquement,
+indépendamment de leur position. Elle est implémentée par similarité cosinus sur
+vecteurs TF-IDF entre les aperçus textuels des tuiles, avec un seuil de
+\num{0.2}.
+ 
+Deux garde-fous l'encadrent. Une sélection gloutonne borne le degré afin que les paires
+au-delà du seuil soient triées par similarité décroissante, puis retenues tant
+qu'aucune des deux tuiles n'a atteint trois voisins sémantiques. Cela évite un
+graphe excessivement dense sur une page au contenu répétitif comme une
+discographie ou un tableau de résultats sportifs. Cette relation est désactivée par défaut pour servir de condition d'ablation. Cette comparaison n'a pas été conduite ici
+(\cref{sec-res_limites}), et toutes les mesures du \cref{chap-resultats} portent
+donc sur des graphes à six relations sur sept. La relation inactive est celle
+que ce travail hérite de MAGE-RAG. Les deux relations qui lui sont propres sont
+actives, et ce sont elles qui produisent l'effet mesuré en
+\cref{sec-res_ablation_c}.
+ 
+\subsection{Relations inter-documents}
+\label{sec-graphe_interdoc}
+ 
+Les deux relations ajoutées répondent à un besoin que MAGE-RAG n'a pas,
+puisqu'il opère sur un document unique déjà délimité.
+ 
+\paragraph{\code{links\_to}.} Cette relation relie un nœud élément à une page
+externe, à partir des liens extraits en \cref{sec-rendu}. Un second budget s'y
+applique, puisque seules les $k_{\text{liens}} = 3$ premières tuiles porteuses
+de liens, dans l'ordre de lecture de l'unité de page, voient leurs liens
+conservés. Sur une page non découpée, l'ordre de lecture commence par
+l'introduction de l'article, et ce budget retient donc les liens qui définissent
+le sujet. Sur une section issue du découpage de la \cref{sec-tuilage_sections},
+il retient les premiers liens de cette section, sans garantie de saillance
+comparable. Au-delà, les liens sont ignorés pour borner le facteur de
+branchement du parcours de corpus.
+ 
+\paragraph{\code{continues}.} Cette relation chaîne les sections d'une page
+découpée dans leur ordre d'origine. Elle est sémantiquement distincte de
+\code{links\_to}, un lien menant à un autre document quand une continuation mène
+à la suite du même. Le contrôleur les traite néanmoins symétriquement, puisque
+dans les deux cas franchir l'arête signifie sortir du périmètre de la page
+courante.
+ 
+\subsection{Graphe de corpus multi-pages}
+\label{sec-graphe_corpus}
+ 
+À partir d'une page d'amorce, le système parcourt jusqu'à $m = 3$ pages
+atteignables par ses arêtes \code{links\_to}. Le parcours est d'un seul saut et
+non récursif, car suivre les liens de proche en proche ferait croître le nombre
+de pages exponentiellement, pour un bénéfice incertain sur des questions qui
+portent rarement à plus d'un saut du sujet (\cref{sec-res_limites}).
+ 
+Chaque page est traitée indépendamment par la même chaîne, puis les graphes sont
+fusionnés. Deux mécanismes rendent la fusion possible.
+ 
+Le premier est le préfixage par espace de noms. Chaque page utilise
+indépendamment les identifiants \code{page}, \code{tile\_0000} et suivants. Tous
+les nœuds d'un sous-graphe sont donc préfixés avant fusion par un identifiant
+court dérivé de son URL, ce qui garantit l'unicité sans coordination.
+ 
+Le second est le point d'entrée. Le graphe d'une page expose un nœud
+page canonique comme cible d'un lien entrant, le nœud unique si la page n'a pas
+été découpée et la première section sinon. Lors de la fusion, chaque nœud
+\code{external\_page} tenant lieu de substitut est remplacé par le point
+d'entrée réel. Ce recâblage transforme une collection de graphes de pages en un
+graphe de corpus navigable, et rend possible l'expansion inter-documents du
+contrôleur (\cref{sec-controleur_expansion}).
+ 
+\subsection{Rendu structuré pour le lecteur}
+\label{sec-graphe_xml}
+ 
+Un sous-graphe en portée pour une requête peut être sérialisé en XML, dans
+l'esprit de l'étape de rendu structuré multimodal de MAGE-RAG. Un élément
+\code{<page>} porte l'URL et le titre, et contient un élément \code{<element>}
+par tuile directement rattachée, avec son identifiant, sa balise DOM, son état
+courant et son texte. Ce format donne au modèle lecteur une vue structurée de
+ce qui a été retenu et de ce qui a été écarté, plutôt qu'une concaténation de
+fragments sans provenance. Il est employé par l'application de
+démonstration (\cref{sec-implementation}), tandis que les quatre évaluations du
+\cref{chap-resultats} transmettent les preuves sous la forme concaténée de la
+\cref{sec-controleur_lecture}.
+ 
+Les identifiants \code{tile\_NNNN} suivent l'ordre de production du tuilage, qui
+trie les groupes par position. Il coïncide avec l'ordre de lecture de la
+\cref{sec-graphe_ordre} sauf lorsque deux tuiles d'une même rangée visuelle ont
+des ordonnées distinctes.
+ 
+\begin{lstlisting}[float=t, language=XML, caption={Rendu XML d'un graphe de page
+après passage du contrôleur pour la requête \og When and where was George Purnell
+Gunn born?\fg{}},
+label={lst-xml}, morekeywords={page,element,url,title,id,tag,state}]
+<page url="en.wikipedia.org/wiki/George_P._Gunn" title="George P. Gunn">
+  <element id="tile_0000" tag="merged" state="inactive">...</element>
+  <element id="tile_0003" tag="p" state="opened">
+    Gunn was born on October 11, 1903, in Winona, Mississippi, ...
+  </element>
+  <element id="tile_0004" tag="h2+p" state="pruned">...</element>
+  ...
+</page>
+\end{lstlisting}
+
+% =====================================================================
+\section{Entraînement contrastif du lecteur}
+\label{sec-contrastif}
+% =====================================================================
+ 
+Un modèle vision-langage générique sait décrire une tuile, mais rien ne le
+prépare à juger si elle permet de répondre à une question donnée. Il y est
+entraîné par contraste, en quatre temps. Les données sont d'abord construites,
+par génération synthétique de paires question-tuile puis minage de négatifs
+difficiles. Le modèle génératif est ensuite converti en encodeur, puis adapté
+par LoRA. Une perte InfoNCE est enfin optimisée sur les plongements obtenus.
+ 
+\subsection{Génération synthétique de paires question-tuile}
+\label{sec-contrastif_qa}
+ 
+Pour chaque tuile retenue, l'image seule est présentée au modèle vision-langage
+d'inférence (\code{qwen3-vl}, \cref{annexe-hyperparams}), avec la consigne de
+formuler une question factuelle et autonome dont la réponse est visible dans
+cette image et uniquement dans cette image. L'invite exige une question
+spécifique, portant sur un nombre, un nom, une date, une définition ou une
+légende, et une réponse impossible à deviner sans avoir vu la tuile. Si la tuile
+ne contient aucune information exploitable, le modèle répond exactement
+\code{SKIP}. La réponse attendue est un objet JSON strict, ce qui rend l'analyse
+syntaxique déterministe. L'invite complète figure en \cref{annexe-invites}.
+ 
+C'est la transposition à des tuiles d'image de la recette de génération
+synthétique de requêtes établie par InPars~\citep{inpars2022} et
+Promptagator~\citep{promptagator2022}.
+ 
+Toutes les tuiles retenues sont sauvegardées sur disque, y compris celles ayant
+reçu \code{SKIP}, car une telle tuile reste un candidat valide comme négatif
+difficile pour une question portant sur une autre tuile de la même page. Sur le
+corpus, \num{67} tuiles sur \num{1784} reçoivent \code{SKIP}
+(\cref{tab-res_dataset}).
+ 
+\subsection{Minage de négatifs difficiles}
+\label{sec-contrastif_mining}
+ 
+Pour chaque question, toutes les autres tuiles de la même page sont classées par
+similarité cosinus TF-IDF avec la question, et les $K = 2$ meilleures qui
+franchissent un filtre anti-faux-négatif sont retenues. Le scoreur lexical est
+choisi pour son coût, puisqu'il ne demande ni GPU ni modèle à charger alors que
+le minage s'exécute sur des milliers de tuiles. Sa configuration est reportée en
+\cref{annexe-hyperparams}.
+ 
+Le filtre anti-faux-négatif opère en deux temps, de coût très différent.
+ 
+Le premier est lexical et gratuit. Tout candidat dont l'aperçu textuel
+contient déjà la réponse verbatim est rejeté, ce qui attrape les faux négatifs
+littéraux, par exemple deux blocs mentionnant la même date.
+ 
+Le second, optionnel, est un juge vision-langage. Le filtre lexical ne
+détecte que les recouvrements textuels et laisse passer un candidat exprimant la
+même information par un synonyme, ou visuellement, comme une couleur dans un
+graphique, un logo ou une valeur lue sur un axe. L'image candidate est alors
+soumise au modèle avec la question et la réponse attendue. Ce filtre coûte un
+appel par candidat non écarté en amont. Il est désactivable, et les jeux de
+données du \cref{chap-resultats} sont construits avec le filtre lexical seul.
+ 
+Le minage conserve une question même lorsque moins de $K$ candidats franchissent
+le filtre, et l'exigence de $K$ négatifs n'est appliquée qu'au chargement du jeu
+de données pour l'entraînement. Sur les \num{1339} exemples construits,
+\num{1282} portent les deux négatifs attendus, \num{27} n'en portent qu'un et
+\num{30} aucun (\cref{tab-res_dataset}). Ces \num{57} derniers sont écartés au
+chargement, après le partitionnement de la \cref{sec-contrastif_split}.
+ 
+Le minage opère au sein d'une même page, les identifiants de tuiles n'étant
+uniques qu'à cette échelle. L'étendre au corpus exigerait de reprendre en amont
+le préfixage par espace de noms de la \cref{sec-graphe_corpus}. Cette extension
+est mise en œuvre pour le chemin HotpotQA (\cref{sec-protocole_multihop}), où
+les positifs proviennent de deux pages et où elle est obligatoire.
+ 
+\subsection{Du modèle génératif à l'encodeur}
+\label{sec-contrastif_encodeur}
+ 
+Le modèle affiné, \code{Qwen2-VL-7B-Instruct}~\citep{qwen2vl2024}, est
+génératif. Il transforme du texte et des images en texte et n'expose aucun
+vecteur de représentation, alors qu'une perte contrastive en exige un.
+ 
+La technique PromptEOL~\citep{prompteol2024} lève cet obstacle. L'entrée est
+suivie d'une courte instruction fixe, reproduite en \cref{annexe-invites}, et
+l'état caché de la dernière couche à la position du dernier token est pris comme
+plongement. L'instruction contraint le modèle à comprimer le sens de l'entrée en
+une position unique.
+ 
+Le point qui rend la technique adaptée ici est qu'elle est indifférente à la
+modalité. Le plongement d'une question textuelle et celui d'une image de tuile
+sont calculés de la même manière, avec la même instruction, seule l'entrée qui
+la précède changeant. Question et tuile vivent donc par construction dans le
+même espace, sans tête de projection additionnelle à apprendre. En notant
+$f_\theta$ cette fonction d'encodage, $\mathbf{z}_q = f_\theta(q)$ pour une
+question et $\mathbf{z}_u = f_\theta(u)$ pour une tuile $u$, la perte
+contrastive de la \cref{sec-contrastif_loss} porte exclusivement sur $\theta$, à
+travers les LoRA appliqués aux deux tours (\cref{sec-contrastif_lora}).
+ 
+\paragraph{Où se joue la compréhension visuelle.} La tour de vision de
+$f_\theta$ reçoit une séquence de \anglais{patches} (\cref{eq-tokens}). Pour une
+tuile issue de la grille aveugle, qui chevauche potentiellement plusieurs
+sections hétérogènes (\cref{sec-res_a_attach}), cette séquence mélange les
+\anglais{patches} de plusieurs entités sans qu'aucune limite ne les sépare, et
+le gradient de l'\cref{eq-infonce} doit pousser $f_\theta$ à extraire un signal
+discriminant d'une représentation dont une partie, potentiellement majoritaire,
+est hors sujet. Pour une tuile issue du tuilage guidé, chaque \anglais{patch}
+appartient par construction à l'unique élément sur lequel porte la question, et
+le signal à amplifier occupe toute la séquence. $f_\theta$ reste un Qwen2-VL
+générique, sans mécanisme d'attention ni architecture d'encodeur nouvelle. C'est
+la frontière de recadrage, déplacée en amont de l'encodeur, qui change la nature
+de la difficulté, de juger un mélange de contenus à juger un contenu homogène.
+La \cref{sec-res_ablation_b} mesure l'effet de l'entraînement contrastif sur des
+tuiles ainsi alignées, mais ce travail ne mesure pas séparément ce que
+l'alignement DOM apporte à l'entraînement lui-même, faute d'un entraînement
+identique mené sur des tuiles de grille.
+ 
+\paragraph{Chemin d'exécution et modèle affiné.} L'affinage n'emprunte pas le
+chemin utilisé pour la génération de questions et la lecture des tuiles
+(\cref{sec-contrastif_qa,sec-controleur_lecture}), qui s'adresse à un serveur
+Ollama n'exposant qu'une API de génération, sans accès aux poids ni aux
+gradients. Il charge le modèle via \code{transformers} et \code{peft}, ce qui
+exige un accès complet aux poids et un GPU loué. Le modèle affiné n'est donc pas
+celui de l'inférence, et \code{Qwen2-VL-7B-Instruct} a été retenu pour la
+stabilité de sa classe \code{peft} au moment de ce travail, quand Qwen2.5-VL et
+Qwen3-VL l'étaient moins pour l'affinage par LoRA. C'est un choix d'outillage,
+non une revendication d'équivalence entre les deux modèles. Cette proximité de
+famille sans identité est reprise en \cref{sec-res_limites_famille} comme risque
+de biais à contrôler.
+ 
+\subsection{Adaptation LoRA sur la tour de vision et le décodeur}
+\label{sec-contrastif_lora}
+ 
+L'adaptation utilise LoRA~\citep{lora2021} avec un rang $r = 16$, un facteur
+d'échelle $\alpha = 32$ et un \anglais{dropout} de \num{0.05}, soit
+\num{44 302 336} paramètres entraînables sur les sept milliards du
+modèle de base.
+ 
+\paragraph{Cibler les deux tours.} LoRA est appliqué aux projections d'attention
+du décodeur (\code{q\_proj}, \code{k\_proj}, \code{v\_proj}, \code{o\_proj}) et à
+celles de la tour de vision (\code{qkv}, \code{proj}). Juger si une tuile répond
+à une question exige d'affiner simultanément ce qui est vu dans l'image et ce qui
+est compris de la question. Geler la tour de vision reviendrait à demander au
+décodeur de compenser seul une représentation visuelle inadaptée à la tâche de
+récupération. La \cref{sec-eda_contrastif_adaptation} situe ce choix dans les
+variantes multimodales de LoRA.
+ 
+\paragraph{Découvrir les modules cibles par introspection.} Les noms de modules
+internes de Qwen2-VL varient d'une version de \code{transformers} à l'autre.
+Seuls des suffixes sont donc spécifiés, et le code parcourt le modèle chargé pour
+découvrir les modules linéaires correspondants. LoRA n'est appliqué qu'aux
+modules effectivement trouvés, ce qui rend l'adaptation robuste aux changements
+d'architecture interne mais impose de journaliser la liste obtenue à chaque
+exécution.
+ 
+\subsection{La perte contrastive}
+\label{sec-contrastif_loss}
+ 
+Soit un lot de $B = 4$ questions, chacune accompagnée d'une tuile positive et de
+$K = 2$ négatifs difficiles minés. Les plongements des $B$ questions et des
+$B(1+K)$ tuiles sont calculés, et la perte minimisée est l'InfoNCE de
+l'\cref{eq-infonce} étendue au lot entier,
+ 
+\begin{equation}
+\mathcal{L} = -\frac{1}{B}\sum_{i=1}^{B} \log
+\frac{\exp\!\big(\mathrm{sim}(\mathbf{z}_{q_i}, \mathbf{z}_{u_i^{+}})/\tau\big)}
+     {\displaystyle\sum_{j=1}^{B}\Big[
+       \exp\!\big(\mathrm{sim}(\mathbf{z}_{q_i}, \mathbf{z}_{u_j^{+}})/\tau\big)
+       + \sum_{l=1}^{K}
+       \exp\!\big(\mathrm{sim}(\mathbf{z}_{q_i}, \mathbf{z}_{u_{j,l}^{-}})/\tau\big)
+     \Big]},
+\label{eq-infonce_lot}
+\end{equation}
+ 
+avec une température $\tau = \num{0.05}$. Le dénominateur porte sur les $B(1+K)$
+tuiles du lot et non sur les $1+K$ tuiles associées à la question courante, si
+bien que chaque positif entre en compétition à la fois avec ses propres négatifs
+minés et avec les tuiles de toutes les autres questions du lot, les
+\anglais{in-batch negatives} de la \cref{sec-eda_contrastif_infonce}. À $B = 4$
+et $K = 2$, le nombre de négatifs effectifs par question,
+\begin{equation}
+N_{\text{eff}} = B(1+K) - 1 = 11,
+\label{eq-negatifs_effectifs}
+\end{equation}
+passe de \num{2}, les seuls négatifs minés si l'on entraînait avec $B = 1$, à
+\num{11}, sans plongement supplémentaire à calculer. Le coût du lot croît
+linéairement en $B$, le nombre de comparaisons quadratiquement.
+ 
+\paragraph{Lecture de l'\cref{eq-infonce_lot} comme classification.} Pour une
+question $q_i$ fixée, notons $\mathbf{s}_i \in \mathbb{R}^{B(1+K)}$ le vecteur
+des similarités $\mathrm{sim}(\mathbf{z}_{q_i}, \cdot)/\tau$ contre les $B(1+K)$
+tuiles du lot, et $y_i$ l'indice de la tuile positive $u_i^+$ dans ce vecteur. Le
+terme sommé de l'\cref{eq-infonce_lot} est alors exactement l'entropie croisée
+catégorielle $-\log \op{softmax}(\mathbf{s}_i)_{y_i}$. Apprendre par contraste
+revient donc à résoudre, pour chaque question du lot, un problème de
+classification à $B(1+K)$ classes dont une seule est correcte. Le gradient par
+rapport à $\mathbf{z}_{q_i}$ se décompose en une force qui rapproche
+$\mathbf{z}_{q_i}$ de $\mathbf{z}_{u_i^+}$ et des forces qui l'éloignent de
+chaque négatif $u$, chacune pondérée par la probabilité
+$\op{softmax}(\mathbf{s}_i)_u$ que le modèle attribue déjà à ce négatif. Un
+négatif que le modèle confond encore avec le positif reçoit ainsi un gradient
+plus grand qu'un négatif déjà écarté avec confiance.
+ 
+La température $\tau$ contrôle l'acuité de cette pondération. En la faisant
+tendre vers $0$, le softmax se concentre sur l'argument maximal et le gradient
+se resserre presque entièrement sur le négatif le plus proche du positif, ce qui
+accélère l'apprentissage sur les cas difficiles mais amplifie d'autant l'effet
+d'un faux négatif introduit par le minage (\cref{sec-contrastif_mining}). À
+$\tau = \num{0.05}$, ce compromis penche délibérément du côté de la
+discrimination fine, cohérent avec l'objectif de la \cref{sec-contrastif_qa} de
+produire des questions dont la réponse n'est visible que dans une tuile précise.
+ 
+\subsection{Contraintes mémoire}
+\label{sec-contrastif_memoire}
+ 
+Sur une carte de \SI{80}{\giga\byte}, le chemin de calcul par lots des
+plongements a d'abord échoué sur un dépassement de mémoire GPU, avec
+\SI{79.16}{\giga\byte} occupés sur les \SI{79.25}{\giga\byte} disponibles.
+L'usage est réel et non fragmenté, puisqu'un lot pousse $B(1+K) = 12$ tuiles à
+travers le modèle simultanément, soit environ \num{64 000} tokens
+visuels au total. Aucune de ces tuiles n'étant écrêtée
+(\cref{sec-eda_cout_visuel}), cette longueur croît proportionnellement à l'aire
+cumulée du lot.
+ 
+L'activation du \anglais{gradient checkpointing}, qui recalcule les activations
+lors de la passe arrière plutôt que de les conserver, résout le problème au prix
+de \SIrange{20}{30}{\percent} de temps de calcul supplémentaire. C'est le réglage
+par défaut retenu à cette résolution de tuile.
+ 
+\subsection{Partitionnement pour l'évaluation}
+\label{sec-contrastif_split}
+ 
+Un partitionnement au niveau des exemples serait trompeur, car deux tuiles
+voisines d'une même page produisent des questions fortement corrélées, et un
+modèle ayant vu l'une en entraînement bénéficierait indûment sur l'autre en
+validation.
+ 
+Le partitionnement est donc au niveau de l'\textbf{article}, en proportion
+\num{80}/\num{20} visée puis arrondie à l'article entier, avec des articles
+strictement disjoints entre les deux parties. Aucune tuile et aucune question quasi dupliquée ne peut traverser la
+frontière. L'adaptateur évalué en \cref{sec-res_ablation_b} est entraîné sur la
+seule partie d'entraînement.
+
+% =====================================================================
+\section{Contrôleur de preuves en ligne}
+\label{sec-controleur}
+% =====================================================================
+ 
+À la requête, le contrôleur décide quels nœuds élément le lecteur ouvre
+réellement, plutôt que de lui présenter la page entière ou une sélection
+top-$k$ figée. Il généralise l'algorithme de contrôle de MAGE-RAG.
+ 
+\subsection{Machine à états}
+\label{sec-controleur_etats}
+ 
+Chaque nœud élément porte un attribut d'état, initialisé à \etat{inactive} lors
+de la construction du graphe, que le contrôleur fait évoluer à travers la machine
+à quatre états de la \cref{fig-etats}. Un nœud \etat{inactive} n'appartient pas
+à la frontière courante. Un nœud \etat{active} est candidat à l'ouverture. Un
+nœud \etat{opened} a été lu et son contenu fait partie des preuves. Un nœud
+\etat{pruned} a été jugé non pertinent, ou laissé de côté faute de budget.
+ 
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  node distance=1.1cm and 1.9cm,
+  st/.style={draw, rounded corners=2pt, minimum width=2.2cm, minimum height=0.75cm,
+             align=center, font=\small, draw=rulegray, line width=0.8pt, fill=codebg},
+  stf/.style={st, fill=accent!8, draw=accent},
+  arr/.style={-{Stealth[length=2.2mm]}, thick, draw=black!60}
+]
+\node[st] (inactive) {\etat{inactive}};
+\node[st, right=of inactive] (active) {\etat{active}};
+\node[stf, above right=0.62cm and 2.55cm of active] (opened) {\etat{opened}};
+\node[st, below right=0.62cm and 2.55cm of active] (pruned) {\etat{pruned}};
+\draw[arr] (inactive) -- node[above, font=\scriptsize]{activation} (active);
+\draw[arr] (active) -- node[above, sloped, font=\scriptsize, pos=0.42]{ouverture ($-1$~budget)} (opened);
+\draw[arr] (active) -- node[below, sloped, font=\scriptsize, pos=0.42]{élagage (gratuit)} (pruned);
+\end{tikzpicture}
+\caption[Machine à états du contrôleur]{Machine à états du contrôleur.
+L'ouverture d'un nœud consomme une unité de budget et peut activer ses voisins
+encore inactifs, le long de \code{reading\_order} sur la même page ou en
+franchissant une frontière de document via \code{links\_to} et \code{continues}.
+L'élagage est gratuit et s'applique à un nœud actif dont le score est sous le seuil
+d'ouverture, puis à tout nœud resté actif lorsque le budget est épuisé. Un nœud
+jamais activé reste \etat{inactive}.}
+\label{fig-etats}
+\end{figure}
+ 
+\subsection{Politique \anglais{best-first} budgétée}
+\label{sec-controleur_politique}
+ 
+Le contrôleur cherche un sous-ensemble $O \subseteq V_{\text{élém}}$ de nœuds à
+ouvrir sous la contrainte de budget $|O| \leq B$, où $B$ désigne ici le nombre
+d'ouvertures autorisées et non la taille de lot de la \cref{sec-contrastif_loss}.
+Il maximise informellement la pertinence cumulée $\sum_{n \in O}
+\mathrm{score}(n)$ tout en respectant une contrainte d'accessibilité, un nœud ne
+pouvant entrer dans $O$ que s'il a d'abord été rendu \etat{active} par
+l'ouverture d'un voisin déjà dans $O$, ou par l'amorçage initial.
+ 
+C'est un problème de sélection sous contrainte de cardinalité et de connexité,
+pour lequel l'\cref{alg-controleur} implémente une heuristique \anglais{best-first}
+gloutonne plutôt qu'une optimisation exacte. Rien ne garantit que $O$ maximise
+$\sum \mathrm{score}(n)$ sur les sous-graphes connexes de cardinalité $B$
+atteignables depuis l'amorce, seulement que chaque décision locale est
+rationnelle au moment où elle est prise. Ce choix reprend celui de MAGE-RAG et
+privilégie le calcul en une passe.
+ 
+La politique comporte trois phases. L'amorçage active les
+$k_{\text{seed}}$ nœuds inactifs les mieux notés pour la requête, seule phase où
+la sélection est globale. La boucle principale prend répétitivement le
+nœud actif le mieux noté, l'élague sans consommer de budget si son score est sous
+le seuil d'ouverture, et sinon l'ouvre, ce qui consomme une unité de budget et
+rend actifs ses voisins encore inactifs qui franchissent le seuil d'activation.
+La finalisation élague tout nœud resté actif une fois le budget épuisé,
+de sorte qu'aucun nœud ne subsiste dans un état transitoire.
+ 
+\begin{algorithm}[t]
+\caption{Contrôle de preuves \anglais{best-first} sous budget}
+\label{alg-controleur}
+\DontPrintSemicolon
+\KwData{graphe $G$, requête $q$, budget $B$, amorce $k_{\text{seed}}$,
+        seuils $\theta_{\text{ouv}}$ et $\theta_{\text{act}}$}
+\KwResult{liste des nœuds \etat{opened}, en ordre de lecture}
+\ForEach{nœud élément $n$ de $G$}{
+  $\mathrm{score}(n) \leftarrow \mathrm{sim}\big(q, \operatorname{texte}(n)\big)$ \tcp*{TF-IDF}
+}
+activer les $k_{\text{seed}}$ nœuds inactifs de plus haut score\;
+$b \leftarrow 0$\;
+\While{$b < B$ \textbf{et} il existe un nœud \etat{active}}{
+  $n \leftarrow \arg\max \mathrm{score}$ parmi les nœuds \etat{active}\;
+  \If{$\mathrm{score}(n) < \theta_{\text{ouv}}$}{
+    $n \leftarrow \etat{pruned}$ \tcp*{gratuit}
+    \textbf{continuer}\;
+  }
+  $n \leftarrow \etat{opened}$~; $b \leftarrow b + 1$\;
+  $N \leftarrow \proc{VoisinsOrdreDeLecture}(n) \cup \proc{VoisinsInterDocuments}(n)$\;
+  \ForEach{$n' \in N$ tel que $n'$ est \etat{inactive}}{
+    \If{$\mathrm{score}(n') \geq \theta_{\text{act}}$}{$n' \leftarrow \etat{active}$}
+  }
+}
+élaguer tout nœud encore \etat{active}\;
+\Return{les nœuds \etat{opened}, triés par ordre de lecture}\;
+\end{algorithm}
+ 
+Ce qui distingue cette politique d'une sélection top-$k$ n'est ni le score ni le
+budget, identiques, mais le fait que les voisins ne sont considérés qu'après
+l'ouverture de leur nœud. La frontière est conditionnée par ce qui s'est déjà
+révélé pertinent plutôt que par un classement global figé.
+ 
+\paragraph{Effet de l'égalité des deux seuils.} Les deux seuils valent \num{0.05}
+(\cref{annexe-hyperparams}), et leur égalité restreint l'élagage gratuit. Un
+nœud activé par un voisin a franchi $\theta_{\text{act}}$, donc son score atteint
+aussi $\theta_{\text{ouv}}$ et il ne peut pas être élagué gratuitement. Seules
+les amorces, activées sans test de seuil, le peuvent. Le contrôleur n'ouvre donc
+moins de $B$ nœuds que pour deux raisons, l'élagage d'une amorce ou l'épuisement
+de la frontière, et la \cref{sec-res_c_analyse} mesure \num{4.86} ouvertures en
+moyenne pour un budget de \num{5}.
+ 
+\subsection{Expansion inter-documents}
+\label{sec-controleur_expansion}
+ 
+Le contrôleur de MAGE-RAG, et la première implémentation à sa suite, ne propagent
+l'activation que le long de \code{reading\_order}, relation qui ne franchit
+jamais une frontière de page. Un nœud ouvert près de la fin d'une page ne peut
+donc activer aucun nœud d'une page liée ni de la section suivante, alors même que
+les deux arêtes existent. Sur une question multi-sauts dont les preuves sont
+réparties sur deux articles, le second n'est atteignable que si l'amorce globale
+y a déjà placé un nœud, c'est-à-dire exactement ce que fait une sélection top-$k$
+statique, et moins bien dès que l'amorce en manque un.
+ 
+Ce point est la cause diagnostiquée de l'incapacité du contrôleur à dépasser la
+référence statique sur les questions inter-pages (\cref{sec-res_c_avant}). À
+l'ouverture d'un nœud, en plus de ses voisins d'ordre de lecture, sont désormais
+rendus candidats
+ 
+\begin{itemize}
+\item tous les éléments de toute page atteignable depuis ce nœud par une arête
+\code{links\_to}, la page cible étant, grâce au recâblage de la
+\cref{sec-graphe_corpus}, une page réellement construite et non un substitut,
+\item et tous les éléments de toute page atteignable depuis sa page conteneuse
+par une arête \code{continues}.
+\end{itemize}
+ 
+Dans les deux cas, franchir la porte n'entraîne aucune activation automatique,
+chaque élément candidat devant franchir le même seuil $\theta_{\text{act}}$ qu'un
+voisin d'ordre de lecture. Le mécanisme est strictement symétrique à celui qui
+existait déjà, seul le voisinage considéré s'élargit, et il reste limité à trois
+des sept relations du graphe (\cref{sec-graphe}). La \cref{sec-res_ablation_c}
+mesure l'effet de ce correctif.
+ 
+\subsection{Score de pertinence et point d'extension}
+\label{sec-controleur_scoreur}
+ 
+Par défaut, la pertinence est mesurée par similarité cosinus TF-IDF entre la
+requête et le texte de chaque nœud, avec le même scoreur et la même configuration
+que le minage de négatifs (\cref{sec-contrastif_mining}). C'est un substitut
+destiné à être remplacé.
+ 
+Le contrôleur expose à cet effet un paramètre de scores précalculés. Si un
+dictionnaire de scores est fourni, il remplace intégralement le scoreur lexical,
+un nœud absent recevant un score nul. Ce point d'extension est conçu pour y
+brancher la similarité du lecteur affiné de la \cref{sec-contrastif}, sans
+toucher à la politique. Le calcul de ces scores, un passage avant du modèle par
+tuile candidate, reste hors de ce module. La \cref{sec-res_limites} explique
+pourquoi ce branchement n'a pas été effectué et pourquoi il constitue la
+modification la plus prometteuse restant à faire.
+ 
+\subsection{Lecture des tuiles retenues}
+\label{sec-controleur_lecture}
+ 
+L'\cref{alg-controleur} retourne une liste de nœuds, non des preuves. Les tuiles
+ouvertes sont ensuite relues par le modèle vision-langage, qui en extrait les
+informations utiles à la requête. Les preuves finales sont la concaténation, en
+ordre de lecture, de ces extractions, et remplacent donc l'aperçu textuel qui a
+servi au scorage.
+ 
+La politique a une propriété structurelle que la \cref{sec-impl_concurrence}
+exploite. Quel nœud est ouvert ne dépend jamais du contenu lu par le modèle, mais
+uniquement des scores figés en amont. La simulation complète de la machine à
+états peut donc être déroulée sans aucun appel au modèle, les lectures n'étant
+effectuées qu'ensuite, sur une liste déjà connue.
+ 
+% =====================================================================
+\section{Implémentation et ingénierie}
+\label{sec-implementation}
+% =====================================================================
+ 
+\subsection{Architecture modulaire}
+ 
+Le système est écrit en Python, avec un module par étage. Le rendu et l'extraction
+reposent sur Playwright, le tuilage sur des recadrages Pillow, le graphe sur
+\code{networkx}. Le client vision-langage s'adresse à un serveur Ollama, ce qui
+permet de démarrer avec un seul téléchargement de modèle et sans dépendance à
+\code{torch}. Le module d'affinage, seul à dépendre de \code{torch},
+\code{transformers} et \code{peft}, n'est pas importé par le reste du système et ne
+charge ces bibliothèques qu'à l'exécution. La cartographie des modules figure en
+\cref{annexe-depot}.
+ 
+Une application web expose la chaîne complète derrière un formulaire
+\og URL plus question\fg{}. La requête déclenche l'exécution en direct, puis
+affiche la réponse synthétisée, le graphe interactif (catégorie de contenu par
+couleur, état du contrôleur par bordure, arêtes filtrables par relation) et les
+pages liées, avec un marqueur sur celles portées par une tuile retenue comme
+preuve. C'est le seul consommateur du rendu XML de la \cref{sec-graphe_xml}. Chaque
+requête recalcule tout, sans corpus préconstruit, et le temps de réponse va de
+quelques dizaines de secondes à plusieurs minutes selon la page et le budget.
+ 
+\subsection{Reproductibilité des appels au modèle}
+\label{sec-impl_repro}
+ 
+\paragraph{Décodage glouton.} Aucune température n'étant fixée, le serveur
+échantillonnait avec ses réglages par défaut, donc à température strictement
+positive. Deux appels sur la même image et la même invite pouvaient produire des
+réponses différentes, y compris une réponse correcte et une abstention sans aucune
+différence dans les tuiles ouvertes. La température est fixée à zéro, et à entrée
+fixée la sortie est déterministe.
+ 
+\paragraph{Fenêtre de contexte.} Le modèle d'inférence raisonne avant de répondre,
+sur \numrange{1500}{2500} tokens pour une extraction factuelle sur une tuile. Ce
+raisonnement s'ajoute à l'invite et aux tokens visuels de la tuile, soit \num{200}
+en moyenne et jusqu'à \num{5350} pour une tuile de taille maximale
+(\cref{tab-cout_tokens}). Avec la fenêtre de contexte par défaut du serveur, fixée
+à \num{4096} tokens, la somme épuisait la fenêtre avant l'émission de la réponse
+finale, et le résultat était un contenu vide, silencieusement interprété comme
+\code{SKIP} par l'analyseur de réponses. La fenêtre est portée à \num{8192} tokens,
+ce qui laisse peu de marge dans le cas le plus défavorable. Cette classe d'erreurs,
+une défaillance d'infrastructure qui se déguise en résultat de modèle légitime, est
+celle contre laquelle la journalisation des longueurs de séquence protège le mieux.
+ 
+\paragraph{Cache sur disque.} Chaque appel au modèle est mis en cache sur disque,
+indexé par un condensat du triplet (image, invite, configuration de décodage). Le
+décodage étant glouton, un appel déjà effectué se rejoue sans coût. Ce cache rend
+praticable l'itération sur le code d'évaluation, puisque relancer un script après
+correction d'un défaut ne repaie pas les heures d'appels déjà effectuées.
+ 
+\subsection{Sauvegarde par unité de travail}
+ 
+L'état est sauvegardé par unité de page, une unité étant une page ou une section
+d'une page découpée. Ce grain répond directement au cas de la
+\cref{sec-tuilage_sections}, un échec en cours de traitement d'une page démesurée
+ne coûtant plus que la section en vol.
+ 
+\subsection{Concurrence}
+\label{sec-impl_concurrence}
+ 
+Deux étapes exploitent la concurrence, avec au plus \num{4} appels au modèle
+simultanés, et dans les deux cas la légitimité du parallélisme découle d'une
+propriété du système.
+ 
+La génération de questions émet ses appels en parallèle au sein d'une page. Ces
+appels sont indépendants, chacun ne recevant qu'une image et une invite fixe.
+ 
+La lecture des tuiles ouvertes fait de même, et c'est ici que la propriété de la
+\cref{sec-controleur_lecture} devient opérationnelle. Puisque la trajectoire
+d'états ne dépend jamais du contenu lu, la liste des tuiles à lire est entièrement
+connue avant la première lecture, et ces lectures sont donc mutuellement
+indépendantes. Un unique client est réutilisé entre fils d'exécution, chaque appel
+étant une requête HTTP indépendante sans état mutable partagé à protéger.
+ 
+\subsection{Tests}
+ 
+La stratégie de test suit une séparation par dépendances, détaillée en
+\cref{annexe-depot}. Les tests sans dépendance lourde couvrent la logique
+géométrique, la construction du graphe, le minage de négatifs, l'assemblage du jeu
+de données, le cache et la concurrence du client, et la compression d'images. Ils
+s'exécutent sur des cas synthétiques, sans réseau, sans modèle et sans GPU.
+ 
+Les tests adossés à Playwright vérifient l'extraction DOM de bout en bout contre
+une page HTML locale fournie avec le dépôt. Deux cas y sont verrouillés. Un élément
+flottant partageant sa rangée avec du texte fixe le comportement de la mesure
+serrée de la \cref{sec-rendu_textflow}. Deux éléments en chevauchement partiel,
+tous deux conservés, détectent une régression de la \cref{sec-tuilage_elagage} vers
+un élagage trop agressif.
+
+
+%  =====================================================================
+\section{Protocole expérimental}
+\label{sec-protocole}
+% =====================================================================
+ 
+\subsection{Construction du jeu de données synthétique}
+ 
+Un script pilote la chaîne sur une liste de pages, avec reprise sur échec du
+téléchargement. Son unité de travail est l'unité de page, et chaque unité est
+sauvegardée indépendamment dans un fichier au format JSON lignes. Trois fichiers
+en résultent, un manifeste associant chaque identifiant de tuile à son image, les
+paires question-réponse générées, et les exemples contrastifs assemblés avec leurs
+négatifs. Cette reprise ne couvre pas un échec survenant après la génération
+des questions, dont l'\cref{sec-res_limites_dataset} rapporte l'effet.
+ 
+Le plafond de \num{25} tuiles par unité de page (\cref{sec-tuilage}) borne le coût
+de génération. Il borne aussi la portée de l'évaluation~A, ce qu'analyse
+l'\cref{sec-res_limites_plafond}.
+ 
+\subsection{Reproduction de la référence en grille}
+\label{sec-protocole_grille}
+ 
+Pour l'ablation du tuilage (\cref{sec-res_ablation_a}), un module réimplémente la
+référence en grille aveugle indépendamment du module de tuilage. La page rendue est
+tranchée en bandes de \SI{1024}{\pixel} de haut à la largeur de rendu, ce qui
+reproduit la hauteur de tuile documentée par PixelRAG mais non sa largeur, plus
+étroite (\cref{sec-eda_pixelrag}). Cet écart de largeur est à porter au compte de
+la comparaison de budget de pixels, pour la raison exposée en \cref{sec-rendu}. Une
+troisième condition découpe le texte extrait de la même région de page en fenêtres
+plates de \num{400} caractères, sans aucune notion de frontière d'élément. C'est la
+référence textuelle standard que l'introduction critique et que ni PixelRAG ni
+MAGE-RAG ne mesurent directement.
+ 
+Les trois conditions sont construites sur des articles rendus avec un seuil de
+découpage en sections relâché par rapport à celui de la
+\cref{sec-tuilage_sections}. Cette évaluation retient une hauteur de page maximale
+de \num{25} fois la hauteur maximale de tuile plutôt que \num{10}, soit
+\SI{51200}{\pixel} contre \SI{20480}{\pixel} pour le reste du corpus. Ce seuil
+propre à l'évaluation, indépendant de celui qui protège des coûts de génération le
+corpus principal, suffit à ce que chaque article soit traité comme une unité de
+page unique, de sorte que les trois conditions portent sur la même étendue de
+document. La \cref{sec-res_ablation_a} précise l'exception rencontrée en pratique
+sur l'article le plus long du corpus.
+ 
+L'indépendance de ce module vis-à-vis du module de tuilage est un choix
+méthodologique, puisqu'elle garantit qu'une modification du tuilage guidé ne peut
+pas altérer silencieusement la référence à laquelle on le compare.
+ 
+\subsection{Ablation de résolution}
+\label{sec-protocole_resolution}
+ 
+PixelRAG documente la résolution d'image comme levier d'efficacité, sans préciser
+ni le filtre de ré-échantillonnage ni les résolutions testées. Un couple pleine
+résolution et résolution réduite est donc construit sur les tuiles de ce travail,
+par sous-échantillonnage Lanczos à un facteur d'échelle linéaire de \num{0.5}, soit
+quatre fois moins de pixels. Les images compressées sont écrites sous les mêmes
+noms dans un dossier miroir, de sorte que le manifeste et les exemples contrastifs
+restent réutilisables tels quels, seul le dossier racine des images changeant entre
+les deux expériences.
+ 
+\subsection{Questions multi-sauts issues de HotpotQA}
+\label{sec-protocole_multihop}
+ 
+La génération synthétique de la \cref{sec-contrastif_qa} a un biais structurel,
+puisqu'elle demande une question dont la réponse est visible dans une seule tuile.
+Un contrôleur omniscient pourrait donc répondre à n'importe laquelle de ces
+questions depuis un unique nœud, ce qui ne sollicite jamais le graphe.
+ 
+Cet écart est comblé avec HotpotQA~\citep{hotpotqa2018}, dont chaque question
+nomme, via ses phrases de support, deux articles Wikipédia et les phrases exactes
+nécessaires dans chacun. Ce signal annoté par des humains est réutilisé plutôt que
+régénéré, selon la procédure suivante.
+ 
+\begin{enumerate}
+\item Les titres d'articles cités sont convertis en URL Wikipédia et rendus par la
+chaîne existante, inchangée.
+\item Pour chaque article, les tuiles dont le texte recouvre une phrase de support
+sont retenues comme positives. Une même question peut donc avoir des tuiles
+positives sur deux pages distinctes.
+\item Les négatifs difficiles sont minés sur le vivier réunissant les tuiles des
+deux articles, l'extension inter-pages que la \cref{sec-contrastif_mining} laissait
+de côté étant ici obligatoire.
+\end{enumerate}
+ 
+Une question est abandonnée dans deux cas, plutôt que de produire un exemple
+incomplet. Le premier est un article qui ne se rend plus, renommé ou supprimé
+depuis le \anglais{dump} Wikipédia de 2017 sur lequel HotpotQA est construit. Le
+second est une phrase de support introuvable dans le rendu actuel, l'article ayant
+été réécrit.
+ 
+L'attribution d'une phrase de support à une tuile se fait par recouvrement de
+tokens filtrés des mots vides, et non par correspondance de sous-chaîne exacte.
+Celle-ci survit rarement à une décennie de modifications éditoriales, et l'exiger
+ferait chuter le taux de conservation pour une raison sans rapport avec ce qui est
+mesuré.

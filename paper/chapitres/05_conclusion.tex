@@ -1,0 +1,203 @@
+% =====================================================================
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+\markboth{Conclusion}{Conclusion}
+\label{chap-conclusion}
+% =====================================================================
+
+\section*{Rappel de la thèse}
+\addcontentsline{toc}{section}{Rappel de la thèse}
+
+Ce travail est parti d'une observation dont la simplicité est le principal
+argument~: pour une page web, la segmentation dont un système de génération
+augmentée par récupération visuelle a besoin existe déjà. Le moteur de mise en
+page du navigateur a calculé la boîte englobante exacte de chaque élément avant
+qu'un seul pixel ne soit recadré. PixelRAG~\citep{pixelrag2026} établit qu'un
+modèle vision-langage peut récupérer directement sur des tuiles de pixels,
+mais les découpe à l'aveugle~; MAGE-RAG~\citep{magerag2026} établit qu'un
+contrôleur de graphe budgété surpasse une sélection statique, mais suppose les
+éléments du document déjà constitués en amont de son propre pipeline. Les deux
+laissent, chacun de son côté, la même pièce sur la table~: ce travail les
+assemble par l'artefact que le premier jette au rendu et que le second n'a
+jamais eu à construire --- le DOM.
+
+Transformer cette observation en système a demandé quatre composants~: un tuilage
+adaptatif aligné sur les frontières d'éléments, un graphe de preuves
+multigranulaire s'étendant sur plusieurs documents, un lecteur vision-langage
+adapté par contraste à l'évaluation de pertinence, et un contrôleur budgété
+décidant à la requête quelles tuiles ouvrir. Le système est implémenté de bout en
+bout, testé, et évalué sur des pages web réelles plutôt que sur un corpus figé.
+
+\section*{Ce que le travail établit}
+\addcontentsline{toc}{section}{Ce que le travail établit}
+
+Deux résultats sont solidement étayés et constituent l'apport principal de ce
+projet.
+
+\paragraph{Le tuilage guidé par le DOM est meilleur et moins cher.} La fraction
+des questions dont la réponse survit dans une unité récupérable passe de
+\SI{26.4}{\percent} avec une grille aveugle à \SI{51.8}{\percent} avec nos
+tuiles. Ce n'est pas un gain de classement mais un gain de \emph{possibilité}~:
+une réponse absente de toute unité est perdue quelle que soit la qualité du
+récupérateur en aval, de sorte que doubler ce taux double le nombre de questions
+auxquelles le système peut du tout répondre.
+
+Et ce gain s'obtient à un coût inférieur. Notre tuilage produit cinq fois plus
+d'unités que la grille, mais chacune est treize fois plus petite~: le total des
+pixels par page est \num{2.7} fois moindre. L'origine de ce résultat est
+identifiée et formalisée précisément~--- la boîte \emph{serrée} d'une balise de
+texte coulant, mesurée sur l'union des rectangles de ses lignes réellement
+rendues plutôt que sur sa boîte de bloc CSS pleine largeur, élimine une aire de
+fond blanc qu'un recadrage naïf aurait soumise en pure perte à l'encodeur
+visuel ---~et elle en constitue l'enseignement technique le plus transférable.
+Comme le nombre de tokens visuels croît avec l'aire de l'image dans la famille
+de modèles utilisée, ce budget de pixels est un proxy direct du coût
+d'inférence. Il n'y a donc pas d'arbitrage à faire~: la trouvabilité et le coût
+s'améliorent ensemble.
+
+\paragraph{L'adaptation contrastive du lecteur fonctionne nettement.} Sur un
+partitionnement au niveau de l'article strictement disjoint, et en classant
+chaque question contre toutes les tuiles de sa page plutôt que contre le vivier
+miné, le Recall@1 passe de \num{0.433} à \num{0.785} et le MRR de \num{0.578} à
+\num{0.856}.
+
+La comparaison avec la référence lexicale porte un enseignement qui dépasse notre
+système. Le modèle vision-langage non adapté obtient un MRR de \num{0.578},
+pratiquement identique à celui d'une similarité cosinus TF-IDF (\num{0.579}), et
+un Recall@1 légèrement inférieur --- mais un Recall@3 et un Recall@5 légèrement
+supérieurs~: ce n'est pas un déficit général de récupération. Autrement dit~:
+substituer un grand modèle multimodal à un scoreur lexical, sans l'entraîner à
+la tâche de récupération, n'apporte pas d'avantage net sur le rang de tête, qui
+est ce qui compte pour une sélection à un seul candidat. Tout le gain de
+Recall@1 vient de l'adaptation contrastive spécifique.
+
+\paragraph{Ces deux résultats partagent une même racine conceptuelle.} Ce
+travail ne propose ni nouvelle architecture d'encodeur ni mécanisme
+d'attention inédit~: le lecteur affiné reste un Qwen2-VL générique. Ce qui
+change est \emph{où} passe la frontière de recadrage. En alignant la grille de
+\anglais{patches} que consomme le modèle vision-langage sur les frontières
+d'éléments du DOM plutôt que sur une géométrie arbitraire, le tuilage garantit
+qu'une tuile porte un contenu visuel homogène~: c'est ce qui rend chaque pixel
+soumis à l'encodeur pertinent pour la question posée, aussi bien au moment de
+la récupération non entraînée qu'à celui de l'apprentissage contrastif, dont
+l'objectif n'a plus à démêler plusieurs sujets mélangés dans une même séquence
+de \anglais{patches}. Le gain de trouvabilité, la réduction du budget de
+pixels et l'efficacité de l'adaptation contrastive sont ainsi trois
+manifestations mesurables d'une seule décision de conception, prise avant que
+l'encodeur ne voie la première tuile.
+
+\section*{Le verrou identifié}
+\addcontentsline{toc}{section}{Le verrou identifié}
+
+Les composants en aval n'atteignent pas encore le niveau des deux précédents, et
+le principal apport analytique de ce rapport est d'avoir localisé précisément
+pourquoi.
+
+Le contrôleur budgété n'établit pas de supériorité sur une sélection top-$k$
+statique. Ce résultat a néanmoins produit un enchaînement méthodologique
+satisfaisant~: nous avons formulé une hypothèse causale falsifiable --- la
+frontière d'exploration ne franchissait jamais les limites de document, la
+relation d'ordre de lecture ne reliant jamais deux pages ---, implémenté le
+correctif déduit de ce diagnostic, et mesuré l'effet prédit. La couverture
+inter-pages est passée de \SI{29.7}{\percent} à \SI{39.6}{\percent}, réduisant
+l'écart avec la référence de dix points à un point. La parité est atteinte, la
+supériorité non.
+
+L'évaluation bout-en-bout a ensuite montré que le mode de défaillance dominant du
+système assemblé est l'\emph{abstention explicite} --- quatorze prédictions sur
+vingt --- et non la fabulation. Le lecteur n'échoue pas à interpréter les preuves
+qu'on lui fournit~: il constate correctement qu'elles sont insuffisantes. La
+défaillance est donc située dans la sélection, en amont.
+
+Quatre observations convergent alors vers le même composant. Le contrôleur
+n'atteint qu'une couverture complète sur un peu plus d'une question sur trois.
+Douze des quatre-vingt-onze questions ont une couverture nulle, signe que le
+score ne classe pas correctement même sur la page de départ. Le système assemblé
+s'abstient parce que les preuves manquent. Et le tuilage structuré n'est pas
+récompensé par une métrique aveugle à la structure --- ce qui explique le seul
+résultat contraire à nos attentes, le découpage textuel plat devançant les tuiles
+DOM sur le sous-ensemble strictement apparié.
+
+Ce composant est le \textbf{score de pertinence du contrôleur}, qui reste un
+substitut lexical alors même que l'évaluation du lecteur a validé un scoreur bien
+supérieur sur exactement cette tâche. Le point d'extension qui permet la
+substitution est déjà en place dans l'implémentation~; la seule barrière est le
+coût de calcul, un passage avant du modèle par tuile candidate et par question
+contre un score lexical essentiellement gratuit.
+
+À ce premier verrou s'en ajoute un second, que le score ne recouvre pas. La
+politique de parcours n'emprunte que trois des sept relations construites, et
+l'adjacence de mise en page comme la hiérarchie de sections restent
+inexploitées quel que soit le scoreur employé, la fonction de voisinage ne les
+consultant pas. Le graphe est donc établi comme constructible depuis le DOM,
+pas encore comme exploité.
+
+Il faut dire cela clairement, car c'est une position favorable pour la suite. Le
+système ne présente pas une défaillance diffuse dont on ignorerait l'origine,
+mais deux composants validés et deux verrous nommés, localisés, instrumentés, et
+dont les correctifs sont spécifiés séparément.
+
+\section*{Enseignements méthodologiques}
+\addcontentsline{toc}{section}{Enseignements méthodologiques}
+
+Trois enseignements de méthode dépassent le cas particulier de ce système et
+méritent d'être retenus.
+
+\paragraph{Une métrique de récupération doit être invariante à la taille du
+vivier.} Sur nos données, la grille aveugle atteint un Recall@5 de \num{0.991}
+--- un score presque parfait qui n'exprime rien d'autre que le fait qu'elle ne
+propose que cinq candidats par page. Rapporter des Recall bruts pour comparer des
+stratégies de découpage produit une conclusion inversée. Le rang percentile, dont
+l'espérance sous classement aléatoire vaut \num{0.5} quelle que soit la taille du
+vivier, est la correction nécessaire. Cette précaution nous paraît sous-estimée
+dans la littérature sur le découpage documentaire.
+
+\paragraph{Le taux d'attachement mérite d'être mesuré explicitement.} La
+proportion de questions dont la réponse survit à l'étape de découpage détermine
+un plafond que le meilleur récupérateur du monde ne peut pas franchir, et c'est
+sur cette métrique que l'écart entre les deux stratégies de tuilage est le plus
+grand. Elle est pourtant absente des protocoles usuels, qui se concentrent sur la
+qualité du classement en supposant l'attachement acquis.
+
+\paragraph{Une évaluation par composant peut masquer un système qui ne
+fonctionne pas.} Deux de nos quatre évaluations sont franchement positives, et le
+système assemblé répond correctement à une question sur vingt. Sans l'évaluation
+bout-en-bout, le rapport aurait pu conclure sur deux succès. C'est elle qui a
+rendu lisible le mode de défaillance réel, et donc localisé le verrou. Nous
+retenons de cette expérience qu'une évaluation par composant est nécessaire mais
+jamais suffisante.
+
+\section*{Perspectives}
+\addcontentsline{toc}{section}{Perspectives}
+
+La suite immédiate est déterminée par le diagnostic. Il s'agit de brancher le
+lecteur validé dans le score de pertinence du contrôleur, à la place du
+substitut lexical, et de rejouer à l'identique les évaluations du contrôleur et du
+système assemblé. Une atténuation praticable du coût consiste à adopter
+l'architecture classique du classement en deux étapes~: TF-IDF pour
+présélectionner une courte liste, le lecteur affiné pour la réordonner. La même
+substitution appliquée à l'évaluation du tuilage testerait directement si
+l'avantage observé du texte plat est un artefact du scoreur lexical.
+
+À plus longue portée, deux directions nous paraissent les plus prometteuses.
+D'une part, faire réellement exploiter au contrôleur les relations du graphe qu'il
+n'interroge pas encore~: remonter au titre de section d'une tuile ouverte, ou
+atteindre l'en-tête d'un tableau dont une ligne a été retenue, sont des besoins de
+récupération concrets auxquels le graphe répond déjà structurellement. D'autre
+part, sortir du périmètre MediaWiki, ce qui permettrait de séparer empiriquement
+ce qui relève de la liste de sélecteurs de nettoyage --- spécifique par
+construction --- de ce qui relève de la logique de tuilage, qui ne l'est pas.
+
+\section*{Mot de la fin}
+\addcontentsline{toc}{section}{Mot de la fin}
+
+L'affirmation centrale de ce travail résiste à l'examen~: le DOM contient bien la
+segmentation que le RAG visuel reconstruit autrement, et l'exploiter rend
+davantage de contenu trouvable pour un coût moindre. L'affirmation plus ambitieuse
+--- qu'un graphe de preuves construit sur cette structure, parcouru par un
+contrôleur budgété, produit un meilleur système de questions-réponses --- n'est pas
+encore démontrée. Elle n'est pas réfutée non plus, car elle attend des
+expériences identifiées, dont les obstacles sont un budget de calcul et une
+politique de parcours à étendre, non une inconnue conceptuelle. Nous publions le pipeline complet, y compris les résultats qui ne
+sont pas allés dans le sens attendu, parce que la localisation du verrou est
+elle-même un résultat utilisable par qui reprendra ce travail.

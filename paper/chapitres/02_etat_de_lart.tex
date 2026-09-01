@@ -1,0 +1,377 @@
+% =====================================================================
+\chapter{État de l'art}
+\label{chap-etat_de_lart}
+% =====================================================================
+
+Ce chapitre situe DOM-Graph RAG dans son contexte scientifique et se limite à ce qui est strictement nécessaire pour situer les choix de conception~:
+le problème du découpage documentaire et ses métriques
+(\cref{sec-eda_rag}), le prétraitement des documents visuellement riches
+(\cref{sec-eda_docvisuel}), la famille du RAG visuel et son représentant le
+plus proche, PixelRAG (\cref{sec-eda_ragvisuel}), le RAG structuré par graphe
+et son ancêtre direct, MAGE-RAG (\cref{sec-eda_graphe}), et l'apprentissage
+contrastif mobilisé par le lecteur (\cref{sec-eda_contrastif}). Il se clôt sur
+le positionnement précis de ce travail (\cref{sec-eda_synthese}).
+
+% =====================================================================
+\section{Génération augmentée par récupération et découpage}
+\label{sec-eda_rag}
+% =====================================================================
+
+La \cref{fig-eda_rag_chaine} donne les trois opérateurs qu'enchaîne un système
+RAG. Le découpeur $C : \mathcal{D} \mapsto \mathcal{U}$ transforme une
+collection de documents en unités récupérables. Le récupérateur
+$R : q \mapsto \mathcal{U}_k \subseteq \mathcal{U}$ sélectionne les $k$ unités
+les plus pertinentes pour une question $q$ selon un score $s(q,u)$. Le
+générateur $G : (q, \mathcal{U}_k) \mapsto a$ répond à partir de la question
+et de ces unités.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  op/.style={draw, rounded corners=2pt, minimum width=1.75cm, minimum height=1.0cm,
+             align=center, fill=codebg, draw=rulegray, line width=0.7pt},
+  focus/.style={op, fill=accent!8, draw=accent, line width=1pt},
+  arr/.style={-{Stealth[length=2.0mm]}, thick, draw=black!55},
+  lbl/.style={font=\scriptsize, text=black!60, align=center}
+]
+\node (D) {$\mathcal{D}$};
+\node[focus, right=0.5cm of D] (C) {$C$\\[-4pt]{\scriptsize découpeur}};
+\node[right=0.5cm of C] (U) {$\mathcal{U}$};
+\node[op, right=0.5cm of U] (R) {$R$\\[-4pt]{\scriptsize récupérateur}};
+\node[right=0.5cm of R] (Uk) {$\mathcal{U}_k$};
+\node[op, right=0.5cm of Uk] (G) {$G$\\[-4pt]{\scriptsize générateur}};
+\node[right=0.5cm of G] (a) {$a$};
+
+\draw[arr] (D) -- (C);
+\draw[arr] (C) -- (U);
+\draw[arr] (U) -- (R);
+\draw[arr] (R) -- (Uk);
+\draw[arr] (Uk) -- (G);
+\draw[arr] (G) -- (a);
+
+\node[lbl, below=1.15cm of Uk] (q) {question $q$};
+\draw[arr] (q) -| (R.south);
+\draw[arr] (q) -| (G.south);
+
+\node[draw=black!35, dashed, rounded corners=3pt, inner sep=5pt,
+      fit=(R)(Uk)(G)] (box) {};
+\node[lbl, above=1pt of box.north] {optimisés par la littérature parcourue};
+\node[lbl, above=0.30cm of C] {objet de ce travail};
+\node[lbl, below=0.28cm of C, text width=2.9cm]
+  {fixe le plafond mesuré en \cref{sec-eda_pool}};
+\end{tikzpicture}
+\caption[Les trois opérateurs d'un système RAG]{Les trois opérateurs d'un
+système RAG. La composition impose un ordre de dépendance, car $R$ ne peut
+sélectionner que des unités produites par $C$, et $G$ ne peut répondre qu'à
+partir de ce que $R$ transmet.}
+\label{fig-eda_rag_chaine}
+\end{figure}
+\citet{rag2020} ont formalisé cette architecture et montré qu'affiner
+conjointement l'encodeur de requête et le générateur améliore les tâches à
+forte intensité de connaissances~; \citet{fid2021} ont montré qu'encoder
+chaque passage séparément avant de les fusionner dans le décodeur permet d'en
+traiter un grand nombre sans coût quadratique. \citet{ragsurvey2023} recensent
+ces variantes sans qu'aucune ne s'impose.
+
+Le score $s(q,u)$ oppose deux familles. Les approches lexicales
+(TF-IDF, BM25~\citep{bm25_2009}) ne demandent aucun entraînement et restent
+compétitives~: le \anglais{benchmark} BEIR~\citep{beir2021} établit qu'en
+transfert zéro-coup BM25 n'est pas systématiquement dépassé par les
+récupérateurs denses, et la \cref{sec-res_ablation_b} retrouve ce constat.
+Leur limite est le décalage de vocabulaire. Les approches denses
+projettent question et unité dans un espace vectoriel commun appris par
+contraste~\citep{sbert2019, simcse2021}~; \citet{dpr2020} en tirent la recette
+de référence pour la récupération de passages, et ColBERT~\citep{colbert2020}
+en conserve un vecteur par token plutôt qu'un vecteur unique, une idée qui
+réapparaît dans le RAG visuel (\cref{sec-eda_ragvisuel}).
+
+Cette littérature suppose $C$ donné, alors qu'il fixe un plafond que ni $R$ ni
+$G$ ne peuvent franchir. Si la réponse à $q$ est répartie sur deux unités
+distinctes, ou noyée dans une unité majoritairement hors sujet, aucun score ne
+peut compenser. Les stratégies de découpage textuel, fenêtres de taille fixe, découpage guidé
+par la structure du document ou découpage sémantique aux points de rupture de
+similarité entre plongements~\citep{semchunk2025}, sont recensées par
+\citet{ragsurvey2023} sans que leur effet sur ce plafond soit mesuré. Toutes
+opèrent sur du texte déjà extrait, où les frontières de mise en page ont été
+détruites, alors qu'un moteur de rendu les calcule sans coût additionnel sur le
+web (\cref{sec-rendu_dom}). Toutes mesurent aussi la qualité du classement en
+supposant l'attachement de la réponse acquis, ce que ne fait ni la
+\cref{sec-eda_pool} ni la \cref{sec-res_a_attach}.
+
+\subsection{Le biais de taille de vivier}
+\label{sec-eda_pool}
+
+Comparer deux stratégies de découpage produisant des viviers de candidats de
+tailles différentes pose un piège méthodologique peu discuté~: sur une même
+page en \num{5} bandes contre \num{25} tuiles, un classement aléatoire place
+la bonne unité au premier rang avec une probabilité de \SI{20}{\percent} dans
+le premier cas et de \SI{4}{\percent} dans le second, de sorte que comparer
+des Recall@1 bruts revient en partie à comparer des tailles de vivier. Le rang
+percentile
+
+\begin{equation}
+\mathrm{pct}(u^{+}) = 1 - \frac{\mathrm{rang}(u^{+}) - 1}{n_{\text{items}} - 1},
+\label{eq-pctrank}
+\end{equation}
+
+vaut $0{,}5$ en espérance sous classement aléatoire quelle que soit la taille
+du vivier, et constitue la métrique de comparaison entre conditions de
+tuilage employée en \cref{sec-res_ablation_a}, aux côtés du taux
+d'attachement qui représente la proportion de questions dont la réponse survit au
+découpage, absente des protocoles usuels alors qu'elle détermine le plafond
+que ni $R$ ni $G$ ne peuvent franchir.
+
+% =====================================================================
+\section{Documents visuellement riches et prétraitement}
+\label{sec-eda_docvisuel}
+% =====================================================================
+
+Un document est dit visuellement riche lorsque sa mise en page porte de
+l'information sémantique, comme un tableau, une facture ou une page à encadrés.
+Pour un tel document, la chaîne de prétraitement classique enchaîne trois
+étapes à perte, détaillées par la \cref{fig-eda_pertes}. Le résultat cumulé est
+qu'une question du type \og quelle est la valeur de la colonne revenus pour la
+ligne \num{2024}\fg{} devient difficile à satisfaire, non parce que le
+récupérateur est mauvais, mais parce que la correspondance ligne-colonne a été
+détruite en amont.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  stage/.style={draw, rounded corners=2pt, minimum width=2.55cm, minimum height=0.95cm,
+                align=center, fill=codebg, draw=rulegray, line width=0.7pt,
+                font=\scriptsize},
+  arr/.style={-{Stealth[length=2.0mm]}, thick, draw=black!55},
+  etape/.style={font=\scriptsize\itshape, text=black!60, align=center},
+  loss/.style={font=\scriptsize, text=black!60, align=center, text width=2.75cm}
+]
+\node[stage] (doc) {Document\\mis en page};
+\node[stage, right=1.6cm of doc] (seq) {Séquence de\\caractères};
+\node[stage, right=1.6cm of seq] (ord) {Texte\\réordonné};
+\node[stage, right=1.6cm of ord] (unit) {Unités\\récupérables $\mathcal{U}$};
+
+\draw[arr] (doc) -- node[etape, above, text width=1.7cm] {extraction\\ou OCR} (seq);
+\draw[arr] (seq) -- node[etape, above, text width=1.7cm] {ordre de\\lecture} (ord);
+\draw[arr] (ord) -- node[etape, above, text width=1.7cm] {découpage\\$C$} (unit);
+
+\node[loss, anchor=north] at ($(doc.south)!0.5!(seq.south)+(0,-0.35)$)
+  {la structure 2D devient linéaire~; l'OCR y ajoute des erreurs de caractères};
+\node[loss, anchor=north] at ($(seq.south)!0.5!(ord.south)+(0,-0.35)$)
+  {l'ordre du fichier n'est pas l'ordre de lecture~; heuristiques à taux
+   d'erreur non nul};
+\node[loss, anchor=north] at ($(ord.south)!0.5!(unit.south)+(0,-0.35)$)
+  {frontières d'unité fixées sans égard aux frontières de contenu
+   (\cref{sec-eda_rag})};
+\end{tikzpicture}
+\caption[Les trois pertes de la chaîne de prétraitement classique]{Les trois
+étapes à perte de la chaîne de prétraitement classique et l'information détruite
+à chacune. Les modèles sensibles à la mise en page réinjectent la géométrie en
+aval de la première étape~; les modèles sans OCR suppriment les deux premières.}
+\label{fig-eda_pertes}
+\end{figure}
+
+Une première réponse injecte la géométrie dans la représentation.
+LayoutLM~\citep{layoutlm2020} ajoute aux plongements de tokens des positions 2D
+dérivées de la boîte englobante de chaque mot~; LayoutLMv2~\citep{layoutlmv2_2021}
+et LayoutLMv3~\citep{layoutlmv3_2022} l'intègrent au pré-entraînement (\num{92.1}
+de $F_1$ sur FUNSD, \num{83.4} d'ANLS sur DocVQA)~; MarkupLM~\citep{markuplm2022}
+transpose l'idée au web en encodant le chemin XPath de chaque token. Ces
+modèles reçoivent tous des mots et boîtes déjà produits par un OCR en amont, et
+la structure y est apprise, donc coûteuse à ré-entraîner sur un type de
+document non couvert~; surtout, elle sert la représentation d'une unité déjà
+découpée, non la décision de découpage~: MarkupLM sait que deux tokens
+partagent un ancêtre DOM, il ne décide pas où couper la page.
+
+Une seconde réponse supprime l'OCR~: Donut~\citep{donut2022} produit du texte
+structuré directement depuis l'image d'un document, et
+Pix2Struct~\citep{pix2struct2023} porte l'idée au web en pré-entraînant sur
+\num{80} millions de captures d'écran, avec pour cible un HTML simplifié dérivé
+du DOM rendu. Cela permet ainsi d'établir que le DOM porte la structure dont un
+modèle visuel a besoin, mais il l'exploite comme cible de supervision apprise,
+quand ce travail l'emploie comme décision de découpage à l'inférence, sans
+apprentissage.
+
+% =====================================================================
+\section{Modèles vision-langage et RAG visuel}
+\label{sec-eda_ragvisuel}
+% =====================================================================
+
+Les modèles vision-langage contemporains combinent une tour de vision de type
+\anglais{Vision Transformer}~\citep{vit2021}, qui découpe l'image en
+\anglais{patches} traités par auto-attention~\citep{transformer2017}, et un
+modèle de langue décodeur consommant une séquence mixte de tokens visuels et
+textuels, sur la base des représentations image-texte alignées par
+contraste~\citep{clip2021}. Qwen2-VL~\citep{qwen2vl2024}, employé au
+\cref{chap-methodologie}, apporte le support de la résolution dynamique~: le
+nombre de tokens visuels y est proportionnel à l'aire réelle de l'image, une
+propriété dont le \cref{sec-eda_cout_visuel} tire les conséquences pour ce
+travail.
+
+Si un tel modèle produit un plongement d'image aligné sur le langage, on peut
+indexer des images de pages entières et récupérer dessus~: \anglais{Document
+Screenshot Embedding}~\citep{dse2024} le fait sans extraction de contenu
+préalable, et ColPali~\citep{colpali2024} porte le mécanisme d'interaction
+tardive de ColBERT aux \anglais{patches} visuels.
+
+\subsection{PixelRAG et le découpage aveugle}
+\label{sec-eda_pixelrag}
+
+Le travail le plus directement relié est PixelRAG~\citep{pixelrag2026}, qui
+applique cette approche à l'échelle du web~: les pages sont rendues, découpées
+en bandes et indexées avec un encodeur vision-langage, et les auteurs
+rapportent égaler ou dépasser la récupération textuelle sur plusieurs bancs
+d'essai, avec une réduction du coût en tokens allant jusqu'à un facteur trois
+par sous-échantillonnage de la résolution. C'est son découpage qui nous
+intéresse~: une grille de hauteur fixe, la page rendue tranchée en bandes de
+$\num{875} \times \num{1024}$ pixels indépendamment de leur contenu. La
+décision est simple et sans dépendance au type de document, mais son défaut
+est celui de la fenêtre de taille fixe qui crée une bande coupant là où elle tombe,
+au milieu d'un tableau comme d'un paragraphe. C'est cette condition qui est
+réimplémentée (\cref{sec-protocole_grille}) et mesurée
+(\cref{sec-res_ablation_a}).
+
+% =====================================================================
+\section{RAG structuré par graphe}
+\label{sec-eda_graphe}
+% =====================================================================
+
+Traiter $\mathcal{U}$ comme un sac plat empêche de récupérer une unité peu
+pertinente lexicalement mais indispensable contextuellement, et interdit le
+raisonnement multi-sauts. Deux issues coexistent~: itérer la récupération ou
+structurer les preuves en amont. La première voie est celle de
+ReAct~\citep{react2023}, IRCoT~\citep{ircot2023}, FLARE~\citep{flare2023} et
+Self-RAG~\citep{selfrag2024}, qui entrelacent raisonnement et appels de
+récupération, au prix d'appels au modèle en série. Dans la seconde,
+\citet{graphrag2024} construisent un graphe de connaissances
+sur des entités extraites par un modèle de langue, ce qui répond à des
+questions globales sur un corpus qu'aucune récupération locale ne
+satisferait~; le graphe porte sur des entités, non sur la structure
+documentaire.
+
+\subsection{MAGE-RAG}
+\label{sec-eda_magerag}
+
+\citet{magerag2026} construisent au contraire un graphe de la structure
+du document, et c'est l'ancêtre direct de l'architecture proposée ici~: des
+nœuds de niveau page et de niveau élément, reliés par cinq relations
+(\code{contains}, \code{reading\_order}, \code{layout\_adjacency},
+\code{section\_hierarchy}, \code{semantic\_neighbor}), que parcourt à la
+requête un contrôleur budgété décidant quels nœuds le modèle lecteur ouvre
+réellement. L'\cref{sec-controleur} en généralise l'algorithme. La
+différence tient à la provenance du graphe~: MAGE-RAG le construit hors ligne,
+à partir d'un document déjà segmenté et d'un ordre de lecture déjà
+déterminé, quand celui construit ici l'est depuis le DOM d'une page rendue, qui
+fournit sans coût additionnel frontières exactes et types d'éléments
+(\cref{sec-rendu_dom}). Deux relations que le contexte web rend
+nécessaires s'y ajoutent, \code{links\_to} et \code{continues}
+(\cref{tab-graphe_relations}). MAGE-RAG est évalué sur LongDocURL et
+MMLongBench-Doc, deux jeux de données constitués de PDF déjà analysés~; ces
+chiffres sont rapportés au \cref{chap-resultats} comme référence de
+l'architecture, non comme comparaison numérique, faute d'un DOM à exploiter
+sur un PDF.
+
+% =====================================================================
+\section{Apprentissage contrastif et adaptation efficace}
+\label{sec-eda_contrastif}
+% =====================================================================
+
+\subsection{InfoNCE et la qualité des négatifs}
+\label{sec-eda_contrastif_infonce}
+
+Entraîner un récupérateur revient à apprendre une similarité $s(q,u)$ qui
+place la bonne unité plus près de la question que les mauvaises. L'objectif
+standard, InfoNCE~\citep{cpc2018}, largement repris en vision~\citep{simclr2020},
+s'écrit pour une question de plongement $\mathbf{z}_q$, une unité positive
+$u^+$ et des négatifs $\{u_1^-,\dots,u_K^-\}$~:
+
+\begin{equation}
+\mathcal{L}_{\text{InfoNCE}}
+= -\log
+\frac{\exp\!\big(\mathrm{sim}(\mathbf{z}_q, \mathbf{z}_{u^{+}}) / \tau\big)}
+     {\exp\!\big(\mathrm{sim}(\mathbf{z}_q, \mathbf{z}_{u^{+}}) / \tau\big)
+      + \sum_{i=1}^{K}
+      \exp\!\big(\mathrm{sim}(\mathbf{z}_q, \mathbf{z}_{u^{-}_i}) / \tau\big)},
+\label{eq-infonce}
+\end{equation}
+
+où $\tau$ est une température qui concentre le gradient sur les négatifs
+proches du positif à mesure qu'elle diminue. Tout dépend des négatifs~: les
+\anglais{in-batch negatives}~\citep{dpr2020} réutilisent gratuitement les
+positifs des autres exemples du lot, tandis que les négatifs difficiles sont
+minés délibérément. Le \cref{sec-contrastif} reprend cette équation, l'étend
+au lot entier, et l'analyse plus en détail. La génération synthétique de
+paires question-passage, établie par InPars~\citep{inpars2022} et
+Promptagator~\citep{promptagator2022}, est transposée ici à des tuiles
+d'image.
+
+\subsection{Adaptation efficace d'un modèle génératif en encodeur}
+\label{sec-eda_contrastif_adaptation}
+
+Affiner intégralement un modèle de plusieurs milliards de paramètres est hors
+de portée d'une infrastructure académique modeste. LoRA~\citep{lora2021} gèle
+les poids pré-entraînés et n'apprend, pour chaque matrice ciblée, qu'une mise à
+jour de rang faible~; QLoRA~\citep{qlora2023} y ajoute la quantification du
+modèle gelé. Dans le cas multimodal, LoRA peut cibler le décodeur seul ou
+aussi la tour de vision puisque la tâche traitée au \cref{sec-contrastif_lora}
+exige les deux. Un second obstacle est que ces modèles sont génératifs et
+n'exposent aucun vecteur de représentation~; PromptEOL~\citep{prompteol2024}
+fait suivre l'entrée d'une amorce à compléter et prend l'état caché du
+dernier token comme plongement, un procédé appliqué à l'identique à une
+question textuelle et à une image de tuile au \cref{sec-contrastif_encodeur}.
+
+% =====================================================================
+\section{Synthèse et positionnement}
+\label{sec-eda_synthese}
+% =====================================================================
+
+Trois constats délimitent une lacune précise, que le
+\cref{tab-eda_positionnement} résume.
+
+\begin{table}[H]
+\centering
+\small
+\caption[Positionnement de DOM-Graph RAG]{Origine des frontières de l'unité
+récupérable chez les travaux les plus proches. Elles sont soit arbitraires,
+fenêtre ou grille, soit héritées d'un découpage effectué ailleurs, format du
+fichier source ou corpus déjà segmenté en amont.}
+\label{tab-eda_positionnement}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Travail} & \textbf{Origine des frontières} \\
+\midrule
+\multicolumn{2}{@{}l}{\emph{Récupération textuelle}} \\
+\quad DPR~\citep{dpr2020} & fenêtre fixe \\
+\quad GraphRAG~\citep{graphrag2024} & fenêtre fixe \\[3pt]
+\multicolumn{2}{@{}l}{\emph{Modèles sensibles à la mise en page}} \\
+\quad LayoutLM~\citep{layoutlm2020} & corpus segmenté en amont \\
+\quad MarkupLM~\citep{markuplm2022} & corpus segmenté en amont \\[3pt]
+\multicolumn{2}{@{}l}{\emph{RAG visuel, lecture des pixels}} \\
+\quad DSE~\citep{dse2024} & format du fichier source, la page \\
+\quad ColPali~\citep{colpali2024} & format du fichier source, la page \\
+\quad PixelRAG~\citep{pixelrag2026} & grille de hauteur fixe \\[3pt]
+\multicolumn{2}{@{}l}{\emph{RAG par graphe de structure}} \\
+\quad MAGE-RAG~\citep{magerag2026} & corpus segmenté en amont \\
+\midrule
+\textbf{Ce travail}, pixels et graphe & \textbf{boîtes englobantes du DOM rendu} \\
+\bottomrule
+\end{tabular}
+\end{table}
+Premièrement, le RAG visuel démontre que lire les pixels préserve une
+information que l'extraction textuelle détruit, mais ne traite pas le
+découpage~: soit il l'évite en travaillant à l'échelle de la page, soit il le tranche à
+l'aveugle, comme PixelRAG. Deuxièmement, les modèles sensibles à la
+mise en page exploitent la structure, mais en l'apprenant à grands frais et
+pour représenter des unités déjà découpées. Enfin, MAGE-RAG
+démontre qu'un contrôleur de graphe budgété surpasse une sélection top-$k$
+statique, mais suppose les éléments du document déjà constitués en amont de
+son propre pipeline, c'est-à-dire l'artefact que PixelRAG jette au rendu et que
+ce travail restitue.
+
+La thèse défendue est que, pour une page web sémantiquement balisée, la
+segmentation dont le RAG visuel a besoin est déjà disponible et exacte dans le
+DOM de la page rendue, et qu'il est donc inutile de la reconstruire depuis les
+pixels ou de la contourner par une grille. Le \cref{chap-methodologie} formalise
+et met à l'épreuve cette thèse, en commençant précisément là où PixelRAG
+s'arrête~: par ce qu'un navigateur expose de la géométrie d'une page rendue.

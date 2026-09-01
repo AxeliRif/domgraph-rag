@@ -1,0 +1,311 @@
+% =====================================================================
+\chapter{Résultats et limites}
+\label{chap-resultats}
+% =====================================================================
+
+Ce chapitre rapporte les deux résultats solidement étayés du système décrit au
+\cref{chap-methodologie}~: le gain de trouvabilité et de coût du tuilage
+guidé par le DOM (\cref{sec-res_ablation_a}), et le gain de l'entraînement
+contrastif du lecteur (\cref{sec-res_ablation_b}). Les composants en aval ---
+contrôleur budgété, système assemblé bout-en-bout ---, les coûts de calcul
+observés et la discussion complète des limites et des directions de travail
+sont rapportés en détail dans le \nameref{annexe-resultats}
+(\cref{annexe-resultats})~; ce chapitre n'en retient que la conclusion.
+
+MAGE-RAG est évalué sur LongDocURL~\citep{longdocurl2024} et
+MMLongBench-Doc~\citep{mmlongbenchdoc2024}, deux jeux de données constitués de
+PDF déjà analysés. Ils ne peuvent solliciter un tuilage guidé par le DOM ---
+un PDF n'expose ni boîtes englobantes, ni sélecteurs CSS, ni frontières de
+titres HTML --- et ne sont donc pas repris ici comme comparaison numérique.
+Toutes nos évaluations portent sur des pages web réelles.
+
+% =====================================================================
+\section{Jeu de données}
+\label{sec-res_donnees}
+% =====================================================================
+
+\Cref{tab-res_dataset} récapitule les volumes construits par le protocole de la \cref{sec-protocole}.
+
+\begin{table}[t]
+\centering
+\small
+\caption[Volumes du jeu de données]{Volumes du jeu de données utilisé par les
+évaluations. Les tuiles sans question exploitable sont celles pour
+lesquelles le modèle a répondu \code{SKIP}~; elles restent disponibles comme
+négatifs difficiles (\cref{sec-contrastif_qa}).}
+\label{tab-res_dataset}
+\begin{tabular}{@{}l r@{}}
+\toprule
+Grandeur & Valeur \\
+\midrule
+Articles Wikipédia distincts & \num{19} \\
+\quad dont découpés en sections (\cref{sec-tuilage_sections}) & \num{12} \\
+Unités de page (articles $+$ sections) & \num{185} \\
+Tuiles extraites & \num{1784} \\
+Paires question-réponse générées & \num{1717} \\
+\quad tuiles sans question exploitable (\code{SKIP}) & \num{67} \enspace(\SI{3.8}{\percent}) \\
+Exemples contrastifs (question $+$ négatifs difficiles) & \num{1339} \\
+\quad questions perdues entre génération et minage & \num{378} \enspace(\num{16} unités) \\
+\quad exemples portant les $K = 2$ négatifs attendus & \num{1282} \\
+\midrule
+Questions inter-pages construites depuis HotpotQA & \num{91} / \num{150} échantillonnées \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le taux de \code{SKIP} (\SI{3.8}{\percent}) est un premier signal indirect en
+faveur du tuilage~: une tuile guidée par une frontière d'élément contient
+presque toujours du contenu exploitable. Les \num{378} questions qui ne
+produisent pas d'exemple contrastif proviennent de seize unités de page absentes
+du jeu construit, et non d'un filtrage par question
+(\cref{sec-res_limites_dataset}). Le taux de conservation des
+questions HotpotQA (\SI{61}{\percent}, \num{91}/\num{150}) reflète
+principalement la dérive éditoriale de Wikipédia depuis le \anglais{dump} de
+2017 sur lequel HotpotQA est construit, plutôt qu'une défaillance du
+pipeline~; les deux causes d'abandon sont détaillées en
+\cref{sec-protocole_multihop}.
+
+% =====================================================================
+\section{Le tuilage guidé par le DOM double la trouvabilité, à moindre coût}
+\label{sec-res_ablation_a}
+% =====================================================================
+
+\subsection{Protocole}
+
+Cette évaluation compare trois représentations du \emph{même} contenu de
+page~: nos \textbf{tuiles DOM} (\cref{sec-tuilage}), une \textbf{grille
+aveugle} de bandes de \SI{1024}{\pixel} reproduisant la hauteur documentée par
+PixelRAG~\citep{pixelrag2026} (\cref{sec-protocole_grille}), et un
+\textbf{texte plat} découpé en fenêtres de \num{400} caractères sans notion de
+frontière d'élément. Dix-huit des dix-neuf articles du corpus sont rendus comme
+unité de page unique~; les trois représentations sont construites sur cette
+unité, et \num{409} questions --- celles dont la page n'a pas été découpée en
+sections --- sont classées contre chacune par similarité cosinus TF-IDF, le
+\emph{même} scoreur dans les trois conditions, pour isoler l'effet du
+découpage. Le dix-neuvième article (Beatles, le plus long du corpus) est exclu
+pour une raison opérationnelle~: rendu comme page unique il dépasse la mémoire
+disponible au traitement. Une question n'est évaluée dans une condition que si
+sa réponse apparaît verbatim dans l'une de ses unités~; c'est ce qui produit le
+\emph{taux d'attachement} ci-dessous. Le protocole complet --- notamment le
+plafond de \num{25} tuiles par page et la restriction des trois conditions à
+une région de page identique, nécessaires à la validité de la comparaison ---
+est détaillé en \cref{sec-res_a_protocole}.
+
+Les trois viviers de candidats diffèrent fortement en taille (\num{24.0}
+tuiles DOM par page en moyenne, contre \num{4.9} bandes de grille et
+\num{12.3} fenêtres de texte)~: le Recall@$k$ brut y est donc gonflé
+mécaniquement par un vivier plus petit (\cref{sec-eda_pool}), et la
+comparaison de classement qui suit en \cref{sec-res_a_classement} utilise
+le rang percentile invariant à la taille du vivier plutôt que le Recall brut.
+
+\subsection{Résultat 1 : le taux d'attachement}
+\label{sec-res_a_attach}
+
+\begin{center}
+\begin{minipage}{0.9\textwidth}
+\itshape
+Le tuilage guidé par le DOM porte la réponse dans une unité récupérable pour
+\SI{51.8}{\percent} des questions (\num{212} sur \num{409}), contre
+\SI{26.4}{\percent} pour la grille aveugle (\num{108} sur \num{409}) --- soit
+\emph{presque le double}.
+\end{minipage}
+\end{center}
+
+L'explication est mécanique. Une bande de \SI{1024}{\pixel} découpée sans
+égard au contenu agrège plusieurs sections hétérogènes~; une réponse courte ---
+une date, un nombre, un nom propre --- s'y trouve noyée dans un volume de
+texte sans rapport, au point que le critère d'attribution ne la retrouve
+plus. Une tuile alignée sur une frontière d'élément contient au contraire une
+unité de sens complète et délimitée. Ce résultat détermine un \emph{plafond}~:
+une question dont la réponse ne survit dans aucune unité est perdue quelle que
+soit la qualité du récupérateur en aval, et doubler le taux d'attachement
+double donc le nombre de questions auxquelles le système a la
+\emph{possibilité} de répondre. Le texte plat obtient un taux encore
+légèrement supérieur, \SI{56.7}{\percent} --- attendu, puisque le critère
+d'attribution est lui-même une correspondance de chaîne exacte, structurellement
+plus favorable à une condition qui manipule le texte directement
+(\cref{sec-res_a_classement}).
+
+\subsection{Résultat 2 : le budget de pixels}
+\label{sec-res_a_pixels}
+
+Notre tuilage produit environ cinq fois \emph{plus} d'unités que la grille
+(\num{24.0} contre \num{4.9} par page). On attendrait un coût de représentation
+supérieur~; c'est l'inverse qui se produit.
+
+\begin{center}
+\begin{minipage}{0.9\textwidth}
+\itshape
+Le total des pixels par page est de \num{3.79} millions pour le tuilage DOM
+contre \num{10.17} millions pour la grille, soit \textbf{\num{2.7} fois
+moins}, alors même que le tuilage DOM produit cinq fois plus d'unités.
+\end{minipage}
+\end{center}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{res_pixel_budget.pdf}
+\caption[Budget de pixels par page]{Coût de représentation par page, moyenné sur
+les \num{18} pages de l'évaluation, pour la même région de page dans les deux
+conditions. Le tuilage DOM produit près de cinq fois plus de tuiles, mais
+chacune est treize fois plus petite, de sorte que le total par page est
+\num{2.7} fois inférieur.}
+\label{fig-res_pixels}
+\end{figure}
+
+L'explication est la mesure serrée des balises de texte coulant
+(\cref{sec-rendu_textflow}, \cref{eq-aire_perdue})~: une bande de grille
+occupe par construction toute la largeur de rendu quel que soit son contenu,
+tandis qu'une tuile de texte DOM est recadrée sur la largeur que ses lignes
+occupent réellement --- \num{157170} pixels en moyenne contre \num{2058000}
+pour la grille, un rapport de treize qui compense largement le rapport de cinq
+sur le nombre d'unités. Le nombre de tokens visuels croît avec l'aire de
+l'image sous réserve du plafond du processeur (\cref{sec-eda_cout_visuel})~:
+sans écrêtage le rapport de \num{2.7} se transpose à l'identique au coût en
+tokens, sous le plafond par défaut il tombe à \num{1.3} (\cref{tab-cout_tokens})
+--- dans les deux cas un coût \emph{inférieur} pour davantage de contenu
+trouvable, et les deux axes vont dans le même sens.
+
+\medskip
+\noindent Deux gains sont donc établis sans ambiguïté~: le taux d'attachement
+(\SI{51.8}{\percent} contre \SI{26.4}{\percent}) et le budget de pixels
+(\num{2.7} fois moins). Un troisième résultat, plus nuancé --- l'avantage de
+rang percentile du tuilage DOM sur la grille est réel mais modeste, et
+s'inverse face au texte plat sur le sous-ensemble strictement apparié --- est
+analysé en détail en \cref{sec-res_a_classement}~: nous y montrons que ce
+résultat est cohérent avec le scoreur lexical employé, qui n'exploite aucune
+information spatiale, et non avec un défaut du tuilage.
+
+% =====================================================================
+\section{L'entraînement contrastif du lecteur fait presque doubler le Recall@1}
+\label{sec-res_ablation_b}
+% =====================================================================
+
+\subsection{Protocole}
+
+Cette évaluation mesure l'apport de l'entraînement contrastif
+(\cref{sec-contrastif}) sur un partitionnement au niveau de
+l'\textbf{article}, en proportion \num{80}/\num{20}, avec des articles
+strictement disjoints entre entraînement et validation
+(\cref{sec-contrastif_split}). Chaque question de validation est classée
+contre \emph{toutes} les tuiles de sa page --- un scénario de récupération
+réaliste, non le petit vivier de négatifs minés vu à l'entraînement --- avec
+et sans l'adaptateur chargé sur le \emph{même} modèle de base, en le
+désactivant plutôt qu'en chargeant un second modèle. Sur \num{338} questions
+de validation, \num{330} sont retenues après exclusion des pages à moins de
+deux tuiles ou à tuile positive absente du manifeste.
+
+\begin{table}[t]
+\centering
+\small
+\caption[Évaluation B : lecteur de base et lecteur affiné]{Modèle de base et
+modèle affiné par LoRA contrastif, sur la partie de validation (\num{330}
+questions, articles jamais vus à l'entraînement). Le classement porte sur
+toutes les tuiles de la page de la question.}
+\label{tab-res_ablation_b}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+Scoreur & R@1 & R@3 & R@5 & MRR \\
+\midrule
+TF-IDF (lexical, référence) & \num{0.461} & \num{0.618} & \num{0.724} & \num{0.579} \\
+Modèle de base (sans LoRA)  & \num{0.433} & \num{0.645} & \num{0.752} & \num{0.578} \\
+Modèle affiné (LoRA contrastif) & \textbf{\num{0.785}} & \textbf{\num{0.915}} & \textbf{\num{0.952}} & \textbf{\num{0.856}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{res_ablation_b.pdf}
+\caption[Évaluation B : gain de l'entraînement contrastif]{Gain de
+l'entraînement contrastif sur la partie de validation. Le Recall@1 passe de
+\num{0.433} à \num{0.785} et le MRR de \num{0.578} à \num{0.856}, sur un
+partitionnement par article strictement disjoint.}
+\label{fig-res_ablation_b}
+\end{figure}
+
+\subsection{Résultat et analyse}
+\label{sec-res_b_analyse}
+
+Le gain est net et sans ambiguïté~: le Recall@1 passe de \num{0.433} à
+\num{0.785}, un quasi-doublement, et le MRR de \num{0.578} à \num{0.856}. Le
+partitionnement au niveau de l'article et l'évaluation sur toutes les tuiles de
+la page écartent les deux mécanismes de fuite les plus courants~: le gain
+reflète donc un transfert réel à des articles jamais vus.
+
+La comparaison avec TF-IDF n'est pas une victoire uniforme du scoreur
+lexical~: sur le Recall@1 et le MRR --- les métriques les plus pertinentes
+pour une sélection à un seul candidat --- le modèle vision-langage
+\emph{non adapté} est à parité ou légèrement en retrait (MRR \num{0.578}
+contre \num{0.579}), et ne devance TF-IDF que sur Recall@3/Recall@5. Le gain de
+Recall@1 vient donc entièrement de l'adaptation contrastive, et non d'une
+capacité de récupération générale déjà présente avant affinage~: substituer un
+grand modèle multimodal à un scoreur lexical sans l'entraîner à la tâche de
+récupération n'apporte essentiellement rien sur la métrique qui compte le plus
+pour une réponse à un seul candidat.
+
+Une réserve doit être signalée~: les questions synthétiques et le lecteur
+affiné proviennent de la même famille de modèles, de sorte qu'une partie du
+gain pourrait refléter les idiosyncrasies du générateur de questions plutôt
+qu'une amélioration transférable à des questions humaines~; le contrôle direct
+de ce biais, écrit mais non exécuté faute de budget de calcul, est discuté en
+\cref{sec-res_limites}. Ce résultat désigne aussi le correctif direct de
+l'évaluation~A~: nous disposons désormais d'un scoreur qui voit l'image de la
+tuile et pourrait exploiter l'information spatiale que le tuilage guidé
+préserve --- rejouer l'évaluation~A avec ce scoreur est l'expérience
+directement indiquée par l'enchaînement de ces deux résultats
+(\cref{sec-res_futur}).
+
+% =====================================================================
+\section{Composants en aval, coûts et limites : synthèse}
+\label{sec-res_synthese}
+% =====================================================================
+
+Les deux résultats ci-dessus sont solidement étayés. Les deux étapes en aval
+--- le contrôleur de preuves budgété et le système assemblé bout-en-bout ---
+donnent des résultats plus nuancés, analysés en détail en
+\cref{annexe-resultats}, et qui convergent vers un diagnostic unique résumé
+ici.
+
+Le \textbf{contrôleur budgété} (\cref{sec-res_ablation_c}) atteint la parité
+avec une sélection top-$k$ statique après un correctif dont la cause --- la
+frontière d'exploration ne franchissait jamais les limites de document --- a
+été diagnostiquée puis corrigée~: la couverture inter-pages passe de
+\SI{29.7}{\percent} à \SI{39.6}{\percent}, contre \SI{40.7}{\percent} pour la
+référence. La supériorité n'est pas établie~; les deux politiques sont
+statistiquement indiscernables sur cet échantillon.
+
+Le \textbf{système assemblé} (\cref{sec-res_ablation_d}) échoue par
+\emph{abstention} plutôt que par fabulation~: quatorze prédictions sur vingt
+déclarent explicitement que les preuves ne suffisent pas, contre quatre qui
+affirment quelque chose de faux. Le lecteur n'échoue donc pas à
+\emph{interpréter} les preuves fournies~: il constate correctement qu'elles
+sont insuffisantes. La défaillance est localisée en amont, dans la sélection.
+
+Ces deux observations, ainsi que le résultat nuancé de classement de
+l'évaluation~A, désignent un premier composant, le \textbf{score de pertinence
+du contrôleur}, qui reste un substitut lexical (TF-IDF) alors que
+l'évaluation~B ci-dessus a validé un scoreur nettement supérieur sur
+exactement cette tâche. Le point d'extension qui permet la substitution est
+déjà en place dans l'implémentation (\cref{sec-controleur_scoreur}), et la
+seule barrière est le coût de calcul, un passage avant du modèle par tuile
+candidate et par question, analysé avec les autres coûts observés en
+\cref{sec-res_couts}.
+
+Une seconde limite s'y ajoute, indépendante de la première, et qui tient à la
+politique plutôt qu'au score. Le contrôleur ne propage que le long de
+\code{reading\_order}, \code{links\_to} et \code{continues}.
+\code{layout\_adjacency} et \code{section\_hierarchy} sont instanciées dans le
+graphe mais ne sont jamais interrogées, et aucun scoreur ne les rendrait
+traversables, puisque la fonction de voisinage ne les consulte pas
+(\cref{alg-controleur}). Le graphe effectivement parcouru est donc plus proche
+de deux chaînes cousues ensemble que de la structure à partir de laquelle il
+est construit. Ce travail établit qu'un tel graphe se construit depuis le DOM,
+non qu'un contrôleur en tire déjà parti.
+
+Le système ne présente donc pas une défaillance diffuse dont on ignorerait
+l'origine, mais deux composants validés et deux limites nommées, l'une et
+l'autre instrumentées. Les limites restantes --- portée à Wikipédia,
+plafond de tuiles, tailles d'échantillon, hyperparamètres non balayés --- et
+les sept directions de travail qui en découlent sont détaillées en
+\cref{sec-res_limites,sec-res_futur}.

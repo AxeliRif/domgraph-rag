@@ -1,0 +1,910 @@
+% =====================================================================
+\chapter{Résultats complémentaires}
+\label{annexe-resultats}
+% =====================================================================
+
+Cette annexe rassemble les résultats que le \cref{chap-resultats} résume sans
+les détailler~: le résultat de classement plus nuancé de l'évaluation~A
+(\cref{sec-res_a_protocole,sec-res_a_classement}), le contrôleur budgété
+(\cref{sec-res_ablation_c}), le système assemblé bout-en-bout
+(\cref{sec-res_ablation_d}), les coûts de calcul observés
+(\cref{sec-res_couts}), les limites du travail (\cref{sec-res_limites}) et les
+directions qu'elles ouvrent (\cref{sec-res_futur}).
+
+% =====================================================================
+\section{Évaluation A, complément : protocole et classement}
+% =====================================================================
+
+\subsection{Deux contraintes de protocole}
+\label{sec-res_a_protocole}
+
+Deux caractéristiques du protocole de l'évaluation A conditionnent la lecture
+des chiffres. \textbf{Un plafond de \num{25} tuiles DOM par page}
+(\cref{sec-tuilage}) borne aussi l'évaluation~: aucune tuile au-delà n'a été
+présentée au modèle générateur, donc aucune question ne peut en dépendre. Sur
+\num{17} des \num{18} pages, le nombre de tuiles DOM est exactement \num{25}
+(\cref{fig-res_unites_page})~: la valeur de \num{24.0} tuiles par page est
+donc un \emph{plafond atteint}, non une mesure de densité de tuilage réelle,
+qui serait supérieure. \textbf{Les trois conditions couvrent la même région de
+page}~: le protocole calcule une frontière verticale --- le bas de la plus
+basse tuile DOM retenue --- et y restreint la grille et les fenêtres de texte,
+de sorte que les comparaisons de taux d'attachement et de budget de pixels
+portent bien sur le même contenu.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{res_unites_par_page.pdf}
+\caption[Unités par page dans les trois conditions]{Nombre d'unités
+récupérables produites par chaque condition, page par page, pour la même région
+de page. Le plafond de \num{25} tuiles DOM est atteint sur \num{17} des \num{18}
+pages~; seule la page la plus courte (\code{George\_P.\_Gunn}, \num{7} tuiles)
+reste en dessous. La grille aveugle produit systématiquement entre \num{2} et
+\num{7} bandes, soit un ordre de grandeur de moins.}
+\label{fig-res_unites_page}
+\end{figure}
+
+\subsection{Résultat 3 : la qualité de classement}
+\label{sec-res_a_classement}
+
+\Cref{tab-res_ablation_a} rapporte le rang percentile (\cref{eq-pctrank}), sur
+toutes les paires attribuables puis sur les \num{107} paires attribuables dans
+les \emph{trois} conditions simultanément (comparaison strictement appariée).
+
+\begin{table}[t]
+\centering
+\small
+\caption[Évaluation A : tuilage, grille et texte plat]{Qualité de classement des
+trois conditions, même scoreur TF-IDF, \num{18} pages et \num{409} questions.
+\%rang désigne le rang percentile moyen~: \num{0.5} sous classement aléatoire,
+invariant à la taille du vivier. Les Recall bruts ne sont \emph{pas}
+comparables entre conditions (\cref{sec-eda_pool}) et sont donnés à titre de
+diagnostic.}
+\label{tab-res_ablation_a}
+\begin{tabular}{@{}l r r r r r@{}}
+\toprule
+Condition & $n$ & unités/page & R@1 & R@5 & \%rang \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Toutes les paires attribuables}} \\
+Tuiles DOM   & \num{212} & \num{24.0} & \num{0.547} & \num{0.774} & \num{0.868} \\
+Grille aveugle & \num{108} & \num{4.9}  & \num{0.722} & \num{0.991} & \num{0.839} \\
+Texte plat   & \num{232} & \num{12.3} & \num{0.612} & \num{0.875} & \num{0.867} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Paires appariées (\num{107} attribuables dans les trois conditions)}} \\
+Tuiles DOM   & \num{107} & \num{24.0} & \num{0.514} & \num{0.841} & \num{0.901} \\
+Grille aveugle & \num{107} & \num{4.9}  & \num{0.729} & \num{0.991} & \num{0.845} \\
+Texte plat   & \num{107} & \num{12.3} & \num{0.710} & \num{0.944} & \textbf{\num{0.928}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{res_ablation_a.pdf}
+\caption[Évaluation A : attachement et classement]{\emph{À gauche}~: taux
+d'attachement. \emph{À droite}~: rang percentile moyen sur toutes les paires
+attribuables (barres pleines) et sur les \num{107} paires appariées (barres
+hachurées). La ligne pointillée marque la valeur attendue sous classement
+aléatoire.}
+\label{fig-res_ablation_a}
+\end{figure}
+
+Trois lectures s'imposent. \textbf{L'artefact de vivier est massif}~: la
+grille atteint \num{0.991} de Recall@5, un score presque parfait qui
+n'exprime rien d'autre que le fait qu'elle ne propose que \num{4.9}
+candidats par page --- ce qui valide empiriquement la nécessité du rang
+percentile. \textbf{Le tuilage DOM domine la grille sur la métrique
+corrigée}~: \num{0.868} contre \num{0.839} sur toutes les paires,
+\num{0.901} contre \num{0.845} sur le sous-ensemble apparié --- un avantage
+modeste (trois à six points) mais cohérent entre les deux ensembles, qui
+s'ajoute au doublement du taux d'attachement et à la division par \num{2.7}
+du budget de pixels. \textbf{Le texte plat devance le tuilage DOM sur les
+paires appariées}~: \num{0.928} contre \num{0.901}, contrairement à la
+prémisse partagée par PixelRAG, par MAGE-RAG et par notre propre
+introduction.
+
+\subsection{Pourquoi le texte plat reste compétitif}
+
+Ce dernier résultat n'est pas un défaut de la condition textuelle~: trois
+facteurs l'expliquent. \textbf{Le scoreur n'exploite aucune information
+spatiale}~: TF-IDF, employé dans les trois conditions pour isoler l'effet du
+découpage, ne sait pas qu'une cellule appartient à une ligne de tableau ou
+qu'un titre coiffe un paragraphe --- il voit un sac de mots, précisément la
+propriété sur laquelle repose la valeur du tuilage structuré. Le résultat
+mesure donc le tuilage sur une métrique aveugle à ce qu'il apporte~; la
+question de savoir si l'information spatiale préservée par des tuiles
+alignées apporte un gain est traitée séparément par l'évaluation~B, qui
+utilise un scoreur capable de la percevoir. \textbf{Le critère d'attribution
+favorise le texte}~: une correspondance verbatim est structurellement plus
+favorable à une condition qui manipule le texte directement qu'à une
+condition qui relit l'aperçu textuel d'un recadrage d'image --- l'essentiel
+de l'écart de taux d'attachement (\SI{56.7}{\percent} contre
+\SI{51.8}{\percent}) en découle. \textbf{Le texte plat ne porte aucune
+information visuelle}~: un chiffre lu sur un axe, une correspondance
+ligne-colonne dans un tableau complexe, rien de cela ne subsiste dans du
+texte extrait --- une limite que nos \num{18} pages, majoritairement
+textuelles, ne font pas ressortir, mais qui se manifesterait sur un rapport
+financier ou une notice technique. Cette évaluation établit donc que le
+texte plat est \emph{compétitif sur ce corpus et sous ce scoreur}, non qu'il
+est préférable dans l'absolu.
+
+% =====================================================================
+\section{Évaluation C : contrôleur budgété et sélection top-\texorpdfstring{$k$}{k} statique}
+\label{sec-res_ablation_c}
+% =====================================================================
+
+\subsection{Protocole}
+
+Cette évaluation mesure la capacité du contrôleur (\cref{sec-controleur}) à
+rassembler des preuves réparties sur deux documents. Pour chacune des
+\num{91} questions inter-pages construites depuis HotpotQA
+(\cref{sec-protocole_multihop}), le graphe combiné des deux articles cités
+est construit, avec recâblage des arêtes \code{links\_to} sur leur point
+d'entrée réel (\cref{sec-graphe_corpus}). Le contrôleur et une référence
+top-$k$ statique sont exécutés sur des scores de pertinence
+\emph{identiques}, avec le même budget~; seule la politique de sélection
+diffère. La métrique est la \textbf{couverture complète}~: les preuves
+sélectionnées contiennent-elles au moins une tuile positive sur
+\emph{chacune} des deux pages~? Deux configurations d'amorce sont
+rapportées~: $k_{\text{seed}} = 3$ (valeur par défaut, budget \num{5}) et
+$k_{\text{seed}} = 5$ (égale au budget).
+
+\subsection{Diagnostic, correctif et résultat}
+\label{sec-res_c_avant}
+
+La première mesure, frontière propagée uniquement le long de
+\code{reading\_order}, donnait \SI{29.7}{\percent} de couverture complète pour
+le contrôleur contre \SI{40.7}{\percent} pour la référence à l'amorce par
+défaut, et une égalité exacte à $k_{\text{seed}} = 5$ (bloc supérieur du \cref{tab-res_ablation_c}) --- attendue, puisqu'à amorce égale au budget le
+contrôleur ouvre son amorce intégralement et \emph{devient} la référence
+plutôt que d'y dégénérer, ce qui vérifie la cohérence de l'implémentation.
+Le déficit à $k_{\text{seed}} = 3$ s'expliquait par l'incapacité de la
+frontière à franchir une limite de document~: \code{reading\_order} ne relie
+jamais deux pages, si bien que le second article n'était atteignable que si
+l'amorce y avait déjà placé un nœud.
+
+\begin{table}[t]
+\centering
+\small
+\caption[Évaluation C : couverture inter-pages]{Fraction des \num{91} questions
+inter-pages pour lesquelles les preuves sélectionnées couvrent une tuile
+positive sur \emph{chacun} des deux articles, avant et après le correctif de
+frontière inter-documents.}
+\label{tab-res_ablation_c}
+\begin{tabular}{@{}l r r@{}}
+\toprule
+Amorce $k_{\text{seed}}$ & Contrôleur budgété & Top-$k$ statique \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Avant correctif (\code{reading\_order} seul)}} \\
+\num{3} (budget \num{5}) & \SI{29.7}{\percent} \enspace(\num{27}/\num{91}) & \SI{40.7}{\percent} \enspace(\num{37}/\num{91}) \\
+\num{5} ($=$ budget)     & \SI{40.7}{\percent} \enspace(\num{37}/\num{91}) & \SI{40.7}{\percent} \enspace(\num{37}/\num{91}) \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Après correctif ($+$ \code{links\_to} et \code{continues})}} \\
+\num{3} (budget \num{5}) & \SI{39.6}{\percent} \enspace(\num{36}/\num{91}) & \SI{40.7}{\percent} \enspace(\num{37}/\num{91}) \\
+\num{5} ($=$ budget)     & \SI{40.7}{\percent} \enspace(\num{37}/\num{91}) & \SI{40.7}{\percent} \enspace(\num{37}/\num{91}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\textwidth]{res_ablation_c.pdf}
+\caption[Évaluation C : effet du correctif de frontière]{Couverture complète
+inter-pages. Le correctif produit l'effet prédit par le diagnostic~: la
+couverture du contrôleur passe de \num{27} à \num{36} questions sur \num{91}
+à l'amorce par défaut, réduisant l'écart avec la référence de dix points à
+un point.}
+\label{fig-res_ablation_c}
+\end{figure}
+
+Après implémentation de l'expansion inter-documents
+(\cref{sec-controleur_expansion}), la couverture à l'amorce par défaut passe
+de \num{27} à \num{36} questions sur \num{91}, soit de \SI{29.7}{\percent} à
+\SI{39.6}{\percent} --- exactement l'effet prédit par le diagnostic, mesuré
+une seule fois après implémentation plutôt qu'ajusté empiriquement. Ce que le
+correctif n'établit pas est une supériorité~: à l'amorce par défaut le
+contrôleur reste derrière d'une question, et les intervalles de Wilson à
+\SI{95}{\percent} des deux proportions se recouvrent presque intégralement
+(\numrange{30.1}{49.8} pour le contrôleur, \numrange{31.1}{50.9} pour la
+référence)~: les deux politiques sont statistiquement indiscernables sur cet
+échantillon.
+
+\subsection{Analyse}
+\label{sec-res_c_analyse}
+
+Le contrôleur devance la référence sur \num{7} questions et la suit sur
+\num{8}~: un échange à peu près équilibré, non un déficit systématique. Il
+ouvre en moyenne \num{4.86} nœuds contre \num{5.00} pour la référence, c'est-à-dire
+qu'il élague parfois un nœud sous le seuil d'ouverture plutôt que de dépenser
+son budget --- souhaitable en soi, mais sans gain de couverture. Douze
+questions sur \num{91} obtiennent une couverture nulle~: le problème n'y est
+pas la propagation de la frontière mais le classement lui-même, qui ne place
+pas les bonnes tuiles en tête même sur la page de départ --- pointant une
+seconde fois vers le scoreur, non vers la politique. Le correctif de
+frontière traitait la question de \emph{où} la frontière peut aller, non
+celle de \emph{à quel point elle juge bien la pertinence} une fois arrivée,
+et le point d'extension nécessaire (\cref{sec-controleur_scoreur}) est déjà en
+place.
+
+% =====================================================================
+\section{Évaluation D : le système assemblé}
+\label{sec-res_ablation_d}
+% =====================================================================
+
+\subsection{Protocole et résultat}
+
+Cette évaluation mesure le pipeline complet~: le contrôleur post-correctif
+sélectionne les preuves (budget \num{5}, amorce \num{3}), le modèle
+vision-langage lit chaque tuile ouverte, et un appel de synthèse final
+produit la réponse. Elle porte sur un tirage aléatoire reproductible
+(\code{random.Random(seed=0).sample}) de \num{20} des \num{91} questions
+inter-pages de l'évaluation~C --- l'échantillon reste restreint en raison du
+coût, environ deux minutes par tuile ouverte. Les réponses sont notées par
+correspondance exacte et $F_1$ sur tokens après normalisation standard de
+SQuAD~\citep{squad2016}.
+
+\begin{table}[t]
+\centering
+\small
+\caption[Évaluation D : précision bout-en-bout]{Précision bout-en-bout du
+pipeline complet, \num{20} questions multi-sauts HotpotQA. La taille de
+l'échantillon ne permet pas d'intervalle de confiance utile~; c'est le mode de défaillance du \cref{tab-res_erreurs} qui porte l'information.}
+\label{tab-res_ablation_d}
+\begin{tabular}{@{}l r@{}}
+\toprule
+Métrique & Valeur \\
+\midrule
+Correspondance exacte & \num{0.050} \enspace(\num{1}/\num{20}) \\
+$F_1$ sur tokens & \num{0.057} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Une réponse exactement correcte sur vingt, et un $F_1$ de \num{0.057}~: prise
+seule, cette mesure indique que le système assemblé n'est pas prêt pour un
+usage réel. Ce qui la rend informative est la \emph{nature} des erreurs.
+
+\subsection{Taxonomie des erreurs et analyse}
+\label{sec-res_d_erreurs}
+
+\begin{table}[t]
+\centering
+\small
+\caption[Taxonomie des erreurs bout-en-bout]{Répartition des \num{20}
+prédictions du système assemblé, établie manuellement.}
+\label{tab-res_erreurs}
+\begin{tabularx}{\textwidth}{@{}l r X@{}}
+\toprule
+Catégorie & $n$ & Exemple de prédiction \\
+\midrule
+Abstention explicite & \num{14} & « Not specified in evidence », « Not found in evidence », « Not determinable from evidence » \\
+Retournement oui/non erroné & \num{1} & « No » contre une référence « yes » \\
+Partiellement correcte ($F_1 > 0$) & \num{1} & réponse hybride sur « ... Tenerife, Spain ... » contre « Canary Islands, Spain » ($F_1 = \num{0.133}$) \\
+Entité erronée & \num{3} & « valuation » contre « business »~; « iMac G5 » contre « keyboard function keys » \\
+Réponse exacte & \num{1} & « Blake Shelton » \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.88\textwidth]{res_ablation_d.pdf}
+\caption[Mode de défaillance bout-en-bout]{Quatorze prédictions sur vingt
+sont une abstention explicite~: le système reconnaît que les preuves
+rassemblées ne suffisent pas, plutôt que de produire une réponse inventée.}
+\label{fig-res_ablation_d}
+\end{figure}
+
+\subsection{Sous-rappel de preuves plutôt que fabulation}
+\label{sec-res_d_analyse}
+
+\textbf{Le mode dominant est l'abstention.} Quatorze prédictions sur vingt
+déclarent explicitement que les preuves ne permettent pas de répondre~: le
+lecteur ne réussit pas à interpréter les preuves qu'on lui donne, il constate
+correctement qu'elles sont insuffisantes --- la défaillance est en amont,
+dans la sélection. \textbf{Cette localisation est cohérente avec
+l'évaluation~C}~: sa couverture complète de \SI{39.6}{\percent} signifie que
+sur six questions sur dix, une question multi-sauts est structurellement
+inrépondable et l'abstention y est la réponse correcte --- les deux
+évaluations mesurent le même goulot par deux voies indépendantes.
+\textbf{La fabulation est marginale}~: quatre prédictions sur vingt seulement
+affirment quelque chose de faux, un comportement bien calibré face à des
+preuves incomplètes, non garanti pour un système de RAG. \textbf{La synthèse
+échoue aussi lorsque la couverture est complète}~: \SI{39.6}{\percent} fixe
+un plancher optimiste que l'exactitude bout-en-bout (une réponse sur vingt)
+n'atteint pas~; cet écart supplémentaire n'est pas encore diagnostiqué ---
+preuve mal lue, invite sous-spécifiée, ou faiblesse de lecture du modèle de
+base --- et reste à trier avant d'étendre l'échantillon
+(\cref{sec-res_futur}). Le retournement oui/non mérite une mention à part~:
+c'est la seule erreur susceptible d'induire un utilisateur en erreur sans
+qu'il s'en aperçoive, un « non » assuré ne signalant rien de son incertitude.
+
+% =====================================================================
+\section{Coûts de calcul}
+\label{sec-res_couts}
+% =====================================================================
+
+La génération du jeu de données coûte environ deux minutes par tuile en
+exécution locale, soit de l'ordre de soixante heures de calcul séquentiel sur
+\num{1784} tuiles~; l'émission concurrente des appels au sein d'une page
+(\cref{sec-impl_concurrence}) et le cache sur disque (\cref{sec-impl_repro})
+ramènent ce coût à un ordre praticable. L'entraînement contrastif de
+l'évaluation~B a été mené sur une carte A100/H100 de \SI{80}{\giga\byte}
+louée, lot de \num{4}, deux négatifs difficiles par question, trois époques
+sur les \num{1339} exemples contrastifs~; le \anglais{gradient checkpointing}
+(\cref{sec-contrastif_memoire}) coûte \SIrange{20}{30}{\percent} de temps
+supplémentaire.
+
+C'est le \textbf{coût du scoreur appris à l'inférence} qui explique la
+principale expérience non menée~: substituer le lecteur affiné à TF-IDF dans
+le contrôleur impose un passage avant du modèle par tuile candidate et par
+question, là où un score lexical est essentiellement gratuit. Sur les
+\num{91} questions de l'évaluation~C, chacune sur un graphe de plusieurs
+dizaines de tuiles, cela représente plusieurs milliers de passages avant sur
+GPU loué --- pour une seule configuration d'amorce. Ce coût, non une
+difficulté d'implémentation, est ce qui a placé l'expérience hors de portée
+du projet. À l'inverse, le rendu et le tuilage sont négligeables~: quelques
+secondes par page, dominées par l'attente réseau, et la complexité
+quadratique de l'élagage et du regroupement (\cref{sec-tuilage_regles}) ne se
+manifeste jamais aux tailles de page réelles --- le tuilage guidé par le DOM
+est en pratique gratuit, ce qui renforce le résultat de la \cref{sec-res_a_pixels}~: il ne s'agit pas d'échanger du temps de calcul
+contre des tokens économisés, mais d'économiser les deux.
+
+% =====================================================================
+\section{Limites}
+\label{sec-res_limites}
+% =====================================================================
+
+\paragraph{Les deux limites du contrôleur sont indépendantes.} Établies en
+\cref{sec-res_synthese}. Le scoreur reste lexical alors que le lecteur affiné
+de l'évaluation~B est une fonction de similarité bien meilleure, et la cause de
+cette non-substitution est le coût de calcul (\cref{sec-res_couts}). La
+politique, elle, n'emprunte que trois des sept relations instanciées
+(\cref{tab-graphe_relations}), de sorte que la richesse du graphe reste
+inexploitée quel que soit le scoreur employé. Les deux correctifs sont
+distincts et peuvent être conduits séparément.
+
+\paragraph{Confusion de famille de modèles.}
+\label{sec-res_limites_famille}
+Les questions synthétiques et le lecteur affiné proviennent de la même
+famille Qwen --- une contrainte d'infrastructure (\cref{sec-contrastif_encodeur}),
+Ollama n'exposant aucun accès aux poids pour l'affinage. Une partie du gain de
+l'évaluation~B pourrait donc refléter les idiosyncrasies du générateur de
+questions plutôt qu'une amélioration transférable à des questions humaines. Un
+contrôle direct --- la même mesure de récupération sur les questions humaines
+de HotpotQA --- est implémenté mais n'a pas été exécuté faute de budget de
+calcul. Le seul indice disponible est la précision bout-en-bout de
+\SI{5}{\percent} de l'évaluation~D, nettement inférieure aux chiffres de
+l'évaluation~B et cohérente avec un déficit de généralisation, sans le
+démontrer~: l'évaluation~D change aussi la tâche (pipeline complet, questions
+inter-pages, mesure de réponse plutôt que de rang).
+
+\paragraph{Le jeu contrastif ne couvre pas tout le corpus.}
+\label{sec-res_limites_dataset}
+Seize unités de page dont les paires question-réponse ont été générées ne
+figurent pas dans le jeu contrastif, leur minage de négatifs n'ayant pas abouti
+lors de la construction. Ces unités portent \num{378} des \num{1717} questions,
+soit \SI{22}{\percent} du total pour \SI{8.6}{\percent} des unités. Elles sont
+en moyenne deux fois et demie plus grandes que le reste du corpus, si bien que la
+perte frappe préférentiellement les pages longues, celles-là mêmes que ce travail
+vise. Le lecteur de l'évaluation~B est donc affiné sur un sous-ensemble du
+corpus, et la proportion \num{80}/\num{20} annoncée en
+\cref{sec-contrastif_split} porte sur ce sous-ensemble. Régénérer le minage sur
+ces unités serait peu coûteux, le scoreur étant lexical, mais imposerait de
+réaffiner l'adaptateur et de rejouer l'évaluation~B.
+
+\paragraph{Portée limitée aux pages sémantiquement balisées.} Tous les
+résultats quantitatifs portent sur Wikipédia, avec une liste de sélecteurs de
+nettoyage propre à MediaWiki (\cref{sec-rendu})~; aucune vérification, même
+qualitative, n'a été menée hors MediaWiki. La liste de sélecteurs est
+spécifique~; la logique de tuilage --- boîtes englobantes, mesure serrée,
+fusion, découpe, résolution des chevauchements --- ne l'est pas et ne connaît
+rien de MediaWiki. L'approche n'est pas non plus revendiquée pour les
+applications monopages hydratées par JavaScript ni les mises en page en
+soupe de \code{div}, le régime que les agents web~\citep{webarena2023,
+mind2web2023, seeact2024} étudient déjà côté action.
+
+\paragraph{Le plafond de tuiles restreint la portée de l'évaluation~A.}
+\label{sec-res_limites_plafond}
+Le plafond de \num{25} tuiles (\cref{sec-res_a_protocole}) borne l'évaluation à
+la portion supérieure des pages longues --- non biaisée vers du contenu
+marginal, les infoboîtes et introductions y étant concentrées, mais partielle.
+La valeur de \num{24.0} tuiles par page est un plafond atteint, non une mesure
+de densité~: sans lui, le rapport d'environ cinq entre tuiles DOM et bandes de
+grille serait plus élevé, dans une direction non mesurée pour le rapport de
+pixels. Lever ce plafond exigerait de régénérer les paires question-réponse
+sur l'ensemble du corpus, donc de répéter le coût de l'\cref{sec-res_couts}.
+
+\paragraph{Tailles d'échantillon.} Dix-huit pages et \num{409} questions pour
+l'évaluation~A. \num{330} questions de validation pour l'évaluation~B --- la
+plus solide des quatre. \num{91} questions pour l'évaluation~C, dont les
+intervalles de Wilson ne justifient qu'une indiscernabilité statistique.
+\num{20} questions pour l'évaluation~D, qui ne supportent qu'une lecture
+qualitative du mode de défaillance.
+
+\paragraph{Autres limites.} La découpe des éléments démesurés
+(\cref{sec-tuilage_regles}) reste indifférente au contenu à l'intérieur d'un
+seul élément DOM --- une version étroite du défaut reproché à la grille. Le
+parcours de corpus est peu profond (un saut, au plus trois tuiles porteuses de
+liens, \cref{sec-graphe_interdoc})~; convient à HotpotQA, pas à une chaîne de
+trois sauts ou davantage. Le minage de négatifs reste mono-page hors du chemin
+HotpotQA. Tous les hyperparamètres de l'\cref{annexe-hyperparams} sont des
+valeurs uniques justifiées mais non balayées, faute de budget de calcul. La
+relation \code{semantic\_neighbor} et l'ablation de résolution
+(\cref{sec-protocole_resolution}) sont implémentées mais non évaluées.
+
+% =====================================================================
+\section{Directions de travail}
+\label{sec-res_futur}
+% =====================================================================
+
+Par ordre de bénéfice sur coût~: \textbf{(1)} brancher le lecteur affiné dans
+le score de pertinence du contrôleur --- le point d'extension existe
+(\cref{sec-controleur_scoreur}), seule l'exécution est coûteuse~; une
+atténuation praticable serait un classement en deux étapes, TF-IDF pour
+présélectionner, le lecteur affiné pour réordonner. \textbf{(2)} rejouer
+l'évaluation~A avec ce même scoreur, pour trancher si l'avantage du texte
+plat est un artefact du scoreur ou un résultat robuste. \textbf{(3)} exécuter
+le contrôle de généralisation déjà écrit (\cref{sec-res_limites_famille}).
+\textbf{(4)} faire exploiter au contrôleur \code{section\_hierarchy} et
+\code{layout\_adjacency}, aujourd'hui jamais interrogées. \textbf{(5)} miner
+les négatifs difficiles avec le lecteur lui-même une fois un premier tour
+d'affinage effectué. \textbf{(6)} vérifier qualitativement le tuilage hors
+MediaWiki, pour séparer ce qui relève du nettoyage de ce qui relève de la
+logique de tuilage. \textbf{(7)} étendre l'évaluation~D aux
+soixante-onze questions restantes de l'évaluation~C, une fois triée la cause
+de l'écart entre couverture de preuves et exactitude bout-en-bout.
+
+% =====================================================================
+\chapter{Hyperparamètres}
+\label{annexe-hyperparams}
+% =====================================================================
+
+Toutes les valeurs référencées dans le \cref{chap-methodologie} sont rassemblées
+ici. Chacune est une valeur unique, documentée et centralisée dans un module de
+configuration~; aucune n'a fait l'objet d'un balayage
+(\cref{sec-res_limites}).
+
+\begin{table}[H]
+\centering
+\small
+\caption[Hyperparamètres : rendu, tuilage, graphe et scoreur lexical]{Hyperparamètres
+de la partie hors ligne de la chaîne. Les valeurs en rouge restent à extraire du
+module de configuration.}
+\label{tab-annexe_hyperparams}
+\begin{tabularx}{\textwidth}{@{}X l l@{}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Référence} \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Rendu et extraction}} \\
+Largeur du \anglais{viewport} de rendu & \SI{2048}{\pixel} & \cref{sec-rendu} \\
+Hauteur du \anglais{viewport} (sans effet, capture pleine page) & \SI{1000}{\pixel} & \cref{sec-rendu} \\
+Facteur d'échelle de périphérique & \num{1} & \cref{sec-rendu} \\
+Condition d'attente avant capture & \code{networkidle} & \cref{sec-rendu} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\emph{Tuilage}} \\
+Hauteur maximale de tuile (avant découpe) & \SI{2048}{\pixel} & \cref{sec-tuilage_regles} \\
+Seuil de mise en tampon (hauteur d'élément) & \SI{80}{\pixel} & \cref{sec-tuilage_regles} \\
+Tolérance d'imbrication (élagage) & \SI{1}{\pixel} & \cref{sec-tuilage_elagage} \\
+Seuil de chevauchement $\rho_{\min}$ & \num{0.15} & \cref{sec-tuilage_chevauchement} \\
+Hauteur de page avant découpage en sections & \SI{20480}{\pixel} \enspace($10 \times h_{\max}$) & \cref{sec-tuilage_sections} \\
+Budget de hauteur d'une section trop haute & \aremplir[budget] & \cref{sec-tuilage_sections} \\
+Tuiles retenues par unité de page (plafond) & \num{25} & \cref{sec-tuilage} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\emph{Graphe}} \\
+Tolérance de regroupement en rangées & \SI{20}{\pixel} & \cref{sec-graphe_ordre} \\
+Tuiles porteuses de liens conservées ($k_{\text{liens}}$) & \num{3} & \cref{sec-graphe_interdoc} \\
+Pages suivies depuis l'amorce ($m$) & \aremplir & \cref{sec-graphe_corpus} \\
+Seuil de voisinage sémantique (cosinus) & \num{0.2} & \cref{sec-graphe_semantique} \\
+Voisins sémantiques maximum par tuile & \num{3} & \cref{sec-graphe_semantique} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\emph{Scoreur lexical TF-IDF}} \\
+Plage de $n$-grammes & \aremplir & \cref{sec-controleur_scoreur} \\
+Liste de mots vides & \aremplir & \cref{sec-controleur_scoreur} \\
+Fréquences documentaires minimale et maximale & \aremplir & \cref{sec-controleur_scoreur} \\
+Pondération sous-linéaire des fréquences & \aremplir[oui/non] & \cref{sec-controleur_scoreur} \\
+Longueur de l'aperçu textuel par tuile & \aremplir[caractères] & \cref{sec-tuilage} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\small
+\caption[Hyperparamètres : apprentissage, contrôleur, modèles et ablations]{Hyperparamètres
+de l'entraînement, du contrôleur en ligne et des conditions de référence.}
+\label{tab-annexe_hyperparams_b}
+\begin{tabularx}{\textwidth}{@{}X l l@{}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Référence} \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Entraînement contrastif}} \\
+Négatifs difficiles minés par question ($K$) & \num{2} & \cref{sec-contrastif_mining} \\
+Rang LoRA ($r$) & \num{16} & \cref{sec-contrastif_lora} \\
+Facteur d'échelle LoRA ($\alpha$) & \num{32} & \cref{sec-contrastif_lora} \\
+\anglais{Dropout} LoRA & \num{0.05} & \cref{sec-contrastif_lora} \\
+Paramètres entraînables & \aremplir & \cref{sec-contrastif_lora} \\
+Optimiseur, taux d'apprentissage, échauffement & \aremplir & \cref{sec-contrastif_lora} \\
+Température InfoNCE ($\tau$) & \num{0.05} & \cref{sec-contrastif_loss} \\
+Taille de lot ($B$) & \num{4} & \cref{sec-contrastif_loss} \\
+Époques & \num{3} & \cref{sec-res_couts} \\
+Proportion du partitionnement (par article) & \num{80}/\num{20} & \cref{sec-contrastif_split} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\emph{Contrôleur}} \\
+Budget d'ouvertures ($B$) & \num{5} & \cref{sec-controleur_politique} \\
+Amorce ($k_{\text{seed}}$) & \num{3} & \cref{sec-controleur_politique} \\
+Seuil d'ouverture ($\theta_{\text{ouv}}$) & \num{0.05} & \cref{sec-controleur_politique} \\
+Seuil d'activation ($\theta_{\text{act}}$) & \num{0.05} & \cref{sec-controleur_politique} \\
+Appels au modèle concurrents & \num{4} & \cref{sec-impl_concurrence} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\emph{Modèles et décodage}} \\
+Modèle lecteur (inférence) & \code{qwen3-vl} (Ollama) & \cref{sec-implementation} \\
+Modèle lecteur (affinage) & \code{Qwen2-VL-7B-Instruct} & \cref{sec-contrastif_encodeur} \\
+Aire d'image minimale du processeur (\code{min\_pixels}) & \aremplir & \cref{sec-contrastif_memoire} \\
+Aire d'image maximale du processeur (\code{max\_pixels}) & \aremplir & \cref{tab-cout_tokens} \\
+Température de décodage & \num{0} \enspace(glouton) & \cref{sec-impl_repro} \\
+Fenêtre de contexte & \num{8192} tokens & \cref{sec-impl_repro} \\
+\addlinespace
+\multicolumn{3}{@{}l}{\emph{Références et ablations}} \\
+Seuil de découpage en sections, propre à l'évaluation A & \SI{51200}{\pixel} \enspace($25 \times h_{\max}$, contre $10\times$ pour le corpus principal) & \cref{sec-protocole_grille} \\
+Hauteur de bande de la grille aveugle & \SI{1024}{\pixel} & \cref{sec-protocole_grille} \\
+Taille de fenêtre du texte plat & \num{400} caractères & \cref{sec-protocole_grille} \\
+Largeur de bande de la grille aveugle & \SI{2048}{\pixel} \enspace(largeur de rendu) & \cref{sec-protocole_grille} \\
+Facteur d'échelle de compression (Lanczos) & \num{0.5} & \cref{sec-protocole_resolution} \\
+Graine du tirage aléatoire, sous-échantillon évaluation D & \num{0} & \cref{sec-res_ablation_d} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% =====================================================================
+\chapter{Invites utilisées}
+\label{annexe-invites}
+% =====================================================================
+
+Les invites sont reproduites telles qu'elles figurent dans le module de
+configuration. Celles adressées au modèle générateur de questions sont en
+français, celles de la synthèse finale en anglais --- la langue des articles
+Wikipédia évalués et des réponses de référence de HotpotQA.
+
+\section{Génération de paires question-réponse}
+
+Cette invite accompagne l'image d'une unique tuile
+(\cref{sec-contrastif_qa}).
+
+\begin{lstlisting}[language={}, frame=single, basicstyle=\ttfamily\scriptsize]
+Tu vois un unique fragment recadré (une "tuile") d'une capture d'écran de
+page web, pas la page complète.
+
+Génère UNE question précise et autonome dont la réponse est visible dans
+cette image, et UNIQUEMENT dans cette image (quelqu'un qui n'a pas vu cette
+tuile ne pourrait pas deviner la réponse par hasard). Évite les questions
+vagues ("de quoi parle cette image ?") : vise une question factuelle et
+spécifique (un nombre, un nom, une date, une définition, une légende...).
+
+Si l'image ne contient aucune information exploitable (décorative, vide,
+illisible), réponds exactement: SKIP
+
+Sinon, réponds STRICTEMENT en JSON, sans texte autour, au format :
+{"question": "...", "answer": "..."}
+\end{lstlisting}
+
+Trois propriétés de cette invite portent le protocole. L'exigence
+d'\emph{autonomie} de la question rend la paire utilisable comme exemple positif de
+récupération~: une question dont la réponse serait devinable sans voir la tuile
+n'apprendrait rien au modèle. La sortie \code{SKIP} explicite évite d'avoir à
+interpréter un refus formulé librement. Et le format JSON strict, sans texte
+d'encadrement, rend l'analyse syntaxique déterministe.
+
+\section{Instruction d'encodage PromptEOL}
+
+Cette instruction suit l'entrée --- question textuelle ou image de tuile,
+indifféremment --- et l'état caché de la dernière couche à la position de son
+dernier token est pris comme plongement (\cref{sec-contrastif_encodeur}).
+
+\begin{lstlisting}[language={}, frame=single, basicstyle=\ttfamily\scriptsize]
+\aremplir[instruction PromptEOL exacte, depuis le module de configuration]
+\end{lstlisting}
+
+Son rôle est de contraindre le modèle à comprimer le sens de l'entrée en une
+position unique~; c'est son application \emph{à l'identique} aux deux modalités qui
+place question et tuile dans le même espace, sans tête de projection additionnelle.
+
+\section{Juge de faux négatifs}
+
+Ce second filtre, optionnel et non activé pour les jeux de données évalués, est
+adressé au modèle avec l'image d'une tuile candidate au statut de négatif
+difficile (\cref{sec-contrastif_mining}).
+
+\begin{lstlisting}[language={}, frame=single, basicstyle=\ttfamily\scriptsize]
+Tu vois un fragment ("tuile") d'une capture d'écran de page web.
+
+Question : {question}
+Réponse attendue (trouvée dans une AUTRE tuile de la même page) : {answer}
+
+Cette image permet-elle, à elle seule, de retrouver cette même information
+-- même reformulée (synonyme), ou exprimée visuellement (couleur, logo,
+forme) plutôt que textuellement ? Réponds STRICTEMENT par un seul mot :
+OUI ou NON.
+\end{lstlisting}
+
+L'insistance sur les formulations visuelles est le point de cette invite~: c'est
+exactement ce que le filtre lexical par sous-chaîne ne peut pas détecter.
+
+\section{Lecture d'une tuile ouverte}
+
+Adressée au modèle pour chaque tuile que le contrôleur a ouverte
+(\cref{sec-controleur_lecture}).
+
+\begin{lstlisting}[language={}, frame=single, basicstyle=\ttfamily\scriptsize]
+Question : {query}
+Extrait uniquement les informations de cette image utiles pour y répondre.
+\end{lstlisting}
+
+\section{Synthèse de la réponse finale}
+
+Adressée au modèle en texte seul, une fois les preuves rassemblées.
+
+\begin{lstlisting}[language={}, frame=single, basicstyle=\ttfamily\scriptsize]
+Here are excerpts from a web page, selected as relevant evidence to answer
+a question.
+
+Evidence:
+{evidence}
+
+Question: {question}
+
+Answer the question using ONLY this evidence, in English. If the evidence
+does not allow you to answer, say so explicitly rather than making
+something up.
+\end{lstlisting}
+
+La dernière phrase de cette invite est directement responsable du mode de
+défaillance observé en \cref{sec-res_d_erreurs}~: elle instruit explicitement le
+modèle de s'abstenir plutôt que d'inventer. Les quatorze abstentions sur vingt
+prédictions sont donc un comportement conforme aux instructions face à des
+preuves incomplètes, et non une défaillance du lecteur.
+
+% =====================================================================
+\chapter{Organisation du dépôt}
+\label{annexe-depot}
+% =====================================================================
+
+Le code source est organisé avec un module par étage du pipeline. Cette
+correspondance directe entre les sections du \cref{chap-methodologie} et les
+modules est délibérée~: elle permet de localiser sans ambiguïté l'implémentation
+de chaque décision de conception décrite.
+
+\section{Modules du pipeline}
+
+\begin{table}[H]
+\centering
+\small
+\caption[Modules du pipeline]{Modules du pipeline et sections correspondantes.}
+\label{tab-annexe_modules}
+\begin{tabularx}{\textwidth}{@{}l X l@{}}
+\toprule
+\textbf{Module} & \textbf{Rôle} & \textbf{Section} \\
+\midrule
+\code{config.py} & constantes centralisées, invites & \cref{annexe-hyperparams} \\
+\code{dom\_extraction.py} & rendu Playwright, extraction des boîtes englobantes, mesure serrée du texte coulant & \cref{sec-rendu} \\
+\code{tiling.py} & élagage, regroupement des chevauchements, appariement, fusion, découpe & \cref{sec-tuilage} \\
+\code{sectioning.py} & découpage des pages démesurées aux frontières \code{h1}/\code{h2} & \cref{sec-tuilage_sections} \\
+\code{graph\_builder.py} & graphe à deux niveaux, sept relations, export XML & \cref{sec-graphe} \\
+\code{corpus\_builder.py} & fusion multi-pages, préfixage, points d'entrée & \cref{sec-graphe_corpus} \\
+\code{vlm\_client.py} & client vision-langage, cache sur disque, concurrence & \cref{sec-implementation} \\
+\code{qa\_generation.py} & génération synthétique de paires question-réponse & \cref{sec-contrastif_qa} \\
+\code{hard\_negative\_mining.py} & minage TF-IDF, double filtre anti-faux-négatif & \cref{sec-contrastif_mining} \\
+\code{contrastive\_dataset.py} & jeu de données PyTorch, partitionnement par article & \cref{sec-contrastif_split} \\
+\code{lora\_finetune.py} & tête PromptEOL, LoRA sur ViT et décodeur, perte InfoNCE & \cref{sec-contrastif} \\
+\code{evidence\_controller.py} & machine à états, politique best-first, frontière inter-documents & \cref{sec-controleur} \\
+\code{multihop\_qa.py} & construction des exemples inter-pages depuis HotpotQA & \cref{sec-protocole_multihop} \\
+\code{image\_compression.py} & sous-échantillonnage Lanczos pour l'ablation de résolution & \cref{sec-protocole_resolution} \\
+\code{visualization.py} & superpositions de tuiles, graphes interactifs & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Scripts d'expérimentation}
+
+\begin{table}[H]
+\centering
+\small
+\caption[Scripts d'expérimentation]{Scripts d'expérimentation et évaluations
+correspondantes.}
+\label{tab-annexe_scripts}
+\begin{tabularx}{\textwidth}{@{}l X l@{}}
+\toprule
+\textbf{Script} & \textbf{Rôle} & \textbf{Évaluation} \\
+\midrule
+\code{build\_dataset.py} & pilote le pipeline sur une liste de pages, sauvegarde par unité & \cref{sec-res_donnees} \\
+\code{build\_multihop\_dataset.py} & construit les exemples HotpotQA, journalise les abandons & \cref{sec-res_donnees} \\
+\code{grid\_baseline.py} & référence en grille aveugle, indépendante de \code{tiling.py} & A \\
+\code{dom\_vs\_grid\_experiment.py} & construit les trois conditions et classe les questions & A \\
+\code{eval\_retrieval.py} & récupération sur la partie de validation, avec et sans adaptateur & B \\
+\code{eval\_retrieval\_tfidf.py} & référence lexicale sur le même partitionnement & B \\
+\code{eval\_multihop\_controller.py} & couverture inter-pages, contrôleur contre top-$k$ & C \\
+\code{eval\_multihop\_e2e.py} & pipeline complet, correspondance exacte et $F_1$ & D \\
+\code{eval\_hotpotqa\_reader.py} & contrôle de généralisation \emph{(écrit, non exécuté)} & \cref{sec-res_limites_famille} \\
+\code{compress\_dataset\_images.py} & produit le dossier miroir en résolution réduite & \cref{sec-protocole_resolution} \\
+\code{generate\_paper\_figures.py} & superpositions de tuilage des \cref{fig-intro_teaser,fig-tuiles_reelles} & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Tests}
+
+{\sloppy
+Les tests suivent la séparation par dépendances décrite en
+\cref{sec-implementation}. Les tests de \code{tiling}, \code{graph\_builder},
+\code{sectioning}, \code{hard\_negative\_mining}, \code{multihop\_qa},
+\code{evidence\_controller}, \code{corpus\_builder} et
+\code{image\_compression} s'exécutent sur des cas synthétiques, sans
+réseau, sans modèle et sans GPU. Les tests de \code{dom\_extraction}
+s'appuient sur Playwright et vérifient l'extraction de bout en bout contre une
+page HTML fournie avec le dépôt, incluant un cas dédié à l'élément
+flottant partageant sa rangée avec du texte
+(\cref{sec-rendu_textflow}).
+\par}
+
+% =====================================================================
+\chapter{Protocole de reproduction}
+\label{annexe-repro}
+% =====================================================================
+
+\section{Installation}
+
+\begin{lstlisting}[language=bash, frame=single, basicstyle=\ttfamily\scriptsize]
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+playwright install chromium
+
+# Backend d'inférence (aucun GPU requis)
+ollama pull qwen3-vl
+\end{lstlisting}
+
+\section{Vérification de l'installation}
+
+Les tests sans dépendance lourde s'exécutent sur une page locale et ne
+nécessitent ni réseau ni modèle.
+
+\begin{lstlisting}[language=bash, frame=single, basicstyle=\ttfamily\scriptsize]
+python3 -m pytest tests/ -x
+python3 tests/test_pipeline_smoke.py
+\end{lstlisting}
+
+\section{Reproduction des évaluations}
+
+\begin{lstlisting}[language=bash, frame=single, basicstyle=\ttfamily\scriptsize]
+# Construction du jeu de données (long : ~2 min par tuile en local,
+# mis en cache sur disque ; reprise automatique par unité de page)
+python3 -m scripts.build_dataset
+python3 -m scripts.build_multihop_dataset
+
+# Évaluation A -- tuilage guidé, grille aveugle, texte plat
+python3 -m scripts.dom_vs_grid_experiment
+
+# Évaluation B -- lecteur affiné (nécessite un GPU pour l'entraînement)
+python3 -m src.lora_finetune --epochs 3 --batch-size 4 \
+        --gradient-checkpointing
+python3 -m scripts.eval_retrieval
+python3 -m scripts.eval_retrieval_tfidf
+
+# Évaluation C -- contrôleur contre top-k statique
+python3 -m scripts.eval_multihop_controller
+
+# Évaluation D -- pipeline complet
+python3 -m scripts.eval_multihop_e2e
+\end{lstlisting}
+
+\section{Application de démonstration}
+
+\begin{lstlisting}[language=bash, frame=single, basicstyle=\ttfamily\scriptsize]
+uvicorn webapp.backend.main:app --reload
+# puis ouvrir http://127.0.0.1:8000/
+\end{lstlisting}
+
+Chaque requête recalcule l'intégralité du pipeline sur la page indiquée, sans
+corpus préconstruit~: le temps de réponse va de quelques dizaines de secondes à
+plusieurs minutes selon la page et le budget du contrôleur
+(\cref{sec-implementation}).
+
+\section{Notes de reproductibilité}
+
+Trois points conditionnent la reproductibilité exacte des chiffres rapportés.
+Le \textbf{décodage doit être glouton} (température nulle,
+\cref{sec-impl_repro})~: une température positive rend les appels non
+reproductibles, avec un symptôme trompeur --- la même question peut recevoir
+une réponse correcte puis une abstention sans aucune différence dans les
+tuiles ouvertes. La \textbf{fenêtre de contexte doit être portée à
+\num{8192} tokens}~: à la valeur par défaut de \num{4096}, un raisonnement
+long l'épuise avant la réponse, produisant un contenu vide silencieusement
+interprété comme \code{SKIP}. Enfin, les résultats portent en grande partie
+sur des \textbf{pages web vivantes}~; Wikipédia évolue, et les taux de
+conservation des questions HotpotQA (\cref{sec-res_donnees}) dériveront avec
+le temps. Pour l'évaluation~A, \code{scripts/pin\_wikipedia\_snapshot.py}
+fige les révisions des dix-huit pages retenues, chargées automatiquement par
+\code{dom\_vs\_grid\_experiment.py} avec repli sur le contenu en direct~; les
+évaluations B, C et D n'en bénéficient pas encore.
+
+\paragraph{Vérification de stabilité.} Une réexécution de l'évaluation~A sur
+ce contenu figé (\cref{tab-annexe_repro_check}) reproduit le classement et
+les conclusions qualitatives du \cref{tab-res_ablation_a} --- la grille garde
+le meilleur R@1 mais le pire taux d'attachement, texte plat et tuilage DOM
+restent proches et stables. Les écarts, de un à quatre points selon la
+métrique, sont imputables à la dérive du contenu Wikipédia entre les deux
+exécutions et ne changent aucune conclusion de la \cref{sec-res_ablation_a}.
+
+\begin{table}[H]
+\centering
+\small
+\caption[Vérification de stabilité de l'évaluation A]{Évaluation A, chiffres du
+rapport (\cref{tab-res_ablation_a}, contenu Wikipédia en direct au moment du
+\anglais{run}) contre une réexécution sur le contenu figé par
+\code{pin\_wikipedia\_snapshot.py}. Mêmes dix-huit pages, mêmes
+\num{409} questions~; le classement entre conditions et l'écart d'attachement
+sont préservés.}
+\label{tab-annexe_repro_check}
+\begin{tabular}{@{}l r r r r@{}}
+\toprule
+& $n$ & R@1 & Attachement & \%rang \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{Tuiles DOM}} \\
+Rapport & \num{212} & \num{0.547} & \SI{51.8}{\percent} & \num{0.868} \\
+Réexécution, contenu figé & \num{211} & \num{0.550} & \SI{51.6}{\percent} & \num{0.869} \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{Grille aveugle}} \\
+Rapport & \num{108} & \num{0.722} & \SI{26.4}{\percent} & \num{0.839} \\
+Réexécution, contenu figé & \num{105} & \num{0.762} & \SI{25.7}{\percent} & \num{0.854} \\
+\addlinespace
+\multicolumn{5}{@{}l}{\emph{Texte plat}} \\
+Rapport & \num{232} & \num{0.612} & \SI{56.7}{\percent} & \num{0.867} \\
+Réexécution, contenu figé & \num{231} & \num{0.602} & \SI{56.5}{\percent} & \num{0.864} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\chapter{Considérations éthiques}
+\label{annexe-ethique}
+% =====================================================================
+
+\section{Accès aux données}
+
+Le constructeur de corpus télécharge une page d'amorce et un nombre borné de
+pages liées, avec temporisation et reprise plutôt que téléchargement agressif. Un
+déploiement en production devrait néanmoins préférer l'API REST de Wikimedia ou un
+\anglais{dump} statique au téléchargement en direct~; le prototype ne le fait pas
+par défaut, et nous le signalons comme une limite de son mode de fonctionnement
+plutôt que comme un choix défendable à grande échelle.
+
+\section{Licences}
+
+Le texte de Wikipédia est publié sous licence CC~BY-SA. Les images qui y sont
+incorporées portent en revanche des licences hétérogènes, dont certaines non
+libres. Les captures et les tuiles produites par le pipeline sont donc des œuvres
+dérivées que nous ne redistribuons pas~; seul le code est publié.
+
+\section{Statut des données synthétiques}
+
+Les questions générées en \cref{sec-contrastif_qa} sont produites par un modèle et
+n'ont pas été vérifiées par un humain. Elles doivent être étiquetées comme telles
+en cas de diffusion. Cette réserve n'est pas formelle~: une question mal formée ou
+dont la réponse est inexacte introduit du bruit dans l'entraînement contrastif, et
+le taux de telles questions n'a pas été mesuré.
+
+\section{Aptitude au déploiement}
+
+Le mode de défaillance observé en \cref{sec-res_d_erreurs} est rapporté pour la
+sécurité du déploiement autant que pour la complétude. L'erreur dominante est
+l'abstention explicite, la plus sûre des deux pour un système de cette précision.
+Mais une prédiction sur vingt était une réponse oui/non assurée et fausse
+--- le mode de défaillance le plus susceptible d'induire en erreur un utilisateur
+qui ne vérifierait pas une affirmation factuelle brève, puisqu'un « non » concis
+ne signale rien de son incertitude. Un seul cas sur cet échantillon ne permet
+pas d'estimer un taux, mais suffit à établir que le mode existe et n'est pas
+détectable par l'utilisateur sans vérification externe.
+
+Nous ne considérons donc pas le système apte au déploiement là où une réponse
+oui/non erronée porterait des conséquences réelles, et nous rapportons ces
+résultats précisément pour que cette décision ne se prenne pas sur la seule
+motivation de la conception.

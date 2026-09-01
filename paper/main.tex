@@ -1,56 +1,198 @@
-\documentclass[11pt]{article}
+% =====================================================================
+%  Rapport de projet de master (PDM) — EPFL, Section Informatique (IC)
+%
+%  DOM-Graph RAG : tuilage guidé par la structure pour la génération
+%  augmentée par récupération visuelle
+%
+%  Compilation :  latexmk -pdf main.tex
+%             ou :  pdflatex main && bibtex main && pdflatex main && pdflatex main
+% =====================================================================
+\documentclass[11pt,a4paper,twoside,openright]{report}
 
-% ACL style (official acl-org/acl-style-files). "review" = anonymized,
-% line-numbered submission version for double-blind review (DocInsights
-% 2026 CFP requires this). Switch to \usepackage{acl} (no [review]) and
-% restore the real \author{} below for the camera-ready version.
-\usepackage[review]{acl}
+% ---------- Bibliographie (natbib avant babel, cf. french.ldf) ----------
+\usepackage[numbers,sort&compress]{natbib}
 
-\usepackage{times}
-\usepackage{latexsym}
+% ---------- Langue et encodage ----------
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\frenchsetup{SmallCapsFigTabCaptions=false}
+\usepackage{lmodern}
 \usepackage{microtype}
+
+% ---------- Mise en page ----------
+\usepackage[a4paper,inner=3.2cm,outer=2.5cm,top=2.8cm,bottom=2.8cm]{geometry}
+\usepackage{emptypage}
+\raggedbottom
+
+% ---------- Mathématiques et symboles ----------
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{bm}
+\usepackage{siunitx}
+\sisetup{
+  locale = FR,
+  group-separator = {\,},
+  group-minimum-digits = 4,
+  output-decimal-marker = {,},
+  detect-weight = true,
+  detect-family = true,
+}
+\DeclareSIUnit\pixel{px}
+
+% ---------- Figures et tableaux ----------
 \usepackage{graphicx}
-
-\usepackage{amsmath,amssymb}
+\graphicspath{{figures/}}
 \usepackage{booktabs}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage{subcaption}
+\captionsetup{font=small,labelfont=bf,margin=8pt}
+\usepackage{float}
+\usepackage{rotating}
+
+% ---------- Algorithmes et code ----------
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\SetKwInput{KwData}{Entrée}
+\SetKwInput{KwResult}{Sortie}
+\SetKw{KwTo}{à}
+\SetKwFor{While}{tant que}{faire}{fin}
+\SetKwFor{For}{pour}{faire}{fin}
+\SetKwFor{ForEach}{pour chaque}{faire}{fin}
+\SetKwIF{If}{ElseIf}{Else}{si}{alors}{sinon si}{sinon}{fin}
+\SetKwBlock{Begin}{début}{fin}
+\SetAlgorithmName{Algorithme}{algorithme}{Liste des algorithmes}
+\SetAlgoCaptionSeparator{~---}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codebg}{HTML}{F7F7F4}
+\definecolor{codekw}{HTML}{184F95}
+\definecolor{codestr}{HTML}{008300}
+\definecolor{codecom}{HTML}{898781}
+\definecolor{accent}{HTML}{2A78D6}
+\definecolor{rulegray}{HTML}{C3C2B7}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecom}\itshape,
+  numbers=left,
+  numberstyle=\tiny\color{codecom},
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{rulegray},
+  framesep=5pt,
+  breaklines=true,
+  breakatwhitespace=true,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {à}{{\`a}}1 {ç}{{\c c}}1
+           {ù}{{\`u}}1 {â}{{\^a}}1 {î}{{\^\i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+           {É}{{\'E}}1 {—}{{---}}1 {’}{{'}}1 {«}{{\guillemotleft}}1
+           {»}{{\guillemotright}}1 {°}{{\textdegree}}1
+}
+
+% ---------- Schémas ----------
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
-\usepackage{enumitem}
-\setlist{noitemsep, topsep=2pt}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc,backgrounds}
 
-\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
-\newcommand{\state}[1]{\textsc{#1}}
-\newcommand{\code}[1]{\texttt{#1}}
+% ---------- Titres et en-têtes ----------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\color{accent}\Large\chaptertitlename\ \thechapter}
+  {12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{28pt}
 
-\title{DOM-Guided tiling for visual document RAG}
+\usepackage{fancyhdr}
+\setlength{\headheight}{22pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\nouppercase{\leftmark}}
+\fancyhead[RO]{\small\nouppercase{\rightmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{rulegray}\leaders\hrule height \headrulewidth\hfill}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
 
-% Anonymized for double-blind review -- cf. DocInsights 2026 CFP
-% ("submissions must be anonymized"). Restore for camera-ready:
-% \author{Alexis Firome \\ \texttt{alexis.firome@gmail.com}}
-\author{Anonymous ACL submission}
+% ---------- Bibliographie et renvois ----------
+\bibliographystyle{plainnat}
+\usepackage[hidelinks,breaklinks]{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  citecolor=accent,
+  urlcolor=accent,
+  pdftitle={DOM-Graph RAG : tuilage guidé par la structure pour la génération augmentée par récupération visuelle},
+  pdfauthor={Alexis Firome},
+  pdfsubject={Projet de master, EPFL Section Informatique},
+}
+\usepackage[french]{cleveref}
+\crefname{chapter}{chapitre}{chapitres}
+\Crefname{chapter}{Chapitre}{Chapitres}
+\crefname{section}{section}{sections}
+\Crefname{section}{Section}{Sections}
+\crefname{figure}{figure}{figures}
+\Crefname{figure}{Figure}{Figures}
+\crefname{table}{tableau}{tableaux}
+\Crefname{table}{Tableau}{Tableaux}
+\crefname{algocf}{algorithme}{algorithmes}
+\Crefname{algocf}{Algorithme}{Algorithmes}
+\crefname{equation}{équation}{équations}
+\Crefname{equation}{Équation}{Équations}
+\crefname{lstlisting}{extrait}{extraits}
+\Crefname{lstlisting}{Extrait}{Extraits}
+
+% ---------- Raccourcis ----------
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\etat}[1]{\textnormal{\textsc{#1}}}
+\newcommand{\px}{\,px}
+\newcommand{\anglais}[1]{\emph{#1}}
+% Nom de procédure utilisable en mode mathématique (accents compris)
+\newcommand{\proc}[1]{\text{\normalfont\textsc{#1}}}
+\newcommand{\op}[1]{\operatorname{\text{\normalfont #1}}}
+
+% ---------------------------------------------------------------------
+\newcommand{\aremplir}[1][?]{\textcolor{red}{\textbf{[#1]}}}
+
+% Cohérence terminologique : « Tableau » dans les légendes comme dans les renvois
+\addto\captionsfrench{%
+  \renewcommand{\tablename}{Tableau}%
+  \renewcommand{\listtablename}{Liste des tableaux}%
+  \renewcommand{\lstlistingname}{Extrait}%
+  \renewcommand{\lstlistlistingname}{Liste des extraits de code}%
+}
 
 \begin{document}
-\maketitle
 
-\begin{abstract}
-\input{sections/abstract}
-\end{abstract}
+% =====================================================================
+\pagenumbering{roman}
+\input{chapitres/00_page_titre}
+\pagestyle{plain}
+\tableofcontents
+\pagestyle{fancy}
 
-\input{sections/introduction}
-\input{sections/related_work}
-\input{sections/method}
-\input{sections/implementation}
-\input{sections/experiments}
-\input{sections/limitations}
-\input{sections/conclusion}
-\input{sections/ethics}
+% =====================================================================
+\pagenumbering{arabic}
 
+\input{chapitres/01_introduction}
+\input{chapitres/02_etat_de_lart}
+\input{chapitres/03_methodologie}
+\input{chapitres/04_resultats}
+\input{chapitres/05_conclusion}
+
+% =====================================================================
+\appendix
+\input{chapitres/06_annexes}
+
+% =====================================================================
+\cleardoublepage
+\addcontentsline{toc}{chapter}{Bibliographie}
 \bibliography{references}
-
-\input{sections/appendix}
 
 \end{document}
