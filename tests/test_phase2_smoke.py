@@ -198,7 +198,7 @@ def test_generate_qa_dataset_runs_tiles_concurrently_but_preserves_output_order(
 
     qa_pairs = generate_qa_dataset(
         TILES, page_url="https://example.org/town", page_slug="testpage",
-        client=_ConcurrentClient(), output_dir=tmp_path,
+        client=_ConcurrentClient(), images_root=tmp_path,
     )
 
     assert concurrency["max"] >= 2  # au moins deux appels ont bien tourné en parallèle

@@ -468,8 +468,7 @@ configuration~; aucune n'a fait l'objet d'un balayage
 \centering
 \small
 \caption[Hyperparamètres : rendu, tuilage, graphe et scoreur lexical]{Hyperparamètres
-de la partie hors ligne de la chaîne. Les valeurs en rouge restent à extraire du
-module de configuration.}
+de la partie hors ligne de la chaîne, extraits du module de configuration.}
 \label{tab-annexe_hyperparams}
 \begin{tabularx}{\textwidth}{@{}X l l@{}}
 \toprule
@@ -487,22 +486,22 @@ Seuil de mise en tampon (hauteur d'élément) & \SI{80}{\pixel} & \cref{sec-tuil
 Tolérance d'imbrication (élagage) & \SI{1}{\pixel} & \cref{sec-tuilage_elagage} \\
 Seuil de chevauchement $\rho_{\min}$ & \num{0.15} & \cref{sec-tuilage_chevauchement} \\
 Hauteur de page avant découpage en sections & \SI{20480}{\pixel} \enspace($10 \times h_{\max}$) & \cref{sec-tuilage_sections} \\
-Budget de hauteur d'une section trop haute & \aremplir[budget] & \cref{sec-tuilage_sections} \\
+Budget de hauteur d'une section trop haute & \SI{20480}{\pixel} \enspace(même seuil que la ligne précédente) & \cref{sec-tuilage_sections} \\
 Tuiles retenues par unité de page (plafond) & \num{25} & \cref{sec-tuilage} \\
 \addlinespace
 \multicolumn{3}{@{}l}{\emph{Graphe}} \\
 Tolérance de regroupement en rangées & \SI{20}{\pixel} & \cref{sec-graphe_ordre} \\
 Tuiles porteuses de liens conservées ($k_{\text{liens}}$) & \num{3} & \cref{sec-graphe_interdoc} \\
-Pages suivies depuis l'amorce ($m$) & \aremplir & \cref{sec-graphe_corpus} \\
+Pages suivies depuis l'amorce ($m$) & \num{3} & \cref{sec-graphe_corpus} \\
 Seuil de voisinage sémantique (cosinus) & \num{0.2} & \cref{sec-graphe_semantique} \\
 Voisins sémantiques maximum par tuile & \num{3} & \cref{sec-graphe_semantique} \\
 \addlinespace
 \multicolumn{3}{@{}l}{\emph{Scoreur lexical TF-IDF}} \\
-Plage de $n$-grammes & \aremplir & \cref{sec-controleur_scoreur} \\
-Liste de mots vides & \aremplir & \cref{sec-controleur_scoreur} \\
-Fréquences documentaires minimale et maximale & \aremplir & \cref{sec-controleur_scoreur} \\
-Pondération sous-linéaire des fréquences & \aremplir[oui/non] & \cref{sec-controleur_scoreur} \\
-Longueur de l'aperçu textuel par tuile & \aremplir[caractères] & \cref{sec-tuilage} \\
+Plage de $n$-grammes & \num{1}--\num{1} \enspace(unigrammes) & \cref{sec-controleur_scoreur} \\
+Liste de mots vides & \code{"english"} (scikit-learn) & \cref{sec-controleur_scoreur} \\
+Fréquences documentaires minimale et maximale & \num{1} / \num{1.0} \enspace(pas de borne supérieure) & \cref{sec-controleur_scoreur} \\
+Pondération sous-linéaire des fréquences & non & \cref{sec-controleur_scoreur} \\
+Longueur de l'aperçu textuel par tuile & \num{200} caractères & \cref{sec-tuilage} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -522,8 +521,8 @@ Négatifs difficiles minés par question ($K$) & \num{2} & \cref{sec-contrastif_
 Rang LoRA ($r$) & \num{16} & \cref{sec-contrastif_lora} \\
 Facteur d'échelle LoRA ($\alpha$) & \num{32} & \cref{sec-contrastif_lora} \\
 \anglais{Dropout} LoRA & \num{0.05} & \cref{sec-contrastif_lora} \\
-Paramètres entraînables & \aremplir & \cref{sec-contrastif_lora} \\
-Optimiseur, taux d'apprentissage, échauffement & \aremplir & \cref{sec-contrastif_lora} \\
+Paramètres entraînables & \num{44302336} \enspace(\SI{0.63}{\percent} du total) & \cref{sec-contrastif_lora} \\
+Optimiseur, taux d'apprentissage, échauffement & \code{AdamW}, \num{1e-4}, aucun & \cref{sec-contrastif_lora} \\
 Température InfoNCE ($\tau$) & \num{0.05} & \cref{sec-contrastif_loss} \\
 Taille de lot ($B$) & \num{4} & \cref{sec-contrastif_loss} \\
 Époques & \num{3} & \cref{sec-res_couts} \\
@@ -539,8 +538,8 @@ Appels au modèle concurrents & \num{4} & \cref{sec-impl_concurrence} \\
 \multicolumn{3}{@{}l}{\emph{Modèles et décodage}} \\
 Modèle lecteur (inférence) & \code{qwen3-vl} (Ollama) & \cref{sec-implementation} \\
 Modèle lecteur (affinage) & \code{Qwen2-VL-7B-Instruct} & \cref{sec-contrastif_encodeur} \\
-Aire d'image minimale du processeur (\code{min\_pixels}) & \aremplir & \cref{sec-contrastif_memoire} \\
-Aire d'image maximale du processeur (\code{max\_pixels}) & \aremplir & \cref{tab-cout_tokens} \\
+Aire d'image minimale du processeur (\code{min\_pixels}) & \SI{3136}{\pixel} & \cref{sec-contrastif_memoire} \\
+Aire d'image maximale du processeur (\code{max\_pixels}) & \SI{12845056}{\pixel} & \cref{tab-cout_tokens} \\
 Température de décodage & \num{0} \enspace(glouton) & \cref{sec-impl_repro} \\
 Fenêtre de contexte & \num{8192} tokens & \cref{sec-impl_repro} \\
 \addlinespace
@@ -601,7 +600,7 @@ indifféremment --- et l'état caché de la dernière couche à la position de s
 dernier token est pris comme plongement (\cref{sec-contrastif_encodeur}).
 
 \begin{lstlisting}[language={}, frame=single, basicstyle=\ttfamily\scriptsize]
-\aremplir[instruction PromptEOL exacte, depuis le module de configuration]
+Résume ce qui précède en un mot :
 \end{lstlisting}
 
 Son rôle est de contraindre le modèle à comprimer le sens de l'entrée en une

@@ -507,8 +507,9 @@ une tuile pour un titre resté sans contenu suivant.
 \paragraph{Complexité et comptages.} L'élagage compare chaque candidat aux
 éléments déjà retenus et le regroupement examine toutes les paires, ce qui
 place les deux étapes en $O(n^2)$ dans le pire cas, où $n$ est le nombre
-d'éléments extraits. La page la plus dense du corpus en compte \num{278} avant
-élagage. La chaîne des comptages médians par unité de page s'établit à
+d'éléments extraits. L'unité la plus dense du corpus, une section de l'article
+consacré aux Beatles, en compte \num{161} avant élagage. La chaîne des
+comptages médians par unité de page s'établit à
 9 éléments extraits, 7 après
 élagage, 7 groupes, pour 6 tuiles. Ces deux
 étapes restent négligeables devant le rendu de page et, à plus forte raison,
@@ -995,7 +996,13 @@ modèle de base.
  
 \paragraph{Cibler les deux tours.} LoRA est appliqué aux projections d'attention
 du décodeur (\code{q\_proj}, \code{k\_proj}, \code{v\_proj}, \code{o\_proj}) et à
-celles de la tour de vision (\code{qkv}, \code{proj}). Juger si une tuile répond
+celles de la tour de vision (\code{qkv}, \code{proj}). Le suffixe générique
+\code{proj}, pensé pour la tour de vision, matche par construction tout nom de
+module s'y terminant~; il capture donc aussi, en plus des projections
+d'attention visées, les projections MLP du décodeur (\code{gate\_proj},
+\code{up\_proj}, \code{down\_proj}). L'adaptation couvre ainsi une portée plus
+large que l'attention seule, ce que reflète le compte de paramètres
+entraînables ci-dessus. Juger si une tuile répond
 à une question exige d'affiner simultanément ce qui est vu dans l'image et ce qui
 est compris de la question. Geler la tour de vision reviendrait à demander au
 décodeur de compenser seul une représentation visuelle inadaptée à la tâche de

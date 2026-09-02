@@ -19,7 +19,7 @@ import argparse
 import json
 from pathlib import Path
 
-from src.config import CONTRASTIVE_EXAMPLES_PATH, QA_DATASET_DIR, TILES_MANIFEST_PATH
+from src.config import CONTRASTIVE_EXAMPLES_PATH, TILES_MANIFEST_PATH
 from src.contrastive_dataset import _article_root, split_examples_by_article
 from src.hard_negative_mining import ContrastiveExample, load_contrastive_examples
 

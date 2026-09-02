@@ -109,7 +109,7 @@ async def generate_tiling_and_graph_figures(url: str) -> None:
 async def generate_section_split_figure(url: str) -> None:
     print(f"[2/2] {url} — extraction + découpage en sections...")
     elements, screenshot = await extract_dom_elements_async(url, wait_until="load")
-    graph = build_page_graph_from_elements(elements, screenshot, url=url, slug=slug_for_url(url))
+    graph = build_page_graph_from_elements(elements, screenshot, page_url=url, page_slug=slug_for_url(url))
     n_sections = sum(1 for _, d in graph.nodes(data=True) if d.get("type") == "page")
     print(f"      {len(elements)} éléments -> {n_sections} section(s)")
 

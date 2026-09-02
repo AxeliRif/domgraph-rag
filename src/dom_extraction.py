@@ -60,8 +60,8 @@ async def extract_dom_elements_async(
     Retourne (liste d'éléments, capture d'écran PNG de la page complète).
     `url` peut être une URL http(s) réelle ou un chemin local `file:///...`.
     """
-    element_tags = element_tags or ELEMENT_TAGS
-    noise_selectors = noise_selectors or NOISE_SELECTORS
+    element_tags = element_tags if element_tags is not None else ELEMENT_TAGS
+    noise_selectors = noise_selectors if noise_selectors is not None else NOISE_SELECTORS
     text_flow_tags = text_flow_tags if text_flow_tags is not None else TEXT_FLOW_TAGS
 
     async with async_playwright() as p:
@@ -207,6 +207,18 @@ async def extract_dom_elements_async(
     return elements, screenshot
 
 
-def extract_dom_elements(url: str, render_width: int = RENDER_WIDTH) -> tuple[list[DOMElement], bytes]:
-    """Wrapper synchrone pratique pour un script classique (hors notebook)."""
-    return asyncio.run(extract_dom_elements_async(url, render_width))
+def extract_dom_elements(
+    url: str,
+    render_width: int = RENDER_WIDTH,
+    element_tags: list[str] | None = None,
+    noise_selectors: list[str] | None = None,
+    text_flow_tags: set[str] | None = None,
+    wait_until: str = "networkidle",
+    device_scale_factor: float = DEVICE_SCALE_FACTOR,
+) -> tuple[list[DOMElement], bytes]:
+    """Wrapper synchrone pratique pour un script classique (hors notebook) --
+    transmet tels quels tous les paramètres de `extract_dom_elements_async`."""
+    return asyncio.run(extract_dom_elements_async(
+        url, render_width=render_width, element_tags=element_tags, noise_selectors=noise_selectors,
+        text_flow_tags=text_flow_tags, wait_until=wait_until, device_scale_factor=device_scale_factor,
+    ))

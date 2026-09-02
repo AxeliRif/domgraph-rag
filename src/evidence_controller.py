@@ -93,8 +93,8 @@ def _tokenize(text: str) -> list[str]:
     return re.findall(r"\b\w+\b", (text or "").lower())
 
 
-def _fallback_similarities(query: str, texts: list[str]) -> list[float]:
-    query_tokens = Counter(_tokenize(query))
+def _fallback_similarities(question: str, texts: list[str]) -> list[float]:
+    query_tokens = Counter(_tokenize(question))
     if not query_tokens:
         return [0.0] * len(texts)
 
@@ -112,18 +112,18 @@ def _fallback_similarities(query: str, texts: list[str]) -> list[float]:
     return similarities
 
 
-def _relevance_scores(query: str, node_ids: list[str], texts: list[str]) -> dict[str, float]:
-    """TF-IDF + cosinus entre `query` et le texte de chaque noeud élément
+def _relevance_scores(question: str, node_ids: list[str], texts: list[str]) -> dict[str, float]:
+    """TF-IDF + cosinus entre `question` et le texte de chaque noeud élément
     (repli sans scikit-learn : overlap de tokens, cf. hard_negative_mining.py)."""
     if not node_ids:
         return {}
 
     if TfidfVectorizer is not None and cosine_similarity is not None:
         vectorizer = TfidfVectorizer(stop_words="english", min_df=1)
-        matrix = vectorizer.fit_transform(texts + [query])
+        matrix = vectorizer.fit_transform(texts + [question])
         similarities = cosine_similarity(matrix[-1], matrix[:-1])[0]
     else:
-        similarities = _fallback_similarities(query, texts)
+        similarities = _fallback_similarities(question, texts)
 
     return dict(zip(node_ids, (float(s) for s in similarities)))
 
@@ -173,12 +173,12 @@ def _cross_document_neighbors(graph: nx.MultiDiGraph, node_id: str) -> list[str]
 def run_evidence_controller(
     graph: nx.MultiDiGraph,
     tiles: list[Tile],
-    query: str,
-    config: EvidenceControllerConfig | None = None,
+    question: str,
+    controller_config: EvidenceControllerConfig | None = None,
     precomputed_scores: dict[str, float] | None = None,
 ) -> list[ControllerAction]:
     """Fait évoluer l'attribut `state` des noeuds élément de `graph` (en place)
-    selon la politique décrite en tête de module, pour la requête `query`.
+    selon la politique décrite en tête de module, pour la requête `question`.
 
     `precomputed_scores` : si fourni, remplace le scorer TF-IDF par défaut
     (`_relevance_scores`) -- un noeud absent du dict reçoit un score de 0.0.
@@ -192,7 +192,7 @@ def run_evidence_controller(
     Retourne le journal des actions prises (une entrée par transition
     d'état), utile pour l'inspection/la visualisation dans le notebook.
     """
-    config = config or EvidenceControllerConfig()
+    controller_config = controller_config or EvidenceControllerConfig()
 
     tiles_by_id = {t.id: t for t in tiles}
     element_ids = [n for n, d in graph.nodes(data=True) if d.get("type") == "element"]
@@ -200,7 +200,7 @@ def run_evidence_controller(
         scores = {n: precomputed_scores.get(n, 0.0) for n in element_ids}
     else:
         texts = [graph.nodes[n].get("text_preview", "") for n in element_ids]
-        scores = _relevance_scores(query, element_ids, texts)
+        scores = _relevance_scores(question, element_ids, texts)
 
     for node_id, score in scores.items():
         graph.nodes[node_id]["relevance_score"] = score
@@ -210,7 +210,7 @@ def run_evidence_controller(
 
     # 1. Seed : active les top_k_seed noeuds inactifs les plus pertinents.
     seed_candidates = sorted(element_ids, key=lambda n: scores.get(n, 0.0), reverse=True)
-    for node_id in seed_candidates[: config.top_k_seed]:
+    for node_id in seed_candidates[: controller_config.top_k_seed]:
         before = graph.nodes[node_id]["state"]
         graph.nodes[node_id]["state"] = "active"
         log.append(ControllerAction(step, node_id, "seed", scores.get(node_id, 0.0), before, "active"))
@@ -225,7 +225,7 @@ def run_evidence_controller(
     # parallèle plutôt qu'une par une.
     opened_node_ids: list[str] = []
     budget_used = 0
-    while budget_used < config.budget:
+    while budget_used < controller_config.budget:
         active_ids = [n for n in element_ids if graph.nodes[n]["state"] == "active"]
         if not active_ids:
             break
@@ -233,7 +233,7 @@ def run_evidence_controller(
         node_id = max(active_ids, key=lambda n: scores.get(n, 0.0))
         score = scores.get(node_id, 0.0)
 
-        if score < config.open_threshold:
+        if score < controller_config.open_threshold:
             graph.nodes[node_id]["state"] = "pruned"
             log.append(ControllerAction(step, node_id, "prune", score, "active", "pruned"))
             step += 1
@@ -253,7 +253,7 @@ def run_evidence_controller(
             if graph.nodes[neighbor_id]["state"] != "inactive":
                 continue
             neighbor_score = scores.get(neighbor_id, 0.0)
-            if neighbor_score >= config.activate_threshold:
+            if neighbor_score >= controller_config.activate_threshold:
                 graph.nodes[neighbor_id]["state"] = "active"
                 log.append(ControllerAction(step, neighbor_id, "activate", neighbor_score, "inactive", "active"))
                 step += 1
@@ -268,8 +268,8 @@ def run_evidence_controller(
 
     # 4. Lecture VLM des tuiles ouvertes (remplace le text_preview posé en
     # étape 2 par une évidence extraite par le VLM), en parallèle.
-    if config.use_vlm:
-        _fill_vlm_evidence(graph, tiles_by_id, opened_node_ids, query, config.max_concurrent_vlm_calls)
+    if controller_config.use_vlm:
+        _fill_vlm_evidence(graph, tiles_by_id, opened_node_ids, question, controller_config.max_concurrent_vlm_calls)
 
     return log
 
@@ -278,7 +278,7 @@ def _fill_vlm_evidence(
     graph: nx.MultiDiGraph,
     tiles_by_id: dict[str, Tile],
     node_ids: list[str],
-    query: str,
+    question: str,
     max_workers: int,
 ) -> None:
     """Interroge le VLM sur chaque tuile de `node_ids` (déjà "opened"), en
@@ -296,12 +296,17 @@ def _fill_vlm_evidence(
 
     vlm_client = VLMClient()
     prompt = (
-        f"Question : {query}\n"
+        f"Question : {question}\n"
         "Extrait uniquement les informations de cette image utiles pour y répondre."
     )
 
     def _read_tile(node_id: str) -> tuple[str, str | None]:
         try:
+            # think=False n'est PAS passé ici, contrairement à qa_generation.py
+            # et hard_negative_mining.py (extraction factuelle simple, cf.
+            # VLMClient.ask) : cette question est ouverte (celle de
+            # l'utilisateur), le raisonnement interne du modèle peut donc
+            # aider à en extraire l'évidence pertinente.
             return node_id, vlm_client.ask(tiles_by_id[node_id].image, prompt)
         except Exception:
             return node_id, None  # VLM indisponible -> on garde le text_preview déjà en place

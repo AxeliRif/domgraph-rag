@@ -100,11 +100,14 @@ as the kernel.
 # Check that everything works (local page, no internet needed):
 python3 tests/test_pipeline_smoke.py
 ```
-Then open `notebooks/01_pipeline_playground.ipynb` in VS Code and run the
-cells one by one. By default it runs against a local test page; just change
-the `URL` variable to a real page (e.g. a Wikipedia article) to test under
-real conditions — the code doesn't change, Playwright handles `file://` and
-remote URLs the same way.
+Then open `notebooks/00_pipeline_overview.ipynb` in VS Code and run it top to
+bottom (~a few seconds, no network or VLM needed) — it walks through every
+phase of the pipeline on the local fixture page, with a plot at each step.
+Once you're familiar with the pipeline, `notebooks/01_pipeline_playground.ipynb`
+runs the same idea against a real page; by default it runs against a local
+test page, just change the `URL` variable to a real page (e.g. a Wikipedia
+article) to test under real conditions — the code doesn't change, Playwright
+handles `file://` and remote URLs the same way.
 
 ## 4. Project structure
 
@@ -128,7 +131,8 @@ domgraph-rag/
 │   │   └── pipeline.py          # orchestrates DOM -> tiles -> graph -> evidence controller -> VLM
 │   └── frontend/                # static HTML/CSS/JS, no build step (cytoscape.js via CDN)
 ├── notebooks/
-│   └── 01_pipeline_playground.ipynb   # end-to-end Phase 1 + Phase 2/3 demo, with visualizations
+│   ├── 00_pipeline_overview.ipynb     # offline, self-contained walkthrough of every phase (local fixture, no network/VLM)
+│   └── 01_pipeline_playground.ipynb   # end-to-end Phase 1 + Phase 2/3 demo on a real page, with interactive visualizations
 ├── tests/
 │   ├── fixtures/sample_page.html      # local test page (no network access required)
 │   ├── test_pipeline_smoke.py         # end-to-end sanity check script (Phase 1)

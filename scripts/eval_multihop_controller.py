@@ -207,8 +207,8 @@ def evaluate_on_graph(
     # pas parmi les noeuds "opened"/top-k, jamais un faux positif.
 
     run_evidence_controller(
-        graph, tiles=tiles, query=example["question"],
-        config=EvidenceControllerConfig(budget=budget, top_k_seed=seed_k),
+        graph, tiles=tiles, question=example["question"],
+        controller_config=EvidenceControllerConfig(budget=budget, top_k_seed=seed_k),
         precomputed_scores=precomputed_scores,
     )
     controller_opened = {

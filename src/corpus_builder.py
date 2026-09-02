@@ -53,7 +53,7 @@ def _namespace_graph(G: nx.MultiDiGraph, prefix: str) -> nx.MultiDiGraph:
 
 
 def build_page_graph_from_elements(
-    elements: list[DOMElement], screenshot: bytes, url: str, slug: str,
+    elements: list[DOMElement], screenshot: bytes, page_url: str, page_slug: str,
     use_semantic_similarity: bool = False,
 ) -> nx.MultiDiGraph:
     """Partie synchrone (sans réseau ni navigateur) du pipeline page -> graphe :
@@ -67,7 +67,7 @@ def build_page_graph_from_elements(
     comportement existant tant qu'on ne l'active pas explicitement."""
     if not is_oversized_page(elements):
         G = build_graph(
-            build_tiles(elements, screenshot), page_url=url, page_title=url,
+            build_tiles(elements, screenshot), page_url=page_url, page_title=page_url,
             use_semantic_similarity=use_semantic_similarity,
         )
         G.graph["entry_page"] = "page"
@@ -78,14 +78,14 @@ def build_page_graph_from_elements(
     entry_page_node: str | None = None
     for section in split_into_sections(elements):
         section_tiles = build_tiles(section.elements, screenshot)
-        section_url = url if section.index == 0 else f"{url}#section-{section.index}"
-        section_title = section.title or url
+        section_url = page_url if section.index == 0 else f"{page_url}#section-{section.index}"
+        section_title = section.title or page_url
         section_graph = build_graph(
             section_tiles, page_url=section_url, page_title=section_title,
             use_semantic_similarity=use_semantic_similarity,
         )
 
-        section_slug = f"{slug}__sec{section.index}"
+        section_slug = f"{page_slug}__sec{section.index}"
         namespaced = _namespace_graph(section_graph, section_slug)
         combined = nx.compose(combined, namespaced)
 
@@ -105,7 +105,7 @@ async def build_page_graph(
     """Pipeline complet (Phase 1a-1d) pour une seule page : DOM -> tuiles -> graphe."""
     elements, screenshot = await extract_dom_elements_async(url, render_width=render_width, wait_until="load")
     return build_page_graph_from_elements(
-        elements, screenshot, url=url, slug=slug_for_url(url), use_semantic_similarity=use_semantic_similarity,
+        elements, screenshot, page_url=url, page_slug=slug_for_url(url), use_semantic_similarity=use_semantic_similarity,
     )
 
 

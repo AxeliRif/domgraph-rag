@@ -45,7 +45,7 @@ from pathlib import Path
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
-except ImportError:  # pragma: no cover - exercised in environments with broken sklearn stack
+except ImportError:  # pragma: no cover - environnements avec un sklearn cassé
     TfidfVectorizer = None
     cosine_similarity = None
 
@@ -192,6 +192,7 @@ def mine_hard_negatives(
 
 
 def save_contrastive_examples(examples: list[ContrastiveExample], path: Path = CONTRASTIVE_EXAMPLES_PATH) -> None:
+    """Écrit `examples` en JSONL (une ligne par exemple), en écrasant `path` si elle existe déjà."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         for ex in examples:
@@ -199,6 +200,7 @@ def save_contrastive_examples(examples: list[ContrastiveExample], path: Path = C
 
 
 def load_contrastive_examples(path: Path = CONTRASTIVE_EXAMPLES_PATH) -> list[ContrastiveExample]:
+    """Relit le JSONL écrit par `save_contrastive_examples` ([] si `path` n'existe pas encore)."""
     if not path.exists():
         return []
     with path.open(encoding="utf-8") as f:

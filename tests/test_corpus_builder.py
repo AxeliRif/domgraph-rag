@@ -29,7 +29,9 @@ class BuildPageGraphFromElementsTests(unittest.TestCase):
             _el("e1", "p", 60, 40, "Just one short paragraph."),
         ]
 
-        G = build_page_graph_from_elements(elements, _screenshot(200, 200), url="https://example.org/small", slug="small")
+        G = build_page_graph_from_elements(
+            elements, _screenshot(200, 200), page_url="https://example.org/small", page_slug="small",
+        )
 
         page_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "page"]
         self.assertEqual(page_nodes, ["page"])
@@ -48,7 +50,7 @@ class BuildPageGraphFromElementsTests(unittest.TestCase):
         ]
 
         G = build_page_graph_from_elements(
-            elements, _screenshot(200, 25000), url="https://example.org/beatles", slug="beatles",
+            elements, _screenshot(200, 25000), page_url="https://example.org/beatles", page_slug="beatles",
         )
 
         page_nodes = {n for n, d in G.nodes(data=True) if d.get("type") == "page"}

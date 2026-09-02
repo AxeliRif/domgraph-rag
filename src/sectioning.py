@@ -39,12 +39,14 @@ class PageSection:
 
 
 def page_height(elements: list[DOMElement]) -> float:
+    """Étendue verticale totale (en px) couverte par `elements` (0 si vide)."""
     if not elements:
         return 0.0
     return max(e.y + e.height for e in elements) - min(e.y for e in elements)
 
 
 def is_oversized_page(elements: list[DOMElement], max_height: float = MAX_PAGE_HEIGHT_BEFORE_SPLIT) -> bool:
+    """Vrai si `elements` doit être découpé en sections (cf. module docstring) plutôt que tuilé d'un bloc."""
     return page_height(elements) > max_height
 
 

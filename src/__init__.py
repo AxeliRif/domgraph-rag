@@ -28,6 +28,7 @@ __all__ = [
     "split_into_sections",
     "plot_graph",
     "plot_page_overlay",
+    "plot_page_overview",
     "VLMClient",
     "QAPair",
     "generate_qa_dataset",
@@ -41,6 +42,11 @@ __all__ = [
     "run_evidence_controller",
     "collect_evidence",
     "state_counts",
+    "compress_image",
+    "compress_images_dir",
+    "MultiHopExample",
+    "ArticleUnavailableError",
+    "build_multihop_example",
 ]
 
 _EXPORTS = {
@@ -63,6 +69,7 @@ _EXPORTS = {
     "split_into_sections": (".sectioning", "split_into_sections"),
     "plot_graph": (".visualization", "plot_graph"),
     "plot_page_overlay": (".visualization", "plot_page_overlay"),
+    "plot_page_overview": (".visualization", "plot_page_overview"),
     "VLMClient": (".vlm_client", "VLMClient"),
     "QAPair": (".qa_generation", "QAPair"),
     "generate_qa_dataset": (".qa_generation", "generate_qa_dataset"),
@@ -76,6 +83,11 @@ _EXPORTS = {
     "run_evidence_controller": (".evidence_controller", "run_evidence_controller"),
     "collect_evidence": (".evidence_controller", "collect_evidence"),
     "state_counts": (".evidence_controller", "state_counts"),
+    "compress_image": (".image_compression", "compress_image"),
+    "compress_images_dir": (".image_compression", "compress_images_dir"),
+    "MultiHopExample": (".multihop_qa", "MultiHopExample"),
+    "ArticleUnavailableError": (".multihop_qa", "ArticleUnavailableError"),
+    "build_multihop_example": (".multihop_qa", "build_multihop_example"),
 }
 
 

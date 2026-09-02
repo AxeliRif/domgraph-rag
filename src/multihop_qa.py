@@ -37,6 +37,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 
+from .config import N_HARD_NEGATIVES
 from .dom_extraction import extract_dom_elements_async
 from .tiling import Tile, build_tiles
 
@@ -49,8 +50,6 @@ except ImportError:  # pragma: no cover - environnements avec un sklearn cassé
     ENGLISH_STOP_WORDS = frozenset(
         "a an the of to in and is are was were be been being for on with as by at from this that".split()
     )
-
-N_MULTIHOP_HARD_NEGATIVES = 2
 
 
 class ArticleUnavailableError(Exception):
@@ -74,10 +73,12 @@ class MultiHopExample:
 
 
 def slug_for_title(title: str) -> str:
+    """Identifiant court dérivé d'un titre d'article Wikipédia (ex. "Retrieval-augmented generation")."""
     return title.replace(" ", "_")
 
 
 def url_for_title(title: str) -> str:
+    """URL Wikipédia (anglais) correspondant à un titre d'article `supporting_facts`."""
     return f"https://en.wikipedia.org/wiki/{slug_for_title(title)}"
 
 
@@ -105,21 +106,26 @@ def _fallback_similarities(query: str, texts: list[str]) -> list[float]:
     return similarities
 
 
-def _sentence_overlaps_tile(sentence: str, tile_text: str, min_overlap_ratio: float = 0.5) -> bool:
-    """Vrai si au moins `min_overlap_ratio` des tokens significatifs (hors
-    mots vides) de `sentence` apparaissent dans `tile_text`. Un recouvrement
-    de tokens plutôt qu'une correspondance de sous-chaîne exacte tolère une
-    reformulation mineure de l'article depuis la version utilisée par
-    HotpotQA (le dump Wikipédia de 2017) -- constaté en pratique : une
+def _sentence_overlaps_tile(sentence: str, tile_text: str, min_token_overlap_ratio: float = 0.5) -> bool:
+    """Vrai si au moins `min_token_overlap_ratio` des tokens significatifs
+    (hors mots vides) de `sentence` apparaissent dans `tile_text`. Un
+    recouvrement de tokens plutôt qu'une correspondance de sous-chaîne exacte
+    tolère une reformulation mineure de l'article depuis la version utilisée
+    par HotpotQA (le dump Wikipédia de 2017) -- constaté en pratique : une
     correspondance de sous-chaîne exacte n'aboutissait presque jamais sur un
     échantillon de test, alors que l'article existe toujours et porte
-    toujours la même information (cf. scripts/build_multihop_dataset.py)."""
+    toujours la même information (cf. scripts/build_multihop_dataset.py).
+
+    Nommé `min_token_overlap_ratio` (et non `min_overlap_ratio`, cf.
+    tiling.group_overlapping_elements) pour éviter la confusion avec le
+    recouvrement *spatial* de bounding boxes utilisé par le tuilage -- même
+    mot, notion sans rapport ici (chevauchement lexical, pas géométrique)."""
     sentence_tokens = set(_tokenize(sentence)) - ENGLISH_STOP_WORDS
     if not sentence_tokens:
         return False
     tile_tokens = set(_tokenize(tile_text))
     overlap = sentence_tokens & tile_tokens
-    return len(overlap) / len(sentence_tokens) >= min_overlap_ratio
+    return len(overlap) / len(sentence_tokens) >= min_token_overlap_ratio
 
 
 def find_positive_tiles(tiles: list[Tile], supporting_sentences: list[str]) -> list[str]:
@@ -134,7 +140,7 @@ def mine_cross_page_hard_negatives(
     question: str,
     pages: list[tuple[str, list[Tile]]],
     positive_ids: set[tuple[str, str]],
-    n_negatives: int = N_MULTIHOP_HARD_NEGATIVES,
+    n_negatives: int = N_HARD_NEGATIVES,
 ) -> list[tuple[str, str]]:
     """Mine des négatifs difficiles sur le pool COMBINÉ des tuiles de toutes
     les pages fournies (même mécanisme TF-IDF + cosinus que

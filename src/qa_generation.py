@@ -91,7 +91,7 @@ def append_tiles_manifest(
     dataset, cf. ContrastiveTileDataset), pas au dossier `images/` lui-même —
     c'est ce qui permet à `image_paths` de venir de n'importe quel dossier
     (utile en test, ou si `generate_qa_dataset` est appelé avec un
-    `output_dir` custom).
+    `images_root` custom).
 
     Idempotent par (page_slug, tile_id) : si `generate_qa_dataset` est
     rappelé sur une unité déjà (partiellement) écrite -- ex. un run interrompu
@@ -190,7 +190,7 @@ def generate_qa_dataset(
     page_url: str,
     page_slug: str,
     client: VLMClient | None = None,
-    output_dir: Path = QA_DATASET_DIR,
+    images_root: Path = QA_DATASET_DIR,
     max_workers: int = 4,
 ) -> list[QAPair]:
     """Pipeline complet Phase 2a pour une page : sauvegarde les crops de toutes
@@ -219,18 +219,18 @@ def generate_qa_dataset(
     après interruption rappelle `generate_qa_dataset` sur une unité déjà
     (partiellement) écrite."""
     client = client or VLMClient()
-    images_dir = output_dir / "images"
-    manifest_path = output_dir / "tiles_manifest.jsonl"
-    qa_pairs_path = output_dir / "qa_pairs.jsonl"
+    images_dir = images_root / "images"
+    manifest_path = images_root / "tiles_manifest.jsonl"
+    qa_pairs_path = images_root / "qa_pairs.jsonl"
 
     image_paths = save_tile_images(tiles, page_slug, images_dir)
-    append_tiles_manifest(tiles, page_url, page_slug, image_paths, manifest_path, images_root=output_dir)
+    append_tiles_manifest(tiles, page_url, page_slug, image_paths, manifest_path, images_root=images_root)
 
     existing_by_id = {qa.id: qa for qa in load_qa_pairs(qa_pairs_path) if qa.page_slug == page_slug}
     tiles_to_generate = [t for t in tiles if f"{page_slug}__{t.id}__qa" not in existing_by_id]
 
     def _generate(tile: Tile) -> QAPair | None:
-        return generate_qa_pair_for_tile(tile, client, page_url, page_slug, image_paths, images_root=output_dir)
+        return generate_qa_pair_for_tile(tile, client, page_url, page_slug, image_paths, images_root=images_root)
 
     newly_written: dict[str, QAPair] = {}
     qa_pairs_path.parent.mkdir(parents=True, exist_ok=True)
@@ -251,6 +251,7 @@ def generate_qa_dataset(
 
 
 def load_qa_pairs(path: Path = QA_PAIRS_PATH) -> list[QAPair]:
+    """Relit le JSONL écrit par `generate_qa_dataset` ([] si `path` n'existe pas encore)."""
     if not path.exists():
         return []
     with path.open(encoding="utf-8") as f:
