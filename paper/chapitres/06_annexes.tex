@@ -240,7 +240,23 @@ produit la réponse. Elle porte sur un tirage aléatoire reproductible
 inter-pages de l'évaluation~C --- l'échantillon reste restreint en raison du
 coût, environ deux minutes par tuile ouverte. Les réponses sont notées par
 correspondance exacte et $F_1$ sur tokens après normalisation standard de
-SQuAD~\citep{squad2016}.
+SQuAD~\citep{squad2016}, et par ANLS (\emph{Average Normalized Levenshtein
+Similarity}, \code{scripts/eval\_multihop\_e2e.py::\_anls}), le standard du
+benchmark DocVQA~\citep{docvqa2021} pour les systèmes de question-réponse
+\emph{visuels}~: un système qui lit des pixels plutôt que du texte extrait par
+OCR est sujet à de petites erreurs de forme (un caractère de la réponse
+produite par le VLM manquant ou substitué) que la correspondance exacte
+sanctionne au même titre qu'une réponse sans rapport, alors qu'ANLS accorde un
+crédit proportionnel à la distance d'édition normalisée (nul en-deçà d'un
+seuil de similarité de \num{0.5}, pour ne pas non plus créditer une réponse
+conceptuellement fausse). Les trois métriques sont rapportées côte à côte~:
+EM/$F_1$ pour la comparabilité avec HotpotQA, ANLS pour la comparabilité avec
+DocVQA~\citep{docvqa2021}, LongDocURL~\citep{longdocurl2024} et
+MMLongBench-Doc~\citep{mmlongbenchdoc2024} --- les deux derniers étant les
+benchmarks documentaires sur lesquels MAGE-RAG~\citep{magerag2026} est évalué
+(\cref{chap-resultats}) --- et pour distinguer, précisément plutôt que par
+inspection manuelle seule, un échec de raisonnement d'un simple bruit de
+forme.
 
 \begin{table}[t]
 \centering
@@ -255,6 +271,7 @@ Métrique & Valeur \\
 \midrule
 Correspondance exacte & \num{0.050} \enspace(\num{1}/\num{20}) \\
 $F_1$ sur tokens & \num{0.057} \\
+ANLS~\citep{docvqa2021} & \num{0.050} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -262,6 +279,23 @@ $F_1$ sur tokens & \num{0.057} \\
 Une réponse exactement correcte sur vingt, et un $F_1$ de \num{0.057}~: prise
 seule, cette mesure indique que le système assemblé n'est pas prêt pour un
 usage réel. Ce qui la rend informative est la \emph{nature} des erreurs.
+
+\textbf{L'ANLS ne change pas ce diagnostic.} À \num{0.050}, elle est
+quasiment identique à la correspondance exacte, alors que c'est justement sur
+l'écart entre les deux que repose son intérêt~: si les erreurs du système
+étaient du bruit de forme --- une réponse par ailleurs correcte, légèrement
+mal formatée ou tronquée par le VLM ---, ANLS aurait recrédité une partie de
+ce que la correspondance exacte ramène à zéro, et l'écart entre les deux
+scores mesurerait directement l'ampleur de cet artefact de métrique.
+L'absence quasi totale d'écart est donc elle-même un résultat~: sur cet
+échantillon, la métrique intolérante n'est pas ce qui déprime le score, ce que
+confirme la \cref{sec-res_d_erreurs}~: les prédictions manquées sont pour la
+plupart des refus textuels entiers (« Not specified in evidence ») ou des
+entités clairement différentes de la référence, jamais des quasi-réponses à
+un caractère près --- la distance d'édition normalisée à la référence y reste
+loin sous le seuil de crédit partiel de ANLS (\num{0.5}) dans la quasi-totalité
+des cas. Le sous-rappel de preuves documenté ci-dessous, pas l'intolérance de
+la métrique, porte donc l'essentiel de l'échec observé.
 
 \subsection{Taxonomie des erreurs et analyse}
 \label{sec-res_d_erreurs}

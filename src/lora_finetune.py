@@ -102,6 +102,8 @@ def load_reader_model(
     )
     print(f"[lora_finetune] LoRA appliqué à {len(target_modules)} modules "
           f"(LLM: {LORA_TARGET_SUFFIXES_LLM}, ViT: {LORA_TARGET_SUFFIXES_VIT})")
+    found_suffixes = sorted({name.rsplit(".", 1)[-1] for name in target_modules})
+    print(f"[lora_finetune] suffixes de modules effectivement résolus : {found_suffixes}")
 
     lora_config = LoraConfig(
         r=r, lora_alpha=alpha, lora_dropout=dropout,

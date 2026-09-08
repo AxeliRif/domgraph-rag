@@ -20,6 +20,20 @@ normalisation standard SQuAD/HotpotQA (minuscules, ponctuation et articles
 retirés) -- pas de correspondance de sous-chaîne brute, qui pénaliserait
 injustement une réponse correcte mais reformulée.
 
+Scoré aussi en ANLS (Average Normalized Levenshtein Similarity, standard du
+benchmark DocVQA depuis Biten et al. 2019/Mathew et al. 2020, arXiv:2007.00398)
+en complément d'EM/F1 : un système qui LIT DES PIXELS (comme celui-ci, ou
+DocVQA) est sujet à de petites erreurs de type OCR sur la réponse produite par
+le VLM (un caractère manquant, une casse différente) que EM sanctionne comme
+une pure fabulation (score 0) au même titre qu'une réponse totalement fausse,
+alors qu'ANLS accorde un crédit partiel proportionnel à la distance d'édition
+-- cf. `_anls` ci-dessous. Les deux métriques restent rapportées côte à côte :
+EM/F1 pour la comparabilité avec HotpotQA (dont c'est le standard), ANLS pour
+la comparabilité avec DocVQA/LongDocURL/MMLongBench-Doc (Table~1 du papier
+MAGE-RAG) et pour distinguer un échec de raisonnement (prédiction éloignée de
+la référence même en distance d'édition) d'un simple bruit de forme (réponse
+correcte mais légèrement mal orthographiée/formatée).
+
 Coût : contrairement à scripts/eval_multihop_controller.py, chaque tuile
 ouverte ET la synthèse finale sont un appel VLM (cf. le coût de ~2 min/tuile
 en local documenté dans le papier, Appendix/Status) -- lance d'abord un petit
@@ -130,6 +144,61 @@ def _f1(prediction: str, gold: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+# --- ANLS (Average Normalized Levenshtein Similarity), standard DocVQA -----
+# Normalisation volontairement plus légère que `_normalize` (minuscules +
+# espaces superflus retirés, SANS retirer ponctuation/articles) : ANLS mesure
+# une distance d'édition sur la chaîne quasiment brute -- lui appliquer la
+# même normalisation agressive que EM/F1 grignoterait une partie du signal
+# typographique qu'elle est censée capturer (cf. spec DocVQA, Mathew et al.
+# 2020, arXiv:2007.00398).
+_ANLS_THRESHOLD = 0.5  # sous ce seuil de similarité, score ramené à 0 (cf. spec DocVQA) : une réponse trop
+                       # éloignée de la référence ne doit pas recevoir de crédit partiel arbitraire.
+
+
+def _anls_normalize(text: str) -> str:
+    return " ".join((text or "").lower().split())
+
+
+def _levenshtein(a: str, b: str) -> int:
+    """Distance d'édition (insertions/suppressions/substitutions), programmation
+    dynamique standard en O(len(a)*len(b)) -- pas de dépendance externe pour
+    une seule paire de chaînes courtes (des réponses, pas des documents)."""
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    previous_row = list(range(len(b) + 1))
+    for i, ca in enumerate(a, start=1):
+        current_row = [i] + [0] * len(b)
+        for j, cb in enumerate(b, start=1):
+            cost = 0 if ca == cb else 1
+            current_row[j] = min(
+                previous_row[j] + 1,       # suppression
+                current_row[j - 1] + 1,    # insertion
+                previous_row[j - 1] + cost,  # substitution
+            )
+        previous_row = current_row
+    return previous_row[-1]
+
+
+def _anls(prediction: str, gold: str) -> float:
+    """Similarité normalisée par la distance de Levenshtein (0 à 1, 1 =
+    identique), ramenée à 0 sous `_ANLS_THRESHOLD` -- ce seuil est ce qui
+    distingue ANLS d'une similarité continue brute : une réponse conceptuellement
+    différente de la référence (score déjà bas) ne doit pas non plus recevoir un
+    crédit proportionnel à un hasard de longueur de chaîne. HotpotQA ne fournit
+    qu'une seule réponse de référence par question (contrairement à DocVQA, qui
+    en fournit plusieurs et prend le max) -- pas de max à faire ici."""
+    a, b = _anls_normalize(prediction), _anls_normalize(gold)
+    max_len = max(len(a), len(b))
+    if max_len == 0:
+        return 1.0
+    similarity = 1.0 - _levenshtein(a, b) / max_len
+    return similarity if similarity >= _ANLS_THRESHOLD else 0.0
+
+
 async def evaluate_example(
     example: dict, budget: int, seed_k: int, page_cache: dict, vlm: VLMClient,
 ) -> dict | None:
@@ -160,7 +229,35 @@ async def evaluate_example(
         "prediction": prediction,
         "em": _exact_match(prediction, gold),
         "f1": _f1(prediction, gold),
+        "anls": _anls(prediction, gold),
     }
+
+
+def _recompute_metrics_only() -> None:
+    """Recalcule em/f1/anls de tous les résultats déjà stockés dans
+    E2E_EVAL_PATH à partir de prediction/gold -- aucun appel VLM ni réseau,
+    juste du calcul de chaînes. Sert à faire bénéficier des runs antérieurs
+    (évalués avant l'ajout d'ANLS à ce script) de la nouvelle métrique sans
+    repayer le coût d'un run complet (~qq minutes/question, cf. docstring)."""
+    if not E2E_EVAL_PATH.exists():
+        raise SystemExit(f"{E2E_EVAL_PATH} introuvable -- rien à recalculer, lance d'abord un run normal.")
+
+    output = json.loads(E2E_EVAL_PATH.read_text(encoding="utf-8"))
+    for r in output["results"]:
+        r["em"] = _exact_match(r["prediction"], r["gold"])
+        r["f1"] = _f1(r["prediction"], r["gold"])
+        r["anls"] = _anls(r["prediction"], r["gold"])
+    E2E_EVAL_PATH.write_text(json.dumps(output, indent=2))
+
+    n = len(output["results"])
+    if n == 0:
+        print("Aucun résultat stocké.")
+        return
+    em = sum(r["em"] for r in output["results"]) / n
+    f1 = sum(r["f1"] for r in output["results"]) / n
+    anls = sum(r["anls"] for r in output["results"]) / n
+    print(f"{n} résultats recalculés dans {E2E_EVAL_PATH}")
+    print(f"EM = {em:.3f}   F1 = {f1:.3f}   ANLS = {anls:.3f}")
 
 
 async def main_async(
@@ -199,7 +296,7 @@ async def main_async(
             continue
         results.append(r)
         print(
-            f"  gold={r['gold']!r} | pred={r['prediction']!r} | EM={r['em']} F1={r['f1']:.2f} "
+            f"  gold={r['gold']!r} | pred={r['prediction']!r} | EM={r['em']} F1={r['f1']:.2f} ANLS={r['anls']:.2f} "
             f"({time.time() - q_t0:.0f}s)",
             flush=True,
         )
@@ -216,8 +313,9 @@ async def main_async(
     else:
         em = sum(r["em"] for r in results) / n
         f1 = sum(r["f1"] for r in results) / n
-        print(f"\n{'=' * 60}\n{n} questions évaluées (budget={budget}, seed_k={seed_k})\n{'=' * 60}")
-        print(f"EM = {em:.3f}   F1 = {f1:.3f}")
+        anls = sum(r["anls"] for r in results) / n
+        print(f"\n{'=' * 60}\n{n} questions évaluées dans CE run (budget={budget}, seed_k={seed_k})\n{'=' * 60}")
+        print(f"EM = {em:.3f}   F1 = {f1:.3f}   ANLS = {anls:.3f}")
         print(f"Temps total : {elapsed:.0f}s ({elapsed / n:.0f}s/question en moyenne)")
 
     # Fusionne avec un run précédent plutôt que d'écraser -- une relance ciblée
@@ -227,6 +325,17 @@ async def main_async(
     prior = json.loads(E2E_EVAL_PATH.read_text(encoding="utf-8")) if E2E_EVAL_PATH.exists() else None
     merged_results = {r["id"]: r for r in (prior["results"] if prior else [])}
     merged_results.update({r["id"]: r for r in results})
+
+    # Recalcule em/f1/anls de TOUS les résultats fusionnés (y compris ceux
+    # d'un run antérieur, pas seulement ceux de ce run) à partir de
+    # prediction/gold déjà stockés -- pur calcul de chaînes, aucun appel VLM --
+    # pour que les résultats obtenus avant l'ajout d'ANLS à ce script en
+    # bénéficient rétroactivement sans avoir à relancer le pipeline complet.
+    for r in merged_results.values():
+        r["em"] = _exact_match(r["prediction"], r["gold"])
+        r["f1"] = _f1(r["prediction"], r["gold"])
+        r["anls"] = _anls(r["prediction"], r["gold"])
+
     sampled_ids = sorted(set((prior["sampled_ids"] if prior else [])) | {ex["id"] for ex in examples})
     runs = (prior["runs"] if prior and "runs" in prior else []) + [run_log]
 
@@ -237,6 +346,12 @@ async def main_async(
     n_expected = len(sampled_ids)
     print(f"\nRésultats fusionnés écrits dans {E2E_EVAL_PATH} "
           f"({n_merged}/{n_expected} question(s) échantillonnée(s) au total ont un résultat)")
+    if n_merged > 0:
+        em_all = sum(r["em"] for r in merged_results.values()) / n_merged
+        f1_all = sum(r["f1"] for r in merged_results.values()) / n_merged
+        anls_all = sum(r["anls"] for r in merged_results.values()) / n_merged
+        print(f"Sur l'ensemble des {n_merged} résultats fusionnés : "
+              f"EM = {em_all:.3f}   F1 = {f1_all:.3f}   ANLS = {anls_all:.3f}")
     if n_merged < n_expected:
         still_missing = sorted(set(sampled_ids) - set(merged_results))
         print(f"encore manquant(es) : {still_missing}")
@@ -254,7 +369,16 @@ def main() -> None:
              "pour relancer juste les questions tombées en échec (ex. déconnexion réseau) sans "
              "reperdre les résultats déjà obtenus (fusionnés dans multihop_e2e_eval.json).",
     )
+    parser.add_argument(
+        "--recompute-only", action="store_true",
+        help="Ne relance AUCUNE évaluation (pas d'appel VLM ni réseau) : recalcule juste em/f1/anls "
+             "des résultats déjà stockés dans multihop_e2e_eval.json à partir de prediction/gold -- "
+             "pour bénéficier d'une nouvelle métrique (ex. ANLS) sans repayer un run complet.",
+    )
     args = parser.parse_args()
+    if args.recompute_only:
+        _recompute_metrics_only()
+        return
     ids = args.ids.split(",") if args.ids else None
     asyncio.run(main_async(args.budget, args.seed_k, args.max_questions, args.seed, ids))
 
